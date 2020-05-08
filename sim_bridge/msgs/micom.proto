@@ -1,0 +1,63 @@
+syntax = "proto2";
+package gazebo.msgs;
+
+/// \ingroup gazebo_msgs
+/// \interface Micom
+/// \brief Message for Micom Board
+
+import "time.proto";
+import "imu.proto";
+import "battery.proto";
+
+message Micom
+{
+  message USS
+  {
+    repeated uint32 distance  = 1;
+  }
+
+  message IR
+  {
+    repeated uint32 distance  = 1;
+  }
+
+  message Magnet
+  {
+    repeated bool detected = 1;
+  }
+
+  message Odometry
+  {
+    required int32 speed_left   = 1 [default = 0];
+    required int32 speed_right  = 2 [default = 0];
+  }
+
+  message AccGyro
+  {
+    required double angle_x = 1 [default = 0.0];
+    required double angle_y = 2 [default = 0.0];
+    required double angle_z = 3 [default = 0.0];
+    required double anguler_rate_x = 4 [default = 0.0];
+    required double anguler_rate_y = 5 [default = 0.0];
+    required double anguler_rate_z = 6 [default = 0.0];
+    required double acc_x = 7 [default = 0.0];
+    required double acc_y = 8 [default = 0.0];
+    required double acc_z = 9 [default = 0.0];
+  }
+
+  message Bumper
+  {
+    repeated bool bumped = 1;
+  }
+
+  // Time when the data sent
+  required Time time        = 1;
+  required Odometry odom    = 2;
+  optional USS uss          = 3;
+  optional IR ir            = 4;
+  optional Magnet magnet    = 5;
+  optional AccGyro accgyro  = 6;
+  optional IMU imu          = 7;
+  optional Bumper bumper    = 8;
+  optional Battery battery  = 9;
+}

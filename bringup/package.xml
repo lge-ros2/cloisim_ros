@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>simdevice_bringup</name>
+  <version>1.0.0</version>
+  <description>Bringup scripts and configurations for simdevice</description>
+
+  <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
+
+  <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>
+  <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
+
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>launch_ros</build_depend>
+  <build_depend>sim_bridge</build_depend>
+  <build_depend>unity_ros</build_depend>
+  <build_depend>lidar_driver_sim</build_depend>
+  <build_depend>micom_driver_sim</build_depend>
+  <build_depend>elevator_system</build_depend>
+
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>rmw</exec_depend>
+  <exec_depend>unity_ros</exec_depend>
+  <exec_depend>mcu_driver_sim</exec_depend>
+  <exec_depend>lidar_driver_sim</exec_depend>
+  <exec_depend>elevator_system</exec_depend>
+
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>launch</test_depend>
+  <test_depend>launch_testing</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

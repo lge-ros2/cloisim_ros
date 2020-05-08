@@ -1,0 +1,14 @@
+syntax = "proto2";
+package gazebo.msgs;
+
+/// \ingroup gazebo_msgs
+/// \interface Vector3d 
+/// \brief Message for a vector3 double
+
+
+message Vector3d
+{
+  required double x = 1;
+  required double y = 2;
+  required double z = 3;
+}

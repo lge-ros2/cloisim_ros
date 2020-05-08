@@ -1,0 +1,16 @@
+syntax = "proto2";
+package gazebo.msgs;
+
+/// \ingroup gazebo_msgs
+/// \interface Path_Info
+/// \brief Message for Path_Info
+
+message Path_Info
+{
+    required int32 datainfo       = 1;
+    optional float fXmm           = 2;
+    optional float fYmm           = 3;
+    optional float fDeg           = 4;
+    optional int32 corner         = 5;
+    required int32 index          = 6;
+}

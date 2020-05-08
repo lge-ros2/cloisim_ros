@@ -1,0 +1,18 @@
+syntax = "proto2";
+package gazebo.msgs;
+
+/// \ingroup gazebo_msgs
+/// \interface UwbAnchor
+/// \brief Message for UwbAnchor
+
+import "vector3d.proto";
+
+message UwbAnchor
+{
+  required int32 id                = 1;
+  required int32 dist              = 2;
+  optional Vector3d pos            = 3;
+  optional Vector3d estimated_pos  = 4;
+  optional int32 state             = 5;
+  optional int32 strength          = 6;
+}

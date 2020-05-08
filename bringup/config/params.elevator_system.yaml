@@ -1,0 +1,9 @@
+elevator_system:
+  ros__parameters:
+    use_sim_time: True
+    sim:
+      model: "SeochoTower"
+      parts: "ElevatorSystem"
+      system_name: "ElevatorSystem_00"
+      ip_address: "127.0.0.1"
+      manager_port: 25554

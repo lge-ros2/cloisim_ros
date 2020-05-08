@@ -1,0 +1,47 @@
+syntax = "proto2";
+package gazebo.msgs;
+
+/// \ingroup gazebo_msgs
+/// \interface Micom_L9S
+/// \brief Message for Micom_L9S
+
+import "uwb.proto";
+
+message Micom_L9S
+{
+required int32 stBmsData_eLevel               = 1;
+required int32 stBmsData_eStatus              = 2;
+required int32 stBmsData_eErrorStatus         = 3;
+required bool stBmsData_chargerContact       = 4;
+
+required float stDeltaDR_fXmm       = 5;
+required float stDeltaDR_fYmm       = 6;
+required float stDeltaDR_fDeg       = 7;
+
+required int32 stCompassData_nAHRS_Status       = 8;
+required int32 stCompassData_nAngleDeg10Times   = 9;
+
+required bool stWheelData_Left_bWheelDriverFault       = 10;
+required bool stWheelData_Left_bWheelNotOper            = 11;
+required bool stWheelData_Left_bWheelOverLoad          = 12;
+required bool stWheelData_Left_bWheelSelfTestError     = 13;
+required bool stWheelData_Left_bWheelStuck             = 14;
+
+required bool stWheelData_Right_bWheelDriverFault      = 15;
+required bool stWheelData_Right_bWheelNotOper          = 16;
+required bool stWheelData_Right_bWheelOverLoad         = 17;
+required bool stWheelData_Right_bWheelSelfTestError    = 18;
+required bool stWheelData_Right_bWheelStuck            = 19;
+
+required int32 stUssData_Left       = 20;
+required int32 stUssData_Center     = 21;
+required int32 stUssData_Right      = 22;
+required bool stUssData_USS_OK     = 23;
+
+required bool stBumpData_isBumping = 24;
+required bool stBumpData_No0       = 25;
+required bool stBumpData_No1       = 26;
+
+required Uwb stUwbData       = 27;
+
+}
