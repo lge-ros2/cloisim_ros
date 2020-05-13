@@ -5,7 +5,7 @@
   <description>virtual device driver for simulator</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
-  <license>Apache 2.0</license>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
