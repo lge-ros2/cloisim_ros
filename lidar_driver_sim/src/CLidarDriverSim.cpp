@@ -46,7 +46,7 @@ CLidarDriverSim::CLidarDriverSim()
 
   get_parameter("sim.ip_address", sim_ip);
   get_parameter("sim.manager_port", sim_manager_port);
-  get_parameter_or("sim.model", robot_name_, std::string("CLOI_porter"));
+  get_parameter_or("sim.model", robot_name_, std::string("cloi"));
   get_parameter_or("sim.parts", part_name_, std::string("front_lidar"));
 
   get_parameter_or("topic_name", topic_name_, std::string("scan"));

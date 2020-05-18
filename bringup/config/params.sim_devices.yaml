@@ -1,6 +1,4 @@
-
-
-lidar_driver_sim:
+lidar_driver:
   ros__parameters:
     use_sim_time: True
 
@@ -22,7 +20,7 @@ lidar_driver_sim:
       lower_angle: -1.85005
       upper_angle: 1.85005
 
-micom_driver_sim:
+micom_driver:
   ros__parameters:
     use_sim_time: True
 

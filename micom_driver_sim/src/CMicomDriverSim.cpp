@@ -53,7 +53,7 @@ CMicomDriverSim::CMicomDriverSim()
   get_parameter("sim.manager_port", sim_manager_port);
   get_parameter_or("wheel.base", wheel_base, 449.0);
   get_parameter_or("wheel.radius", wheel_radius, 95.5);
-  get_parameter_or("sim.model", robot_name, std::string("CLOI_porter"));
+  get_parameter_or("sim.model", robot_name, std::string("cloi"));
   get_parameter_or("sim.parts_tx", input_part_name, std::string("MICOM_INPUT"));
   get_parameter_or("sim.parts_rx", sensor_part_name, std::string("MICOM_SENSOR"));
 
@@ -90,7 +90,6 @@ CMicomDriverSim::CMicomDriverSim()
 
 CMicomDriverSim::~CMicomDriverSim()
 {
-  m_bMicomThreadFlag = false;
   usleep(100);
 
   Stop();
@@ -138,6 +137,7 @@ void CMicomDriverSim::Start()
 void CMicomDriverSim::Stop()
 {
   m_bMicomThreadFlag = false;
+
   usleep(100);
 
   if (m_thread.joinable())

@@ -27,8 +27,13 @@ def generate_launch_description():
     _pkg_name = "simdevice_bringup"
     launch_dir = os.path.join(get_package_share_directory(_pkg_name), 'launch')
 
-    # define launch script name ex) lidar_driver_sim.launch.py -> "lidar_driver_sim"
-    _node_list = ['lidar_driver_sim', 'micom_driver_sim']
+    # define launch script name
+    # launch script name
+    #   ex) lidar_driver_sim.launch.py -> "lidar_driver_sim"
+    _launch_list = [
+        'lidar_driver_sim',
+        'micom_driver_sim'
+    ]
 
     declare_launch_argument_rn = DeclareLaunchArgument(
         'robot_name',
@@ -47,10 +52,11 @@ def generate_launch_description():
     ld.add_action(declare_launch_argument_rn)
 
     # Add the actions to launch all of sim driver
-    for _node in _node_list:
+    for _item in _launch_list:
 
         included_launch = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([launch_dir, '/' + _node + '.launch.py']),
+            PythonLaunchDescriptionSource(
+                [launch_dir, '/' + _item + '.launch.py']),
             launch_arguments={'robot_name': robot_name}.items())
 
         ld.add_action(included_launch)

@@ -28,21 +28,40 @@ def generate_launch_description():
     _config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
     config_params = os.path.join(_config_dir, 'params.sim_devices.yaml')
 
-    _node_name_lidar = 'lidar_driver_sim'
+    _package_name = 'lidar_driver_sim'
+    _node_name = 'lidar_driver'
 
     # modify config param with namespace
     (_config_params, _remapping_list) = get_modified_params_with_ns_and_remapping_list(
-        config_params, _node_name_lidar)
+        config_params, _node_name)
 
-    start_lidar_driver_sim_cmd = Node(
-        package=_node_name_lidar,
-        node_executable=_node_name_lidar,
-        node_name=_node_name_lidar,
+    start_lidar_driver_cmd = Node(
+        package=_package_name,
+        node_executable=_package_name,
+        node_name=_node_name,
         node_namespace=_robot_name,
         remappings=_remapping_list,
         parameters=[_config_params],
         output='screen')
 
+    ###########################
+    # for additional node
+    ###########################
+
+    # _node_name_2 = 'lidar_driver_rear'
+
+    # modify config param with namespace
+    # (_config_params_2, _remapping_list_2) = get_modified_params_with_ns_and_remapping_list(
+    #    config_params, _node_name_2)
+
+    # start_lidar_driver_2_cmd = Node(
+    #     package=_package_name,
+    #     node_executable=_package_name,
+    #     node_name=_node_name_2,
+    #     node_namespace=_robot_name,
+    #     remappings=_remapping_list_2,
+    #     parameters=[_config_params_2],
+    #     output='screen')
 
     declare_launch_argument_rn = DeclareLaunchArgument(
         'robot_name',
@@ -60,6 +79,7 @@ def generate_launch_description():
 
     ld.add_action(declare_launch_argument_rn)
 
-    ld.add_action(start_lidar_driver_sim_cmd)
+    ld.add_action(start_lidar_driver_cmd)
+    # ld.add_action(start_lidar_driver_2_cmd)
 
     return ld

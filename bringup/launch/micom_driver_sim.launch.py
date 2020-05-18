@@ -20,28 +20,26 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
 
-    robot_name = LaunchConfiguration('robot_name')
+    _robot_name = LaunchConfiguration('robot_name')
 
     # Get the launch directory
     _pkg_name = "simdevice_bringup"
-    config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
 
+    config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
     config_params = os.path.join(config_dir, 'params.sim_devices.yaml')
 
-    _node_name_micom = 'micom_driver_sim'
+    _package_name = 'micom_driver_sim'
+    _node_name = 'micom_driver'
 
     # modify config param with namespace
     (_config_params, _remapping_list) = get_modified_params_with_ns_and_remapping_list(
-        config_params, _node_name_micom)
-
-    # # Set remapping topic tuple list
-    # _remapping_list = set_remapping_list(config_params)
+        config_params, _node_name)
 
     start_micom_driver_sim_cmd = Node(
-        package=_node_name_micom,
-        node_executable=_node_name_micom,
-        node_name=_node_name_micom,
-        node_namespace=robot_name,
+        package=_package_name,
+        node_executable=_package_name,
+        node_name=_node_name,
+        node_namespace=_robot_name,
         remappings=_remapping_list,
         parameters=[_config_params],
         output='screen')
