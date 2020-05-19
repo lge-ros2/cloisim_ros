@@ -163,55 +163,6 @@ void CameraDriverSim::ReadProc()
   }
 }
 
-void CameraDriverSim::UpdateImage()
-{
-  // Publish image
-  // msg_img.header.stamp = m_simTime;
-
-  // const auto encoding_arg = GetEncondingType(m_pbBuf.image().pixel_format());
-  // const uint32_t cols_arg = m_pbBuf.image().width();
-  // const uint32_t rows_arg = m_pbBuf.image().height();
-  // const uint32_t step_arg = m_pbBuf.image().step();
-
-  // // Copy from src to image_msg
-  // sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-  //                        reinterpret_cast<const void *>(_image));
-
-  // impl_->image_pub_.publish(msg_img);
-
-  // const auto numCh = sensor_msgs::image_encodings::numChannels(msg_img.encoding);
-  // if (numCh > 0)
-  // {
-  //   msg_img.width = cols_arg;
-  //   msg_img.height = rows_arg;
-  //   msg_img.step = numCh * cols_arg;
-  //   msg_img.data.resize(rows_arg * cols_arg * numCh);
-  //   msg_img.is_bigendian = 0;
-
-  //   // unsigned int* dest = (unsigned int*)(&(msg_depth.data[0]));
-  //   uint8_t *toCopyFrom = (uint8_t *)m_pbBuf.image().data().data();
-  //   uint32_t index = 0;
-  //   // cout << m_pbBuf.image().data().size() << endl;
-  //   // cout << rows_arg * cols_arg * 3 << endl;
-  //   for (uint32_t j = 0; j < rows_arg; j++)
-  //   {
-  //     for (uint32_t i = 0; i < cols_arg; i++)
-  //     {
-  //       for (uint32_t k = 0; k < (uint32_t)numCh; k++)
-  //       {
-  //         // cout << index << endl;
-  //         if (index < m_pbBuf.image().data().size() && index < msg_img.data.size())
-  //         {
-  //           uint8_t value = (uint8_t)toCopyFrom[index];
-  //           msg_img.data[index] = value;
-  //         }
-  //         index++;
-  //       }
-  //     }
-  //   }
-  // }
-}
-
 void CameraDriverSim::UpdateStaticTF(const rclcpp::Time timestamp)
 {
   camera_tf.header.stamp = timestamp;

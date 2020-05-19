@@ -37,11 +37,9 @@ CMicomDriverSim::CMicomDriverSim()
 {
   node_handle = std::shared_ptr<::rclcpp::Node>(this);
 
-  this->tf_broadcaster
-    = std::make_shared<tf2_ros::TransformBroadcaster>(node_handle);
+  this->tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(node_handle);
 
-  this->static_tf_broadcaster
-    = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_handle);
+  this->static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_handle);
 
   std::string sim_ip("");
   int sim_manager_port(0);
@@ -90,8 +88,6 @@ CMicomDriverSim::CMicomDriverSim()
 
 CMicomDriverSim::~CMicomDriverSim()
 {
-  usleep(100);
-
   Stop();
   delete m_pSimBridge;
 }

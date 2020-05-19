@@ -85,15 +85,8 @@ CLidarDriverSim::CLidarDriverSim()
 
 CLidarDriverSim::~CLidarDriverSim()
 {
-  m_bRun = false;
-  usleep(100);
-
-  if (m_thread.joinable())
-  {
-    m_thread.join();
-  }
-
-  m_pSimBridge->Disconnect();
+  Stop();
+  delete m_pSimBridge;
 }
 
 void CLidarDriverSim::Start()
@@ -102,13 +95,26 @@ void CLidarDriverSim::Start()
   m_bRun = true;
   m_thread = std::thread([=]() { ReadProc(); });
 
-  auto callback_pub
-    = [this]() -> void {
-      UpdateStaticTF(m_simTime);
-    };
+  auto callback_pub = [this]() -> void {
+    UpdateStaticTF(m_simTime);
+  };
 
   // ROS2 timer for Publisher
   timer = this->create_wall_timer(0.5s, callback_pub);
+}
+
+void CLidarDriverSim::Stop()
+{
+  m_bRun = false;
+
+  usleep(100);
+
+  if (m_thread.joinable())
+  {
+    m_thread.join();
+  }
+
+  m_pSimBridge->Disconnect();
 }
 
 void CLidarDriverSim::ReadProc()
