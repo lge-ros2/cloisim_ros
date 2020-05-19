@@ -124,7 +124,6 @@ void CameraDriverSim::ReadProc()
 
   while (m_bRun)
   {
-    // :x: at first time recv buf in blocking mode
     const bool succeeded = m_pSimBridge->Receive(&pBuffer, bufferLength, false);
     if (!succeeded || bufferLength < 0)
     {
