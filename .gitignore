@@ -32,4 +32,4 @@ tags
 
 
 # to ignore generated code
-sim_bridge/include/protobuf/*
+driver_sim/include/protobuf/*

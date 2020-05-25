@@ -21,119 +21,93 @@
 #define MAX_UPPER_ANGLE 3.1415926535
 #define MAX_LOWER_ANGLE -MAX_UPPER_ANGLE
 
-using namespace std::chrono_literals;
+using namespace std;
+using namespace chrono_literals;
 
 CLidarDriverSim::CLidarDriverSim()
-  : Node("lidar_driver_sim",
-        rclcpp::NodeOptions()
-          .allow_undeclared_parameters(true)
-          .automatically_declare_parameters_from_overrides(true))
-  , m_bRun(false)
-  , m_bIntensity(false)
-  , m_fLowerAngle(MAX_LOWER_ANGLE)
-  , m_fUpperAngle(MAX_UPPER_ANGLE)
+    : DriverSim("lidar_driver_sim"),
+    m_bIntensity(false),
+    m_fLowerAngle(MAX_LOWER_ANGLE),
+    m_fUpperAngle(MAX_UPPER_ANGLE)
 {
-  node_handle = std::shared_ptr<::rclcpp::Node>(this);
-
-  this->static_tf_broadcaster
-    = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_handle);
-
-  std::string sim_ip("");
-  int sim_manager_port(0);
-  std::string robot_name_;
-  std::string part_name_;
-  std::string topic_name_;
-
-  get_parameter("sim.ip_address", sim_ip);
-  get_parameter("sim.manager_port", sim_manager_port);
-  get_parameter_or("sim.model", robot_name_, std::string("cloi"));
-  get_parameter_or("sim.parts", part_name_, std::string("front_lidar"));
-
-  get_parameter_or("topic_name", topic_name_, std::string("scan"));
-  get_parameter_or("frame_id", frame_id_, std::string("base_scan"));
-  get_parameter_or("transform", transform_, std::vector<double>({0.27000, 0.0, 0.1124, 0.0, 0.0, 0.0}));
-  get_parameter("intensity", m_bIntensity);
-
-  get_parameter("filter.lower_angle", m_fLowerAngle);
-  get_parameter("filter.upper_angle", m_fUpperAngle);
-
-  DBG_SIM_INFO("[CONFIG] sim manage ip:%s, port:%d", sim_ip.c_str(), sim_manager_port);
-  DBG_SIM_INFO("[CONFIG] intensity:%d, filter.lower_angle:%f, filter.upper_angle:%f",
-      m_bIntensity, m_fLowerAngle, m_fUpperAngle);
-  DBG_SIM_INFO("[CONFIG] sim.model:%s", robot_name_.c_str());
-  DBG_SIM_INFO("[CONFIG] sim.part:%s", part_name_.c_str());
-  DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_name_.c_str());
-  DBG_SIM_INFO("[CONFIG] frame_id:%s", frame_id_.c_str());
-
-  m_hashKeySub = robot_name_ + part_name_;
-  DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
-
-  m_pSimBridge = new SimBridge();
-
-  if (m_pSimBridge)
-  {
-    m_pSimBridge->SetSimMasterAddress(sim_ip);
-    m_pSimBridge->SetPortManagerPort(sim_manager_port);
-  }
-
-  // ROS2 Publisher
-  auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, qos);
-
   Start();
 }
 
 CLidarDriverSim::~CLidarDriverSim()
 {
   Stop();
-  delete m_pSimBridge;
 }
 
-void CLidarDriverSim::Start()
+void CLidarDriverSim::Initialize()
 {
-  m_pSimBridge->Connect(SimBridge::Mode::SUB, m_hashKeySub);
-  m_bRun = true;
-  m_thread = std::thread([=]() { ReadProc(); });
+  string part_name_;
+  string topic_name_;
+  vector<double> transform_;
 
-  auto callback_pub = [this]() -> void {
-    UpdateStaticTF(m_simTime);
-  };
+  get_parameter_or("sim.parts", part_name_, string("front_lidar"));
 
-  // ROS2 timer for Publisher
-  timer = this->create_wall_timer(0.5s, callback_pub);
+  get_parameter_or("topic_name", topic_name_, string("scan"));
+  get_parameter_or("frame_id", frame_id_, string("base_scan"));
+  get_parameter_or("transform", transform_, vector<double>({0, 0, 0, 0, 0, 0}));
+
+  get_parameter("intensity", m_bIntensity);
+  get_parameter("filter.lower_angle", m_fLowerAngle);
+  get_parameter("filter.upper_angle", m_fUpperAngle);
+
+  DBG_SIM_INFO("[CONFIG] intensity: %d, filter.lower_angle: %f, filter.upper_angle: %f",
+               m_bIntensity, m_fLowerAngle, m_fUpperAngle);
+  DBG_SIM_INFO("[CONFIG] sim.part: %s", part_name_.c_str());
+  DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
+  DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
+
+  m_hashKeySub = GetRobotName() + part_name_;
+  DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
+
+  geometry_msgs::msg::TransformStamped scan_tf;
+  tf2::Quaternion convertQuternion;
+  convertQuternion.setRPY(transform_[3], transform_[4], transform_[5]);
+  convertQuternion = convertQuternion.normalize();
+
+  scan_tf.header.frame_id = "base_link";
+  scan_tf.child_frame_id = frame_id_;
+  scan_tf.transform.translation.x = transform_[0];
+  scan_tf.transform.translation.y = transform_[1];
+  scan_tf.transform.translation.z = transform_[2];
+  scan_tf.transform.rotation.x = convertQuternion.x();
+  scan_tf.transform.rotation.y = convertQuternion.y();
+  scan_tf.transform.rotation.z = convertQuternion.z();
+  scan_tf.transform.rotation.w = convertQuternion.w();
+
+  AddStaticTf2(scan_tf);
+
+  // ROS2 Publisher
+  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, GetDriverQoS());
+
+  GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);
 }
 
-void CLidarDriverSim::Stop()
+void CLidarDriverSim::Deinitialize()
 {
-  m_bRun = false;
-
-  usleep(100);
-
-  if (m_thread.joinable())
-  {
-    m_thread.join();
-  }
-
-  m_pSimBridge->Disconnect();
+  GetSimBridge()->Disconnect();
 }
 
-void CLidarDriverSim::ReadProc()
+void CLidarDriverSim::UpdateData()
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (m_bRun)
+  while (IsRunThread())
   {
-    const bool succeeded = m_pSimBridge->Receive(&pBuffer, bufferLength, false);
+    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
 
     if (!succeeded || bufferLength < 0)
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s",
-              bufferLength, zmq_strerror(zmq_errno()));
+      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
 
       // try reconnect1ion
-      if(m_bRun) {
-        m_pSimBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      if (IsRunThread())
+      {
+        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
       }
 
       continue;
@@ -147,37 +121,15 @@ void CLidarDriverSim::ReadProc()
 
     m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
 
-    UpdateLaser(m_simTime);
+    UpdateLaser();
 
     pubLaser->publish(msg_Laser);
   }
 }
 
-void CLidarDriverSim::UpdateStaticTF(const rclcpp::Time timestamp)
+void CLidarDriverSim::UpdateLaser()
 {
-  geometry_msgs::msg::TransformStamped scan_tf;
-  scan_tf.header.stamp = timestamp;
-  scan_tf.header.frame_id = "base_link";
-  scan_tf.child_frame_id = frame_id_;
-  scan_tf.transform.translation.x = transform_[0];
-  scan_tf.transform.translation.y = transform_[1];
-  scan_tf.transform.translation.z = transform_[2];
-
-  tf2::Quaternion convertQuternion;
-  convertQuternion.setRPY( transform_[3], transform_[4], transform_[5] );
-  convertQuternion = convertQuternion.normalize();
-
-  scan_tf.transform.rotation.x = convertQuternion.x();
-  scan_tf.transform.rotation.y = convertQuternion.y();
-  scan_tf.transform.rotation.z = convertQuternion.z();
-  scan_tf.transform.rotation.w = convertQuternion.w();
-
-  this->static_tf_broadcaster->sendTransform(scan_tf);
-}
-
-void CLidarDriverSim::UpdateLaser(const rclcpp::Time timestamp)
-{
-  msg_Laser.header.stamp = timestamp;
+  msg_Laser.header.stamp = m_simTime;
   msg_Laser.header.frame_id = frame_id_;
 
   const int num_beams = (int)m_pbBuf.scan().count();
@@ -204,16 +156,16 @@ void CLidarDriverSim::UpdateLaser(const rclcpp::Time timestamp)
 
   if (msg_Laser.angle_min < m_fLowerAngle)
   {
-    filter_beam_index_lower = (int)( (double)num_beams *
-    ((m_fLowerAngle - msg_Laser.angle_min) /
-     (msg_Laser.angle_max - msg_Laser.angle_min)) );
+    filter_beam_index_lower = (int)((double)num_beams *
+                                    ((m_fLowerAngle - msg_Laser.angle_min) /
+                                     (msg_Laser.angle_max - msg_Laser.angle_min)));
   }
 
   if (msg_Laser.angle_max > m_fUpperAngle)
   {
-    filter_beam_index_upper = (int)( (double)num_beams *
-    ((m_fUpperAngle - msg_Laser.angle_min) /
-     (msg_Laser.angle_max - msg_Laser.angle_min)) );
+    filter_beam_index_upper = (int)((double)num_beams *
+                                    ((m_fUpperAngle - msg_Laser.angle_min) /
+                                     (msg_Laser.angle_max - msg_Laser.angle_min)));
   }
 
   if (m_bIntensity)
@@ -225,22 +177,21 @@ void CLidarDriverSim::UpdateLaser(const rclcpp::Time timestamp)
     //printf("beam_idx:%d %f\n", beam_idx, m_pbBuf.scan().ranges(beam_idx));
 
     if ((filter_beam_index_lower > 0 && filter_beam_index_lower > beam_idx) ||
-        (filter_beam_index_upper > 0 && filter_beam_index_upper < beam_idx) )
+        (filter_beam_index_upper > 0 && filter_beam_index_upper < beam_idx))
     {
       filter_out = true;
       //printf("beam_idx:%d filterd out\n", beam_idx);
     }
     else
+    {
       filter_out = false;
+    }
 
-
-    msg_Laser.ranges[beam_idx]
-      = (filter_out)? 0.0:m_pbBuf.scan().ranges(beam_idx);
+    msg_Laser.ranges[beam_idx] = (filter_out)? 0.0 : m_pbBuf.scan().ranges(beam_idx);
 
     if (m_bIntensity)
     {
-      msg_Laser.intensities[beam_idx]
-        = (filter_out)? 0.0:m_pbBuf.scan().intensities(beam_idx);
+      msg_Laser.intensities[beam_idx] = (filter_out)? 0.0 : m_pbBuf.scan().intensities(beam_idx);
     }
   }
 }

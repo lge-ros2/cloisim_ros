@@ -1,6 +1,6 @@
-/**
+ /**
  *  @file   main.cpp
- *  @date   2019-03-28
+ *  @date   2020-05-27
  *  @author Hyunseok Yang
  *  @brief
  *        ROS2 Node that controls Micom board for simulation.
@@ -19,11 +19,9 @@ using namespace std::literals;
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::sleep_for(1000ms);
-
-  auto micomDriverSimNode = std::make_shared<CMicomDriverSim>();
-  rclcpp::spin(micomDriverSimNode);
+  auto node = std::make_shared<CMicomDriverSim>();
+  rclcpp::spin(node);
+  rclcpp::sleep_for(100ms);
   rclcpp::shutdown();
-
   return 0;
 }

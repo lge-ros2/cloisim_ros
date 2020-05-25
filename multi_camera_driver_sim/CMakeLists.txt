@@ -12,23 +12,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic -fstack-protector -O2)
 endif()
 
-# add_compile_options(-g -O0)
-
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rmw REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(tf2 REQUIRED)
-find_package(tf2_ros REQUIRED)
 find_package(image_transport REQUIRED)
-find_package(Boost REQUIRED
-  COMPONENTS
-  system
-  thread
-)
+find_package(driver_sim REQUIRED)
 find_package(sim_bridge REQUIRED)
 
 ################################################################################
@@ -43,11 +34,9 @@ add_executable(${PROJECT_NAME}
 
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
-  std_msgs
   sensor_msgs
-  tf2
-  tf2_ros
   image_transport
+  driver_sim
   sim_bridge)
 
 ################################################################################

@@ -19,7 +19,7 @@ using namespace std::literals;
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::sleep_for(1000ms);
+  rclcpp::sleep_for(100ms);
 
   auto cam_node = std::make_shared<MultiCameraDriverSim>();
   rclcpp::spin(cam_node);

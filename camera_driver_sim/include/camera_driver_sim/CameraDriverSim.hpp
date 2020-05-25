@@ -4,7 +4,7 @@
  *  @author Sungkyu Kang
  *  @author hyunseok Yang
  *  @brief
- *        ROS2 Depth Camera Driver class for simulator
+ *        ROS2 Camera Driver class for simulator
  *  @remark
  *  @warning
  *       LGE Advanced Robotics Laboratory
@@ -14,57 +14,34 @@
 #ifndef _CameraDriverSim_H_
 #define _CameraDriverSim_H_
 
-#include <rclcpp/rclcpp.hpp>
-// #include <sensor_msgs/msg/image.hpp>
+#include "driver_sim/driver_sim.hpp"
 #include <image_transport/image_transport.h>
-#include <tf2_ros/static_transform_broadcaster.h>
 #include <protobuf/image_stamped.pb.h>
-#include "sim_bridge/sim_bridge.hpp"
 
-class CameraDriverSim : public rclcpp::Node
+class CameraDriverSim : public DriverSim
 {
 public:
-  static std::string GetEncondingType(const uint32_t pixel_format);
-
   CameraDriverSim();
   virtual ~CameraDriverSim();
 
-private:
-  void Start();
-  void Stop();
-  void ReadProc();
-  void UpdateImage();
-  void UpdateStaticTF(const rclcpp::Time timestamp);
+  virtual void Initialize();
+  virtual void Deinitialize();
 
 private:
-  SimBridge *m_pSimBridge;
-  bool m_bRun;
-  bool m_bIntensity;
+  virtual void UpdateData();
 
-  std::string robot_name_;
-  std::string part_name_;
-  std::string topic_name_;
-  std::string frame_name_;
-
-  geometry_msgs::msg::TransformStamped camera_tf;
-
-  std::thread m_thread;
+private:
+  // key for connection
   std::string m_hashKeySub;
 
+  // buffer from simulation
   gazebo::msgs::ImageStamped m_pbBuf;
-  sensor_msgs::msg::Image msg_img;
 
-  rclcpp::Node::SharedPtr node_handle;
-  rclcpp::Time m_simTime;
+  // message for ROS2 communictaion
+  sensor_msgs::msg::Image msg_img;
 
   // Image publisher
   image_transport::Publisher pubImage;
-
-  // Timer
-  rclcpp::TimerBase::SharedPtr timer;
-
-  // Static TF
-  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
-
 };
+
 #endif

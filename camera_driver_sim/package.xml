@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>camera_driver_sim</name>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <description>virtual camera driver for simulator</description>
   <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
@@ -11,21 +11,17 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <build_depend>rclcpp</build_depend>
-  <build_depend>rmw</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>image_transport</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_ros</build_depend>
   <build_depend>sim_bridge</build_depend>
+  <build_depend>driver_sim</build_depend>
 
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>rclcpp</exec_depend>
-  <exec_depend>rmw</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>image_transport</exec_depend>
-  <exec_depend>tf2</exec_depend>
-  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>sim_bridge</exec_depend>
+  <exec_depend>driver_sim</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

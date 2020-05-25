@@ -18,13 +18,8 @@ endif()
 ################################################################################
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rmw REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
-find_package(Boost REQUIRED
-  COMPONENTS
-  system
-  thread
-)
+find_package(driver_sim REQUIRED)
 find_package(sim_bridge REQUIRED)
 
 ################################################################################
@@ -39,6 +34,7 @@ add_executable(${PROJECT_NAME}
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   rosgraph_msgs
+  driver_sim
   sim_bridge)
 
 ################################################################################

@@ -12,9 +12,7 @@
  *         All Rights are Reserved.
  */
 #include "camera_driver_sim/CameraDriverSim.hpp"
-#include <unistd.h>
-#include <math.h>
-// #include <string>
+#include "driver_sim/helper.h"
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <tf2/LinearMath/Quaternion.h>
@@ -22,48 +20,43 @@
 using namespace std;
 using namespace chrono_literals;
 
-
 CameraDriverSim::CameraDriverSim()
-  : Node("camera_driver_sim", rclcpp::NodeOptions()
-      .allow_undeclared_parameters(true)
-      .automatically_declare_parameters_from_overrides(true))
-  , m_bRun(true)
+    : DriverSim("camera_driver_sim")
 {
-  node_handle = shared_ptr<rclcpp::Node>(this);
+  Start();
+}
 
-  string sim_ip("");
-  int sim_manager_port(0);
+CameraDriverSim::~CameraDriverSim()
+{
+  DBG_SIM_INFO("Delete");
+  Stop();
+}
+
+void CameraDriverSim::Initialize()
+{
+  string part_name_;
+  string frame_id_;
+  string camera_name_;
   vector<double> transform_;
 
-  get_parameter("sim.ip_address", sim_ip);
-  get_parameter("sim.manage_port", sim_manager_port);
-  get_parameter_or("sim.model", robot_name_, string("cloi"));
   get_parameter_or("sim.parts", part_name_, string("camera"));
-  get_parameter_or("frame_name", frame_name_, string("camera_link"));
-  get_parameter_or("topic", topic_name_, string("camera/rgb/image_raw"));
+  get_parameter_or("frame_id", frame_id_, string("camera_link"));
+  get_parameter_or("camera_name", camera_name_, string("camera"));
   get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
 
-  DBG_SIM_INFO("[CONFIG] sim manage ip:%s, port:%d ", sim_ip.c_str(), sim_manager_port);
-  DBG_SIM_INFO("[CONFIG] sim.model:%s", robot_name_.c_str());
+  const auto topic_name_ = camera_name_ + "/rgb/image_raw";
+  m_hashKeySub = GetRobotName() + part_name_;
+
   DBG_SIM_INFO("[CONFIG] sim.part:%s", part_name_.c_str());
   DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_name_.c_str());
+  DBG_SIM_INFO("[CONFIG] hash Key sub: %s", m_hashKeySub.c_str());
 
-  m_hashKeySub = robot_name_ + part_name_;
-  DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
-
-  m_pSimBridge = new SimBridge();
-
-  if (m_pSimBridge)
-  {
-    m_pSimBridge->SetSimMasterAddress(sim_ip);
-    m_pSimBridge->SetPortManagerPort(sim_manager_port);
-  }
-
+  geometry_msgs::msg::TransformStamped camera_tf;
   tf2::Quaternion fixed_rot;
   fixed_rot.setRPY(transform_[3], transform_[4], transform_[5]);
 
   camera_tf.header.frame_id = "base_footprint";
-  camera_tf.child_frame_id = frame_name_;
+  camera_tf.child_frame_id = frame_id_;
   camera_tf.transform.translation.x = transform_[0];
   camera_tf.transform.translation.y = transform_[1];
   camera_tf.transform.translation.z = transform_[2];
@@ -72,67 +65,38 @@ CameraDriverSim::CameraDriverSim()
   camera_tf.transform.rotation.z = fixed_rot.z();
   camera_tf.transform.rotation.w = fixed_rot.w();
 
-  msg_img = sensor_msgs::msg::Image();
-  msg_img.header.frame_id = frame_name_;
+  AddStaticTf2(camera_tf);
 
-  static_tf_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_handle);
+  msg_img.header.frame_id = frame_id_;
 
-  pubImage = image_transport::create_publisher(node_handle.get(), topic_name_);
+  pubImage = image_transport::create_publisher(GetNode(), topic_name_);
 
-  Start();
+  GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);
 }
 
-CameraDriverSim::~CameraDriverSim()
+void CameraDriverSim::Deinitialize()
 {
-  Stop();
-  delete m_pSimBridge;
+  pubImage.shutdown();
+
+  GetSimBridge()->Disconnect();
 }
 
-void CameraDriverSim::Start()
-{
-  m_pSimBridge->Connect(SimBridge::Mode::SUB, m_hashKeySub);
-  m_bRun = true;
-  m_thread = thread([=]() { ReadProc(); });
-
-  auto callback_pub = [this]() -> void {
-    UpdateStaticTF(m_simTime);
-  };
-
-  // ROS2 timer for Publisher
-  timer = this->create_wall_timer(0.5s, callback_pub);
-}
-
-void CameraDriverSim::Stop()
-{
-  m_bRun = false;
-
-  usleep(100);
-
-  if (m_thread.joinable())
-  {
-    m_thread.join();
-    DBG_SIM_INFO("ReadProc() thread finished");
-  }
-
-  m_pSimBridge->Disconnect();
-}
-
-void CameraDriverSim::ReadProc()
+void CameraDriverSim::UpdateData()
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (m_bRun)
+  while (IsRunThread())
   {
-    const bool succeeded = m_pSimBridge->Receive(&pBuffer, bufferLength, false);
+    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
     if (!succeeded || bufferLength < 0)
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s",
-              bufferLength, zmq_strerror(zmq_errno()));
+      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
 
       // try reconnect1ion
-      if(m_bRun) {
-        m_pSimBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      if (IsRunThread())
+      {
+        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
       }
 
       continue;
@@ -146,10 +110,9 @@ void CameraDriverSim::ReadProc()
 
     m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
 
-    // UpdateImage();
     msg_img.header.stamp = m_simTime;
 
-    const auto encoding_arg = GetEncondingType(m_pbBuf.image().pixel_format());
+    const auto encoding_arg = GetImageEncondingType(m_pbBuf.image().pixel_format());
     const uint32_t cols_arg = m_pbBuf.image().width();
     const uint32_t rows_arg = m_pbBuf.image().height();
     const uint32_t step_arg = m_pbBuf.image().step();
@@ -160,50 +123,4 @@ void CameraDriverSim::ReadProc()
 
     pubImage.publish(msg_img);
   }
-}
-
-void CameraDriverSim::UpdateStaticTF(const rclcpp::Time timestamp)
-{
-  camera_tf.header.stamp = timestamp;
-  static_tf_broadcaster_->sendTransform(camera_tf);
-}
-
-
-string CameraDriverSim::GetEncondingType(const uint32_t pixel_format)
-{
-// 	UNKNOWN_PIXEL_FORMAT = 0, L_INT8, L_INT16,
-  // 	RGB_INT8 = 3, RGBA_INT8, BGRA_INT8, RGB_INT16, RGB_INT32,
-  // 	BGR_INT8 = 8, BGR_INT16, BGR_INT32,
-  // 	R_FLOAT16 = 11, RGB_FLOAT16 = 12, R_FLOAT32 = 13, RGB_FLOAT32,
-  // 	BAYER_RGGB8, BAYER_RGGR8, BAYER_GBRG8, BAYER_GRBG8,
-  // 	PIXEL_FORMAT_COUNT
-  string encoding;
-  switch (pixel_format)
-  {
-    case 3:
-      encoding = sensor_msgs::image_encodings::RGB8;
-      break;
-
-    case 6:
-      encoding = sensor_msgs::image_encodings::RGB16;
-      break;
-
-    case 8:
-      encoding = sensor_msgs::image_encodings::BGR8;
-      break;
-
-    case 9:
-      encoding = sensor_msgs::image_encodings::BGR16;
-      break;
-
-    case 13:
-      encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-      break;
-
-    default:
-      encoding = sensor_msgs::image_encodings::RGB8;
-      break;
-  }
-
-  return encoding;
 }

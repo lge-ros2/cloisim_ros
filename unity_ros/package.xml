@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>unity_ros</name>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <description>Utilities to interface with Unity through ROS.</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
@@ -11,10 +11,14 @@
 
   <depend>builtin_interfaces</depend>
 
-  <exec_depend>launch_ros</exec_depend>
 
-  <build_depend>sim_bridge</build_depend>
   <build_depend>rosgraph_msgs</build_depend>
+  <build_depend>driver_sim</build_depend>
+  <build_depend>sim_bridge</build_depend>
+
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>driver_sim</exec_depend>
+  <exec_depend>sim_bridge</exec_depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>

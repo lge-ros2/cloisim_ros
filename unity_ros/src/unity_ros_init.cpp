@@ -117,8 +117,7 @@ void UnityRosInit::RxProc()
       DBG_SIM_ERR("zmq receive error, return size(%d) %s!", bufferLength, zmq_strerror(zmq_errno()));
 
       // try reconnection
-      m_pSimBridge->Disconnect();
-      m_pSimBridge->Connect(SimBridge::Mode::SUB, m_hashKey);
+      m_pSimBridge->Reconnect(SimBridge::Mode::SUB, m_hashKey);
       continue;
     }
 
@@ -133,13 +132,9 @@ void UnityRosInit::RxProc()
         pbBuf.value().type() == msgs::Any::NONE &&
         pbBuf.children_size() == 2)
     {
-      const auto simTime =
-        (pbBuf.children(0).name() != "simTime")?
-          msgs::Time() : pbBuf.children(0).value().time_value();
+      const auto simTime = (pbBuf.children(0).name() != "simTime") ? msgs::Time() : pbBuf.children(0).value().time_value();
 
-      const auto realTime =
-        (pbBuf.children(1).name() != "realTime")?
-          msgs::Time() : pbBuf.children(1).value().time_value();
+      const auto realTime = (pbBuf.children(1).name() != "realTime") ? msgs::Time() : pbBuf.children(1).value().time_value();
 
       PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()),
                      rclcpp::Time(realTime.sec(), realTime.nsec()));

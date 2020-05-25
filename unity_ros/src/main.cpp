@@ -19,12 +19,9 @@ using namespace std::chrono_literals;
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::sleep_for(1000ms);
-
-  auto unityRos = std::make_shared<UnityRos::UnityRosInit>();
-
-  rclcpp::spin(unityRos);
+  auto node = std::make_shared<UnityRos::UnityRosInit>();
+  rclcpp::spin(node);
+  rclcpp::sleep_for(100ms);
   rclcpp::shutdown();
-
   return 0;
 }

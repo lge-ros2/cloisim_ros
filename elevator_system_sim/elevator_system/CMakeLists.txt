@@ -18,12 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
-find_package(rmw REQUIRED)
-find_package(Boost REQUIRED
-  COMPONENTS
-  system
-  thread
-)
+find_package(driver_sim REQUIRED)
 find_package(sim_bridge REQUIRED)
 find_package(elevator_system_msgs REQUIRED)
 
@@ -41,6 +36,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp_lifecycle
   rosgraph_msgs
   elevator_system_msgs
+  driver_sim
   sim_bridge)
 
 ################################################################################

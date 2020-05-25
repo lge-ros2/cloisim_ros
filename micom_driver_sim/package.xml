@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>micom_driver_sim</name>
-  <version>1.0.0</version>
-  <description>cloi porter micom driver package for simulator</description>
+  <version>1.1.0</version>
+  <description>micom driver package for simulator</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
   <license>MIT</license>
@@ -10,20 +10,22 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <build_depend>rclcpp</build_depend>
-  <build_depend>rmw</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_msgs</build_depend>
-  <build_depend>tf2_ros</build_depend>
+  <!-- <build_depend>rmw</build_depend> -->
+  <!-- <build_depend>std_msgs</build_depend> -->
+  <!-- <build_depend>nav_msgs</build_depend> -->
+  <!-- <build_depend>sensor_msgs</build_depend> -->
+  <!-- <build_depend>geometry_msgs</build_depend> -->
+  <!-- <build_depend>tf</build_depend> -->
+  <!-- <build_depend>tf2</build_depend> -->
+  <!-- <build_depend>tf2_msgs</build_depend> -->
+  <!-- <build_depend>tf2_ros</build_depend> -->
+  <build_depend>sim_bridge</build_depend>
   <build_depend>sim_bridge</build_depend>
 
   <exec_depend>launch_ros</exec_depend>
-  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>rclcpp</exec_depend>>
   <exec_depend>sim_bridge</exec_depend>
+  <exec_depend>driver_sim</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
