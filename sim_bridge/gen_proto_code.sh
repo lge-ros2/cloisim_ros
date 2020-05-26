@@ -11,6 +11,8 @@ PROTOC="protoc"
 MSGS_PATH=${SIM_PROXY_PATH}"/msgs"
 TARGET=${ROOT_PATH}"/protobuf/"
 
+mkdir -p $TARGET
+
 MSG="any param param_v color "
 MSG+="time vector2d vector3d quaternion pose pose_animation "
 MSG+="imu image images_stamped image_stamped laserscan laserscan_stamped "
