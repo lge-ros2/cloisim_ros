@@ -2,7 +2,7 @@
 ROS2 simulation device packages to connecting unity based multi-robot simulator
 
 # prerequisite
-- $ sudo apt-get install libzmq3-dev libprotobuf-dev
+- $ sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
 
 # build
 Please setup ROS2 environment first!
