@@ -1,0 +1,23 @@
+micom_driver:
+  ros__parameters:
+    use_sim_time: True
+
+    sim:
+      model: "cloi"
+      parts_tx: "MICOM_INPUT"
+      parts_rx: "MICOM_SENSOR"
+      manager_ip: "127.0.0.1"
+      manager_port: 25554
+
+    remapping_list: ['/tf', '/tf_static']
+
+    transform:
+      base: [0.0, 0.0, 0.01, 0.0, 0.0, 0.0]
+      imu: [0.0, 0.0, 0.19, 0.0, 0.0, 0.0]
+      wheel:
+        left: [0.001, 0.225, 0.07, 0.0, 0.0, 0.0]
+        right: [0.001, -0.225, 0.07, 0.0, 0.0, 0.0]
+
+    wheel:
+      base: 449.0
+      radius: 95.5

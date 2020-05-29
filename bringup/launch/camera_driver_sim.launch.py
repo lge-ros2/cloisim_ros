@@ -26,7 +26,7 @@ def generate_launch_description():
     _pkg_name = "simdevice_bringup"
 
     _config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
-    config_params = os.path.join(_config_dir, 'params.sim_devices.yaml')
+    config_params = os.path.join(_config_dir, 'params.camera_driver.yaml')
 
     _package_name = 'camera_driver_sim'
     _node_name = 'camera_driver'

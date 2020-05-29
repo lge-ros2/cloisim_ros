@@ -26,7 +26,7 @@ def generate_launch_description():
     _pkg_name = "simdevice_bringup"
 
     config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
-    config_params = os.path.join(config_dir, 'params.sim_devices.yaml')
+    config_params = os.path.join(config_dir, 'params.micom_driver.yaml')
 
     _package_name = 'micom_driver_sim'
     _node_name = 'micom_driver'

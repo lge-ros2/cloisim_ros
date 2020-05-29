@@ -1,0 +1,15 @@
+camera_driver:
+  ros__parameters:
+    use_sim_time: True
+    sim:
+      model: "cloi"
+      parts: "camera"
+      manager_ip: "127.0.0.1"
+      manager_port: 25554
+
+    remapping_list: ['/tf', '/tf_static']
+
+    frame_id: "camera_link"
+    camera_name: "camera"
+
+    transform: [0.344000, 0.0, 1.014100, 0.0, 0.0, 0.0]
