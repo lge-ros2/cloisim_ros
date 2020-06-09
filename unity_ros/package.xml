@@ -11,10 +11,9 @@
 
   <depend>builtin_interfaces</depend>
 
-
-  <build_depend>rosgraph_msgs</build_depend>
   <build_depend>driver_sim</build_depend>
   <build_depend>sim_bridge</build_depend>
+  <build_depend>rosgraph_msgs</build_depend>
 
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>driver_sim</exec_depend>
