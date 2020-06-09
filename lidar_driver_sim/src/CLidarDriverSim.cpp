@@ -81,7 +81,7 @@ void CLidarDriverSim::Initialize()
   AddStaticTf2(scan_tf);
 
   // ROS2 Publisher
-  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, GetDriverQoS());
+  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
 
   GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);
 }

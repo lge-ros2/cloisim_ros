@@ -53,11 +53,6 @@ protected:
 
   std::string GetRobotName() { return m_robot_name; }
 
-  rclcpp::QoS GetDriverQoS()
-  {
-    return rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-  }
-
   void PublishTF();
 
 private:
