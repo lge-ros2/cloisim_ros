@@ -16,6 +16,8 @@
 
 #include "driver_sim/driver_sim.hpp"
 #include <image_transport/image_transport.h>
+#include <camera_info_manager/camera_info_manager.h>
+#include <sensor_msgs/msg/camera_info.hpp>
 #include <protobuf/images_stamped.pb.h>
 
 class MultiCameraDriverSim : public DriverSim
@@ -24,11 +26,12 @@ public:
   MultiCameraDriverSim();
   virtual ~MultiCameraDriverSim();
 
-  virtual void Initialize();
-
 private:
+  virtual void Initialize();
   virtual void Deinitialize();
   virtual void UpdateData();
+
+  void InitializeCameraInfoManager(const std::string target_camera_item);
 
 private:
   std::string m_hashKeySub;
@@ -41,6 +44,12 @@ private:
 
   // message for ROS2 communictaion
   sensor_msgs::msg::Image msg_img;
+
+  // Camera info publishers.
+  std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCamerasInfo;
+
+  // Camera info managers
+  std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
 
   // Laser publisher
   std::vector<image_transport::Publisher> pubImages;

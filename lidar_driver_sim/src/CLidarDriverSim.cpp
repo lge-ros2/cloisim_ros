@@ -121,13 +121,13 @@ void CLidarDriverSim::UpdateData()
 
     m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
 
-    UpdateLaser();
+    UpdateLaserData();
 
     pubLaser->publish(msg_Laser);
   }
 }
 
-void CLidarDriverSim::UpdateLaser()
+void CLidarDriverSim::UpdateLaserData()
 {
   msg_Laser.header.stamp = m_simTime;
   msg_Laser.header.frame_id = frame_id_;

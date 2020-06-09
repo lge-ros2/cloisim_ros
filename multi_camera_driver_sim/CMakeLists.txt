@@ -18,6 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(driver_sim REQUIRED)
 find_package(sim_bridge REQUIRED)
@@ -35,6 +36,7 @@ add_executable(${PROJECT_NAME}
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   sensor_msgs
+  camera_info_manager
   image_transport
   driver_sim
   sim_bridge)

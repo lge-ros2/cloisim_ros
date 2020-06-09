@@ -11,5 +11,15 @@ camera_driver:
 
     frame_id: "camera_link"
     camera_name: "camera"
+    camera_info:
+      width: 640
+      height: 480
+      hfov: 2.1
+      distortion:
+        k1: 0.10369
+        k2: 0.10328
+        k3: 0.0
+        t1: 0.0
+        t2: 0.0
 
     transform: [0.344000, 0.0, 1.014100, 0.0, 0.0, 0.0]

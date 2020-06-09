@@ -32,10 +32,9 @@ public:
   CMicomDriverSim();
   virtual ~CMicomDriverSim();
 
+private:
   virtual void Initialize();
   virtual void Deinitialize();
-
-private:
   virtual void UpdateData();
 
 private:

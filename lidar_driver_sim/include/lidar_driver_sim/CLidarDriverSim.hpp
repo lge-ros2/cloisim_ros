@@ -26,17 +26,17 @@ public:
   CLidarDriverSim();
   ~CLidarDriverSim();
 
+private:
   virtual void Initialize();
   virtual void Deinitialize();
-
-private:
   virtual void UpdateData();
 
-  void UpdateLaser();
+  void UpdateLaserData();
 
   void SetIntensity(const bool val) { m_bIntensity = val; }
   void SetLowerAngle(const double val) { m_fLowerAngle = val; }
   void SetUpperAngle(const double val) { m_fUpperAngle = val; }
+
 
 private:
   // key for connection
