@@ -1,5 +1,5 @@
 /**
- *  @file   CMicomDriversim.cpp
+ *  @file   MicomDriverSim.cpp
  *  @date   2020-05-25Z
  *  @author Hyunseok Yang
  *  @brief
@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "micom_driver_sim/CMicomDriverSim.hpp"
+#include "micom_driver_sim/MicomDriverSim.hpp"
 #include <tf2/LinearMath/Quaternion.h>
 #include "protobuf/param.pb.h"
 
@@ -23,7 +23,7 @@
 using namespace std;
 using namespace chrono_literals;
 
-CMicomDriverSim::CMicomDriverSim()
+MicomDriverSim::MicomDriverSim()
     : DriverSim("micom_driver_sim"),
       m_hashKeyPub(""),
       m_hashKeySub(""),
@@ -39,12 +39,12 @@ CMicomDriverSim::CMicomDriverSim()
   Start();
 }
 
-CMicomDriverSim::~CMicomDriverSim()
+MicomDriverSim::~MicomDriverSim()
 {
   Stop();
 }
 
-void CMicomDriverSim::Initialize()
+void MicomDriverSim::Initialize()
 {
   string input_part_name;
   string sensor_part_name;
@@ -142,12 +142,12 @@ void CMicomDriverSim::Initialize()
   subMicom = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
 }
 
-void CMicomDriverSim::Deinitialize()
+void MicomDriverSim::Deinitialize()
 {
   GetSimBridge()->Disconnect();
 }
 
-string CMicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
+string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
   auto vel_lin = msg->linear.x * 1000.0; // mm/s
   auto vel_rot = msg->angular.z;         // rad/s
@@ -184,7 +184,7 @@ string CMicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Shar
   return message;
 }
 
-void CMicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
+void MicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
 {
   if (pcBuf != nullptr && unSize > 0)
   {
@@ -192,7 +192,7 @@ void CMicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
   }
 }
 
-void CMicomDriverSim::UpdateData()
+void MicomDriverSim::UpdateData()
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
@@ -259,7 +259,7 @@ void CMicomDriverSim::UpdateData()
   }
 }
 
-bool CMicomDriverSim::CalculateOdometry(
+bool MicomDriverSim::CalculateOdometry(
     const rclcpp::Duration duration,
     const double _wheel_left,
     const double _wheel_right,
@@ -325,7 +325,7 @@ bool CMicomDriverSim::CalculateOdometry(
   return true;
 }
 
-void CMicomDriverSim::UpdateOdom()
+void MicomDriverSim::UpdateOdom()
 {
   if (!m_pbBufMicom.has_odom() || !m_pbBufMicom.has_imu())
   {
@@ -408,7 +408,7 @@ void CMicomDriverSim::UpdateOdom()
   last_time = m_simTime;
 }
 
-void CMicomDriverSim::UpdateImu()
+void MicomDriverSim::UpdateImu()
 {
   msg_imu.header.stamp = m_simTime;
   // 	imuLink.rotation.eulerAngles.ToString("F4"), imuInitialRotation.
@@ -457,7 +457,7 @@ void CMicomDriverSim::UpdateImu()
   msg_imu.linear_acceleration_covariance[8] = 0.0;
 }
 
-void CMicomDriverSim::UpdateBattery()
+void MicomDriverSim::UpdateBattery()
 {
   msg_battery.header.stamp = m_simTime;
   msg_battery.voltage = 0.0;

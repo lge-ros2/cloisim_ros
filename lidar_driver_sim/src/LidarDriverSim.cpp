@@ -1,5 +1,5 @@
 /**
- *  @file   CLidarDriverSim.cpp
+ *  @file   LidarDriverSim.cpp
  *  @date   2019-04-02
  *  @author Hyunseok Yang
  *  @brief
@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "lidar_driver_sim/CLidarDriverSim.hpp"
+#include "lidar_driver_sim/LidarDriverSim.hpp"
 #include <unistd.h>
 #include <math.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -24,7 +24,7 @@
 using namespace std;
 using namespace chrono_literals;
 
-CLidarDriverSim::CLidarDriverSim()
+LidarDriverSim::LidarDriverSim()
     : DriverSim("lidar_driver_sim"),
     m_bIntensity(false),
     m_fLowerAngle(MAX_LOWER_ANGLE),
@@ -33,12 +33,12 @@ CLidarDriverSim::CLidarDriverSim()
   Start();
 }
 
-CLidarDriverSim::~CLidarDriverSim()
+LidarDriverSim::~LidarDriverSim()
 {
   Stop();
 }
 
-void CLidarDriverSim::Initialize()
+void LidarDriverSim::Initialize()
 {
   string part_name_;
   string topic_name_;
@@ -86,12 +86,12 @@ void CLidarDriverSim::Initialize()
   GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);
 }
 
-void CLidarDriverSim::Deinitialize()
+void LidarDriverSim::Deinitialize()
 {
   GetSimBridge()->Disconnect();
 }
 
-void CLidarDriverSim::UpdateData()
+void LidarDriverSim::UpdateData()
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
@@ -127,7 +127,7 @@ void CLidarDriverSim::UpdateData()
   }
 }
 
-void CLidarDriverSim::UpdateLaserData()
+void LidarDriverSim::UpdateLaserData()
 {
   msg_Laser.header.stamp = m_simTime;
   msg_Laser.header.frame_id = frame_id_;

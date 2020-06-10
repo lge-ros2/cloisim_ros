@@ -30,7 +30,7 @@ include_directories(include)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
-  src/CMicomDriverSim.cpp)
+  src/MicomDriverSim.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp

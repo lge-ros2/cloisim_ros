@@ -1,5 +1,5 @@
 /**
- *  @file   CLidarDriverSim.hpp
+ *  @file   LidarDriverSim.hpp
  *  @date   2019-04-02
  *  @author Hyunseok Yang
  *  @brief
@@ -13,18 +13,18 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLIDARDRIVERSIM_H_
-#define _CLIDARDRIVERSIM_H_
+#ifndef _LIDARDRIVERSIM_H_
+#define _LIDARDRIVERSIM_H_
 
 #include "driver_sim/driver_sim.hpp"
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include "protobuf/laserscan_stamped.pb.h"
 
-class CLidarDriverSim : public DriverSim
+class LidarDriverSim : public DriverSim
 {
 public:
-  CLidarDriverSim();
-  ~CLidarDriverSim();
+  LidarDriverSim();
+  ~LidarDriverSim();
 
 private:
   virtual void Initialize();

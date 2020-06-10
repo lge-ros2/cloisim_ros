@@ -1,5 +1,5 @@
 /**
- *  @file   CMicomDriversim.hpp
+ *  @file   MicomDriverSim.hpp
  *  @date   2020-05-25Z
  *  @author Hyunseok Yang
  *  @brief
@@ -12,8 +12,8 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-#ifndef _CMICOMDRIVERSIM_HPP__
-#define _CMICOMDRIVERSIM_HPP__
+#ifndef _MICOMDRIVERSIM_HPP__
+#define _MICOMDRIVERSIM_HPP__
 
 #include "driver_sim/driver_sim.hpp"
 #include <sensor_msgs/msg/imu.hpp>
@@ -21,7 +21,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include "protobuf/micom.pb.h"
 
-class CMicomDriverSim : public DriverSim
+class MicomDriverSim : public DriverSim
 {
 public:
   static constexpr double WHEEL_RADIUS_RATIO = 1.00f;
@@ -29,8 +29,8 @@ public:
   static constexpr double DEG2RAD = 0.017453292f; ///< PI/180.0
 
 public:
-  CMicomDriverSim();
-  virtual ~CMicomDriverSim();
+  MicomDriverSim();
+  virtual ~MicomDriverSim();
 
 private:
   virtual void Initialize();
