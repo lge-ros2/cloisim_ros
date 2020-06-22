@@ -18,7 +18,7 @@ Please setup ROS2 environment first!
 
 ## simulator(CLOiSim) with world
 - only simulator
-  - $ ros2 launch simdevice_bringup **cloisim**.launch.py sim_path:=/home/yg/Work/lgrs_config/SimulatorInstance/CLOiSimRelease/CLOiSim-1.0.1 world:=lg_seocho.world
+  - $ ros2 launch simdevice_bringup **cloisim**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.1.0 world:=lg_seocho.world
 
 - simulator + unity-ros2 packge(clock topic)
-  - $ ros2 launch simdevice_bringup **cloisim_world**.launch.py sim_path:=/home/yg/Work/lgrs_config/SimulatorInstance/CLOiSimRelease/CLOiSim-1.0.1 world:=lg_seocho.world
+  - $ ros2 launch simdevice_bringup **cloisim_world**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.1.0 world:=lg_seocho.world
