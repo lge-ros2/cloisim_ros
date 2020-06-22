@@ -1,5 +1,5 @@
 # sim-device (dashing version)
-ROS2 simulation device packages to connecting unity based multi-robot simulator
+ROS2 simulation device packages to connect an Unity3D based multi-robot simulator.
 
 # prerequisite
 - $ sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
