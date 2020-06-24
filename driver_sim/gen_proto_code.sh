@@ -16,7 +16,7 @@ mkdir -p $TARGET
 MSG="any param param_v color "
 MSG+="time vector2d vector3d quaternion pose pose_animation "
 MSG+="imu image images_stamped image_stamped laserscan laserscan_stamped "
-MSG+="micom battery pointcloud"
+MSG+="micom battery pointcloud gps "
 
 for i in $MSG
 do

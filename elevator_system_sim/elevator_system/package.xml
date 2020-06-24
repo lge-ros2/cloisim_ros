@@ -16,7 +16,6 @@
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>image_transport</depend>
 
   <build_depend>driver_sim</build_depend>
   <build_depend>sim_bridge</build_depend>
