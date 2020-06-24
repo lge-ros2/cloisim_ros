@@ -2,6 +2,10 @@
 ROS2 simulation device packages to connect an Unity3D based multi-robot simulator.
 
 # prerequisite
+
+- Download Simulator release
+  - CLOiSim: Unity multi-robot simulator [releases](https://github.com/lge-ros2/multi-robot-simulator/releases)
+    - Simulator version: [latest](https://github.com/lge-ros2/multi-robot-simulator/releases/latest)
 - $ sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
 
 # build
