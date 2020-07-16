@@ -1,17 +1,17 @@
 /**
- *  @file   CameraDriverSim.cpp
+ *  @file   DepthCameraDriverSim.cpp
  *  @date   2020-03-20
  *  @author hyunseok Yang
  *  @author Sungkyu Kang
  *  @brief
- *        ROS2 Camera Driver class for simulator
+ *        ROS2 Depth Camera Driver class for simulator
  *  @remark
  *  @warning
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
  */
-#include "camera_driver_sim/CameraDriverSim.hpp"
+#include "depth_camera_driver_sim/DepthCameraDriverSim.hpp"
 #include "driver_sim/helper.h"
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/fill_image.hpp>
@@ -20,19 +20,19 @@
 using namespace std;
 using namespace chrono_literals;
 
-CameraDriverSim::CameraDriverSim()
-    : DriverSim("camera_driver_sim")
+DepthCameraDriverSim::DepthCameraDriverSim()
+    : DriverSim("depth_camera_driver_sim")
 {
   Start();
 }
 
-CameraDriverSim::~CameraDriverSim()
+DepthCameraDriverSim::~DepthCameraDriverSim()
 {
   DBG_SIM_INFO("Delete");
   Stop();
 }
 
-void CameraDriverSim::Initialize()
+void DepthCameraDriverSim::Initialize()
 {
   string part_name_;
   string frame_id_;
@@ -44,7 +44,7 @@ void CameraDriverSim::Initialize()
   get_parameter_or("camera_name", camera_name_, string("camera"));
   get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
 
-  const auto topic_base_name_ = camera_name_ + "/rgb";
+  const auto topic_base_name_ = camera_name_ + "/depth";
   m_hashKeySub = GetRobotName() + part_name_;
 
   DBG_SIM_INFO("[CONFIG] sim.part:%s", part_name_.c_str());
@@ -69,23 +69,25 @@ void CameraDriverSim::Initialize()
 
   msg_img.header.frame_id = frame_id_;
 
-  pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw");
-
-  pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
+  pubDepthCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
 
   InitializeCameraInfoManager();
+
+  pubDepthImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw");
+
+  // pubPointCloud = create_publisher<sensor_msgs::msg::PointCloud2>(topic_base_name_ + "/points", rclcpp::QoS(rclcpp::KeepLast(1)));
 
   GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);
 }
 
-void CameraDriverSim::Deinitialize()
+void DepthCameraDriverSim::Deinitialize()
 {
-  pubImage.shutdown();
+  pubDepthImage.shutdown();
 
   GetSimBridge()->Disconnect();
 }
 
-void CameraDriverSim::InitializeCameraInfoManager()
+void DepthCameraDriverSim::InitializeCameraInfoManager()
 {
   string frame_id_, camera_name_;
   get_parameter_or("camera_name", camera_name_, string("camera"));
@@ -177,7 +179,7 @@ void CameraDriverSim::InitializeCameraInfoManager()
   cameraInfoManager->setCameraInfo(camera_info_msg);
 }
 
-void CameraDriverSim::UpdateData()
+void DepthCameraDriverSim::UpdateData()
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
@@ -217,12 +219,12 @@ void CameraDriverSim::UpdateData()
     sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                            reinterpret_cast<const void *>(m_pbBuf.image().data().data()));
 
-    pubImage.publish(msg_img);
+    pubDepthImage.publish(msg_img);
 
     // Publish camera info
     auto camera_info_msg = cameraInfoManager->getCameraInfo();
     camera_info_msg.header.stamp = m_simTime;
 
-    pubCameraInfo->publish(camera_info_msg);
+    pubDepthCameraInfo->publish(camera_info_msg);
   }
 }

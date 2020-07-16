@@ -25,7 +25,6 @@ def generate_launch_description():
     _pkg_name = "simdevice_bringup"
     launch_dir = os.path.join(get_package_share_directory(_pkg_name), 'launch')
 
-
     included_launch_elev_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([launch_dir, '/elevator_system_sim.launch.py']))
 

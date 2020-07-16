@@ -12,32 +12,37 @@ import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
 from simdevice_bringup.common import get_modified_params_with_ns_and_remapping_list
 from simdevice_bringup.common import find_robot_name
-from launch.actions import IncludeLaunchDescription
+from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.actions import SetEnvironmentVariable
 from launch.substitutions import LaunchConfiguration
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 
 def generate_launch_description():
 
-    robot_name = LaunchConfiguration('robot_name')
+    _robot_name = LaunchConfiguration('robot_name')
 
     # Get the launch directory
     _pkg_name = "simdevice_bringup"
-    launch_dir = os.path.join(get_package_share_directory(_pkg_name), 'launch')
 
-    # define launch script name
-    # launch script name
-    #   ex) lidar_driver_sim.launch.py -> "lidar_driver_sim"
-    _launch_list = [
-        'lidar_driver_sim',
-        'micom_driver_sim',
-        # 'camera_driver_sim',
-        # 'depth_camera_driver_sim',
-        # 'multi_camera_driver_sim'
-        # 'gps_driver_sim',
-    ]
+    _config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
+    config_params = os.path.join(_config_dir, 'params.depth_camera_driver.yaml')
+
+    _package_name = 'depth_camera_driver_sim'
+    _node_name = 'depth_camera_driver'
+
+    # modify config param with namespace
+    (_config_params, _remapping_list) = get_modified_params_with_ns_and_remapping_list(
+        config_params, _node_name)
+
+    start_depth_camera_driver_sim_cmd = Node(
+        package=_package_name,
+        node_executable=_package_name,
+        node_name=_node_name,
+        node_namespace=_robot_name,
+        remappings=_remapping_list,
+        parameters=[_config_params],
+        output='screen')
 
     declare_launch_argument_rn = DeclareLaunchArgument(
         'robot_name',
@@ -55,14 +60,6 @@ def generate_launch_description():
 
     ld.add_action(declare_launch_argument_rn)
 
-    # Add the actions to launch all of sim driver
-    for _item in _launch_list:
-
-        included_launch = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [launch_dir, '/' + _item + '.launch.py']),
-            launch_arguments={'robot_name': robot_name}.items())
-
-        ld.add_action(included_launch)
+    ld.add_action(start_depth_camera_driver_sim_cmd)
 
     return ld
