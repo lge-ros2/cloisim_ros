@@ -19,12 +19,12 @@
 
 #pragma GCC system_header
 
-#define DBG_SIM(COLOR_CODE, STR_FORMAT, ...) \
+#define _DBG_SIM(COLOR_CODE, STR_FORMAT, ...) \
     printf(COLOR_CODE "[%s][%d] " STR_FORMAT RESET "\n", __FUNCTION__, __LINE__, ## __VA_ARGS__)
 
-#define DBG_SIM_INFO(STR_FORMAT, ...) DBG_SIM(CYAN, STR_FORMAT, ## __VA_ARGS__)
-#define DBG_SIM_WRN(STR_FORMAT, ...)  DBG_SIM(YELLOW, STR_FORMAT, ## __VA_ARGS__)
-#define DBG_SIM_MSG(STR_FORMAT, ...)  DBG_SIM(GREEN, STR_FORMAT, ## __VA_ARGS__)
-#define DBG_SIM_ERR(STR_FORMAT, ...)  DBG_SIM(BOLDRED, STR_FORMAT, ## __VA_ARGS__)
+#define DBG_SIM_INFO(STR_FORMAT, ...) _DBG_SIM(CYAN, STR_FORMAT, ## __VA_ARGS__)
+#define DBG_SIM_WRN(STR_FORMAT, ...)  _DBG_SIM(YELLOW, STR_FORMAT, ## __VA_ARGS__)
+#define DBG_SIM_MSG(STR_FORMAT, ...)  _DBG_SIM(GREEN, STR_FORMAT, ## __VA_ARGS__)
+#define DBG_SIM_ERR(STR_FORMAT, ...)  _DBG_SIM(BOLDRED, STR_FORMAT, ## __VA_ARGS__)
 
 #endif
