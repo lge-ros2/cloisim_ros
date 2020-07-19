@@ -20,28 +20,35 @@
 
 using namespace std;
 
-DriverSim::DriverSim(const string node_name)
+DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
     : Node(node_name,
            rclcpp::NodeOptions()
                .allow_undeclared_parameters(true)
                .automatically_declare_parameters_from_overrides(true)),
-      m_pSimBridge(new SimBridge()),
       m_bRunThread(false),
       m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
-  string sim_ip("");
-  int sim_manager_port(0);
-
-  get_parameter("sim.manager_ip", sim_ip);
-  get_parameter("sim.manager_port", sim_manager_port);
-
+  string sim_ip;
+  int sim_manager_port;
+  get_parameter_or("sim.manager_ip", sim_ip, string(""));
+  get_parameter_or("sim.manager_port", sim_manager_port, int(0));
   get_parameter_or("sim.model", m_robot_name, string("cloi"));
+  get_parameter_or("sim.parts", m_parts_name, string("_parts_"));
+
 
   DBG_SIM_INFO("[CONFIG] sim.manage_ip = %s, sim.manage_port = %d", sim_ip.c_str(), sim_manager_port);
   DBG_SIM_INFO("[CONFIG] sim.model = %s", m_robot_name.c_str());
+  DBG_SIM_INFO("[CONFIG] sim.part = %s", m_robot_name.c_str());
 
-  m_pSimBridge->SetSimMasterAddress(sim_ip);
-  m_pSimBridge->SetPortManagerPort(sim_manager_port);
+  m_simBridgeList.reserve(number_of_simbridge);
+
+  for (auto index = 0; index < number_of_simbridge; index++)
+  {
+    auto pSimBridge = new SimBridge();
+    pSimBridge->SetSimMasterAddress(sim_ip);
+    pSimBridge->SetPortManagerPort(sim_manager_port);
+    m_simBridgeList.push_back(pSimBridge);
+  }
 
   m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(m_node_handle);
   m_static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(m_node_handle);
@@ -50,7 +57,11 @@ DriverSim::DriverSim(const string node_name)
 DriverSim::~DriverSim()
 {
   DBG_SIM_INFO("Delete");
-  delete m_pSimBridge;
+
+  for (auto pSimBridge : m_simBridgeList)
+  {
+    delete pSimBridge;
+  }
 }
 
 void DriverSim::Start()
@@ -98,4 +109,9 @@ void DriverSim::PublishStaticTF()
   }
 
   m_static_tf_broadcaster->sendTransform(m_static_tf_list);
+}
+
+SimBridge* DriverSim::GetSimBridge(const int bridge_index)
+{
+  return m_simBridgeList.at(bridge_index);
 }

@@ -20,11 +20,12 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include "sim_bridge/sim_bridge.hpp"
+#include <vector>
 
 class DriverSim : public rclcpp::Node
 {
 public:
-  explicit DriverSim(const std::string node_name);
+  explicit DriverSim(const std::string node_name, const int number_of_simbridge = 1);
   ~DriverSim();
 
 protected:
@@ -49,9 +50,10 @@ protected:
 
   rclcpp::Node* GetNode() { return m_node_handle.get(); }
 
-  SimBridge* GetSimBridge() { return m_pSimBridge; }
+  SimBridge* GetSimBridge(const int bridge_index = 0);
 
   std::string GetRobotName() { return m_robot_name; }
+  std::string GetPartsName() { return m_parts_name; }
 
   void PublishTF();
 
@@ -59,7 +61,7 @@ private:
   void PublishStaticTF();
 
 private:
-  SimBridge *m_pSimBridge;
+  std::vector<SimBridge *> m_simBridgeList;
 
   bool m_bRunThread;
   std::thread m_thread;
@@ -75,6 +77,7 @@ private:
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
   std::string m_robot_name;
+  std::string m_parts_name;
 
 protected:
   rclcpp::Time m_simTime;
