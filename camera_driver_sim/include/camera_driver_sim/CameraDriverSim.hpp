@@ -31,7 +31,7 @@ private:
   virtual void Deinitialize();
   virtual void UpdateData();
 
-  void InitializeCameraInfoManager();
+  void InitializeCameraInfoMessage();
 
 private:
   // key for connection
