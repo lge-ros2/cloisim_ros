@@ -31,21 +31,17 @@ GPSDriverSim::~GPSDriverSim()
 
 void GPSDriverSim::Initialize()
 {
-  string part_name_;
   string topic_name_;
   vector<double> transform_;
-
-  get_parameter_or("sim.parts", part_name_, string("gps"));
 
   get_parameter_or("topic_name", topic_name_, string("scan"));
   get_parameter_or("frame_id", frame_id_, string("gps"));
   get_parameter_or("transform", transform_, vector<double>({0, 0, 0, 0, 0, 0}));
 
-  DBG_SIM_INFO("[CONFIG] sim.part: %s", part_name_.c_str());
   DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
   DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
 
-  m_hashKeySub = GetRobotName() + part_name_;
+  m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   geometry_msgs::msg::TransformStamped gps_tf;

@@ -32,17 +32,12 @@ MultiCameraDriverSim::~MultiCameraDriverSim()
 
 void MultiCameraDriverSim::Initialize()
 {
-  std::string part_name_;
   string camera_name_;
   vector<double> transform_;
   vector<string> camera_list_;
 
-  get_parameter_or("sim.parts", part_name_, string("multi_camera"));
-
   get_parameter_or("camera_name", camera_name_, string("multi_camera"));
   get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
-
-  DBG_SIM_INFO("[CONFIG] sim.part:%s", part_name_.c_str());
 
   get_parameter("camera_list", camera_list_);
 
@@ -93,7 +88,7 @@ void MultiCameraDriverSim::Initialize()
     InitializeCameraInfoManager(item);
   }
 
-  m_hashKeySub = GetRobotName() + part_name_;
+  m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);

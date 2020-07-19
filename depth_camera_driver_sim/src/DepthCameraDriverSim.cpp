@@ -34,20 +34,17 @@ DepthCameraDriverSim::~DepthCameraDriverSim()
 
 void DepthCameraDriverSim::Initialize()
 {
-  string part_name_;
   string frame_id_;
   string camera_name_;
   vector<double> transform_;
 
-  get_parameter_or("sim.parts", part_name_, string("camera"));
   get_parameter_or("frame_id", frame_id_, string("camera_link"));
   get_parameter_or("camera_name", camera_name_, string("camera"));
   get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
 
   const auto topic_base_name_ = camera_name_ + "/depth";
-  m_hashKeySub = GetRobotName() + part_name_;
+  m_hashKeySub = GetRobotName() + GetPartsName();
 
-  DBG_SIM_INFO("[CONFIG] sim.part:%s", part_name_.c_str());
   DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
   DBG_SIM_INFO("[CONFIG] hash Key sub: %s", m_hashKeySub.c_str());
 

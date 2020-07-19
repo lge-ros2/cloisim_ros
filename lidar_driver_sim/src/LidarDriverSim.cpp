@@ -40,11 +40,8 @@ LidarDriverSim::~LidarDriverSim()
 
 void LidarDriverSim::Initialize()
 {
-  string part_name_;
   string topic_name_;
   vector<double> transform_;
-
-  get_parameter_or("sim.parts", part_name_, string("front_lidar"));
 
   get_parameter_or("topic_name", topic_name_, string("scan"));
   get_parameter_or("frame_id", frame_id_, string("base_scan"));
@@ -56,11 +53,10 @@ void LidarDriverSim::Initialize()
 
   DBG_SIM_INFO("[CONFIG] intensity: %d, filter.lower_angle: %f, filter.upper_angle: %f",
                m_bIntensity, m_fLowerAngle, m_fUpperAngle);
-  DBG_SIM_INFO("[CONFIG] sim.part: %s", part_name_.c_str());
   DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
   DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
 
-  m_hashKeySub = GetRobotName() + part_name_;
+  m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   geometry_msgs::msg::TransformStamped scan_tf;
