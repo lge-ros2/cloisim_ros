@@ -22,6 +22,7 @@ find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(sim_bridge REQUIRED)
 find_package(driver_sim REQUIRED)
+find_package(camera_driver_sim REQUIRED)
 
 ################################################################################
 # Build
@@ -39,15 +40,12 @@ ament_target_dependencies(${PROJECT_NAME}
   camera_info_manager
   image_transport
   sim_bridge
-  driver_sim)
+  driver_sim
+  camera_driver_sim)
 
 ################################################################################
 # Install
 ################################################################################
 install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
-
-################################################################################
-# Test
-################################################################################
 
 ament_package()

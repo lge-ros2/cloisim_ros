@@ -28,8 +28,7 @@ find_package(driver_sim REQUIRED)
 ################################################################################
 include_directories(include)
 
-add_executable(${PROJECT_NAME}
-  src/main.cpp
+add_library(${PROJECT_NAME} SHARED
   src/CameraDriverSim.cpp
 )
 
@@ -41,13 +40,42 @@ ament_target_dependencies(${PROJECT_NAME}
   sim_bridge
   driver_sim)
 
-################################################################################
-# Install
-################################################################################
-install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
+
+add_executable(${PROJECT_NAME}-bin
+  src/main.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}-bin ${PROJECT_NAME})
+
+ament_target_dependencies(${PROJECT_NAME}-bin
+  rclcpp
+  sim_bridge
+  driver_sim)
 
 ################################################################################
-# Test
+# Install (Execution)
 ################################################################################
+install(TARGETS ${PROJECT_NAME}-bin DESTINATION lib/${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}-bin PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+
+################################################################################
+# Install (Library)
+################################################################################
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME} ${dependencies})
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include
+)
 
 ament_package()
