@@ -201,50 +201,47 @@ void MultiCameraDriverSim::UpdateData()
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (IsRunThread())
+  const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+  if (!succeeded || bufferLength < 0)
   {
-    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
-    if (!succeeded || bufferLength < 0)
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
+
+    // try reconnect1ion
+    if (IsRunThread())
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnect1ion
-      if (IsRunThread())
-      {
-        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-      }
-
-      continue;
+      GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
-    if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
-    {
-      DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-      continue;
-    }
+    return;
+  }
 
-    m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
+  if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
 
-    for (auto i = 0; i < m_pbBuf.image_size(); i++)
-    {
-      auto img = &m_pbBuf.image(i);
+  m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
 
-      const auto encoding_arg = GetImageEncondingType(img->pixel_format());
-      const uint32_t cols_arg = img->width();
-      const uint32_t rows_arg = img->height();
-      const uint32_t step_arg = img->step();
+  for (auto i = 0; i < m_pbBuf.image_size(); i++)
+  {
+    auto img = &m_pbBuf.image(i);
 
-      msg_img.header.stamp = m_simTime;
-      sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-                             reinterpret_cast<const void *>(img->data().data()));
+    const auto encoding_arg = GetImageEncondingType(img->pixel_format());
+    const uint32_t cols_arg = img->width();
+    const uint32_t rows_arg = img->height();
+    const uint32_t step_arg = img->step();
 
-      pubImages.at(i).publish(msg_img);
+    msg_img.header.stamp = m_simTime;
+    sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
+                           reinterpret_cast<const void *>(img->data().data()));
 
-      // Publish camera info
-      auto camera_info_msg = cameraInfoManager[i]->getCameraInfo();
-      camera_info_msg.header.stamp = m_simTime;
+    pubImages.at(i).publish(msg_img);
 
-      pubCamerasInfo[i]->publish(camera_info_msg);
-    }
+    // Publish camera info
+    auto camera_info_msg = cameraInfoManager[i]->getCameraInfo();
+    camera_info_msg.header.stamp = m_simTime;
+
+    pubCamerasInfo[i]->publish(camera_info_msg);
   }
 }

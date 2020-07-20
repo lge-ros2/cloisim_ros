@@ -31,7 +31,7 @@ public:
 protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
-  virtual void UpdateData() = 0;
+  virtual void UpdateData() = 0; // Function called at loop thread
 
   void Start();
   void Stop();

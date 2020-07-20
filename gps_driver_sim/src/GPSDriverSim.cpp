@@ -91,37 +91,34 @@ void GPSDriverSim::UpdateData()
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (IsRunThread())
+  const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+
+  if (!succeeded || bufferLength < 0)
   {
-    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
 
-    if (!succeeded || bufferLength < 0)
+    // try reconnect1ion
+    if (IsRunThread())
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnect1ion
-      if (IsRunThread())
-      {
-        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-      }
-
-      continue;
+      GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
-    if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
-    {
-      DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-      continue;
-    }
-
-    m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
-
-    // Fill message with latest sensor data
-    msg_navsat.header.stamp = m_simTime;
-    msg_navsat.latitude = m_pbBuf.latitude_deg();
-    msg_navsat.longitude = m_pbBuf.longitude_deg();
-    msg_navsat.altitude = m_pbBuf.altitude();
-
-    pubNav->publish(msg_navsat);
+    return;
   }
+
+  if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
+
+  m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
+
+  // Fill message with latest sensor data
+  msg_navsat.header.stamp = m_simTime;
+  msg_navsat.latitude = m_pbBuf.latitude_deg();
+  msg_navsat.longitude = m_pbBuf.longitude_deg();
+  msg_navsat.altitude = m_pbBuf.altitude();
+
+  pubNav->publish(msg_navsat);
 }

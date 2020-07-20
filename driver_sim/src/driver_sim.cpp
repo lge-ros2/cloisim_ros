@@ -69,7 +69,10 @@ void DriverSim::Start()
   Initialize();
 
   m_bRunThread = true;
-  m_thread = thread([=]() {  UpdateData(); });
+  m_thread = thread([=]() {
+    while (IsRunThread()) {
+      UpdateData();
+    }});
 
   auto callback_pub = [this]() -> void {
     PublishStaticTF();

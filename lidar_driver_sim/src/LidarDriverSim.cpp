@@ -92,35 +92,32 @@ void LidarDriverSim::UpdateData()
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (IsRunThread())
+  const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+
+  if (!succeeded || bufferLength < 0)
   {
-    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
 
-    if (!succeeded || bufferLength < 0)
+    // try reconnect1ion
+    if (IsRunThread())
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnect1ion
-      if (IsRunThread())
-      {
-        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-      }
-
-      continue;
+      GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
-    if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
-    {
-      DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-      continue;
-    }
-
-    m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
-
-    UpdateLaserData();
-
-    pubLaser->publish(msg_Laser);
+    return;
   }
+
+  if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
+
+  m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
+
+  UpdateLaserData();
+
+  pubLaser->publish(msg_Laser);
 }
 
 void LidarDriverSim::UpdateLaserData()

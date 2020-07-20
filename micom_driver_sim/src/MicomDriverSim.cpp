@@ -197,43 +197,41 @@ void MicomDriverSim::UpdateData()
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (IsRunThread())
+  const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+
+  if (!succeeded || bufferLength < 0)
   {
-    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
 
-    if (!succeeded || bufferLength < 0)
+    // try reconnection
+    if (IsRunThread())
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnection
-      if (IsRunThread())
-      {
-        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-        GetSimBridge()->Reconnect(SimBridge::Mode::PUB, m_hashKeyPub);
-      }
-
-      continue;
+      GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      GetSimBridge()->Reconnect(SimBridge::Mode::PUB, m_hashKeyPub);
     }
 
-    if (!m_pbBufMicom.ParseFromArray(pBuffer, bufferLength))
-    {
-      DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-      continue;
-    }
+    return;
+  }
 
-    m_simTime = rclcpp::Time(m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec());
+  if (!m_pbBufMicom.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
 
-    //DBG_SIM_WRN("Simulation time %u %u size(%d)",
-    //  m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec(), bufferLength);
+  m_simTime = rclcpp::Time(m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec());
 
-    // reset odom info when sim time is reset
-    if (m_pbBufMicom.time().sec() == 0 && m_pbBufMicom.time().nsec() < 50000000)
-    {
-      DBG_SIM_WRN("Simulation time has been reset!!!");
-      odom_pose.fill(0.0);
-      odom_vel.fill(0.0);
-      last_rad.fill(0.0);
-    }
+  //DBG_SIM_WRN("Simulation time %u %u size(%d)",
+  //  m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec(), bufferLength);
+
+  // reset odom info when sim time is reset
+  if (m_pbBufMicom.time().sec() == 0 && m_pbBufMicom.time().nsec() < 50000000)
+  {
+    DBG_SIM_WRN("Simulation time has been reset!!!");
+    odom_pose.fill(0.0);
+    odom_vel.fill(0.0);
+    last_rad.fill(0.0);
+  }
 
 #if 0
     static int cnt = 0;
@@ -246,17 +244,16 @@ void MicomDriverSim::UpdateData()
     }
 #endif
 
-    UpdateOdom();
-    UpdateImu();
-    UpdateBattery();
+  UpdateOdom();
+  UpdateImu();
+  UpdateBattery();
 
-    PublishTF();
+  PublishTF();
 
-    // publish data
-    pubOdometry->publish(msg_odom);
-    pubImu->publish(msg_imu);
-    pubBatteryState->publish(msg_battery);
-  }
+  // publish data
+  pubOdometry->publish(msg_odom);
+  pubImu->publish(msg_imu);
+  pubBatteryState->publish(msg_battery);
 }
 
 bool MicomDriverSim::CalculateOdometry(

@@ -194,47 +194,44 @@ void CameraDriverSim::UpdateData()
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (IsRunThread())
+  const bool succeeded = GetSimBridge(0)->Receive(&pBuffer, bufferLength, false);
+  if (!succeeded || bufferLength < 0)
   {
-    const bool succeeded = GetSimBridge(0)->Receive(&pBuffer, bufferLength, false);
-    if (!succeeded || bufferLength < 0)
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
+
+    // try reconnect1ion
+    if (IsRunThread())
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnect1ion
-      if (IsRunThread())
-      {
-        GetSimBridge(0)->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-      }
-
-      continue;
+      GetSimBridge(0)->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
-    if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
-    {
-      DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-      continue;
-    }
-
-    m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
-
-    msg_img.header.stamp = m_simTime;
-
-    const auto encoding_arg = GetImageEncondingType(m_pbBuf.image().pixel_format());
-    const uint32_t cols_arg = m_pbBuf.image().width();
-    const uint32_t rows_arg = m_pbBuf.image().height();
-    const uint32_t step_arg = m_pbBuf.image().step();
-
-    // Copy from src to image_msg
-    sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-                           reinterpret_cast<const void *>(m_pbBuf.image().data().data()));
-
-    pubImage.publish(msg_img);
-
-    // Publish camera info
-    auto camera_info_msg = cameraInfoManager->getCameraInfo();
-    camera_info_msg.header.stamp = m_simTime;
-
-    pubCameraInfo->publish(camera_info_msg);
+    return;
   }
+
+  if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
+
+  m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
+
+  msg_img.header.stamp = m_simTime;
+
+  const auto encoding_arg = GetImageEncondingType(m_pbBuf.image().pixel_format());
+  const uint32_t cols_arg = m_pbBuf.image().width();
+  const uint32_t rows_arg = m_pbBuf.image().height();
+  const uint32_t step_arg = m_pbBuf.image().step();
+
+  // Copy from src to image_msg
+  sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
+                         reinterpret_cast<const void *>(m_pbBuf.image().data().data()));
+
+  pubImage.publish(msg_img);
+
+  // Publish camera info
+  auto camera_info_msg = cameraInfoManager->getCameraInfo();
+  camera_info_msg.header.stamp = m_simTime;
+
+  pubCameraInfo->publish(camera_info_msg);
 }
