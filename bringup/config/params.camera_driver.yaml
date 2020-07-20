@@ -9,6 +9,7 @@ camera_driver:
 
     remapping_list: ['/tf', '/tf_static']
 
+    topic_name: "rgb"
     frame_id: "camera_link"
 
     transform: [0.344000, 0.0, 1.014100, 0.0, 0.0, 0.0]

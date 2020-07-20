@@ -23,17 +23,17 @@
 class CameraDriverSim : public DriverSim
 {
 public:
-  CameraDriverSim();
+  explicit CameraDriverSim(const std::string node_name = "camera_driver_sim");
   virtual ~CameraDriverSim();
 
-private:
-  virtual void Initialize();
-  virtual void Deinitialize();
-  virtual void UpdateData();
+protected:
+  virtual void Initialize() override;
+  virtual void Deinitialize() override;
+  virtual void UpdateData() override;
 
   void InitializeCameraInfoMessage();
 
-private:
+protected:
   // key for connection
   std::string m_hashKeySub;
 

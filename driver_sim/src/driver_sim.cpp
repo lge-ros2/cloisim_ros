@@ -35,10 +35,9 @@ DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
   get_parameter_or("sim.model", m_robot_name, string("cloi"));
   get_parameter_or("sim.parts", m_parts_name, string("_parts_"));
 
-
   DBG_SIM_INFO("[CONFIG] sim.manage_ip = %s, sim.manage_port = %d", sim_ip.c_str(), sim_manager_port);
   DBG_SIM_INFO("[CONFIG] sim.model = %s", m_robot_name.c_str());
-  DBG_SIM_INFO("[CONFIG] sim.part = %s", m_robot_name.c_str());
+  DBG_SIM_INFO("[CONFIG] sim.part = %s", m_parts_name.c_str());
 
   m_simBridgeList.reserve(number_of_simbridge);
 

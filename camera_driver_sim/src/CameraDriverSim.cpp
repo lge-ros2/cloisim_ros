@@ -21,8 +21,8 @@
 using namespace std;
 using namespace chrono_literals;
 
-CameraDriverSim::CameraDriverSim()
-    : DriverSim("camera_driver_sim", 2)
+CameraDriverSim::CameraDriverSim(const std::string node_name)
+    : DriverSim(node_name, 2)
 {
   Start();
 }
@@ -36,14 +36,14 @@ CameraDriverSim::~CameraDriverSim()
 void CameraDriverSim::Initialize()
 {
   string frame_id_;
-  string camera_name_;
+  string topic_name_;
   vector<double> transform_;
 
+  get_parameter_or("topic_name", topic_name_, string("topic"));
   get_parameter_or("frame_id", frame_id_, string("camera_link"));
-  get_parameter_or("camera_name", camera_name_, string("camera"));
   get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
 
-  const auto topic_base_name_ = camera_name_ + "/rgb";
+  const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
   m_hashKeySub = GetRobotName() + GetPartsName();
 
   DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
@@ -75,7 +75,7 @@ void CameraDriverSim::Initialize()
   pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
 
   // Initialize camera_info_manager
-  cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), camera_name_);
+  cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), GetPartsName());
 
   InitializeCameraInfoMessage();
 }

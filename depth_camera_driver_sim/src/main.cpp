@@ -22,7 +22,7 @@ int main(int argc, char** argv)
   rclcpp::sleep_for(100ms);
 
   auto node = std::make_shared<DepthCameraDriverSim>();
-  rclcpp::spin(node->get_node_base_interface());
+  rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
 }

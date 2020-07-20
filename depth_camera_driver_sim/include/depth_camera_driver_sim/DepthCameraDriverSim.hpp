@@ -4,7 +4,7 @@
  *  @author Sungkyu Kang
  *  @author hyunseok Yang
  *  @brief
- *        ROS2 Depth                                                                    Camera Driver class for simulator
+ *        ROS2 Depth Camera Driver class for simulator
  *  @remark
  *  @warning
  *       LGE Advanced Robotics Laboratory
@@ -14,47 +14,26 @@
 #ifndef _DepthCameraDriverSim_H_
 #define _DepthCameraDriverSim_H_
 
-#include "driver_sim/driver_sim.hpp"
-#include <image_transport/image_transport.h>
-#include <camera_info_manager/camera_info_manager.h>
-#include <sensor_msgs/msg/camera_info.hpp>
+#include "camera_driver_sim/CameraDriverSim.hpp"
 #include <sensor_msgs/msg/point_cloud2.hpp>
-#include <protobuf/image_stamped.pb.h>
 
-class DepthCameraDriverSim : public DriverSim
+class DepthCameraDriverSim : public CameraDriverSim
 {
 public:
   DepthCameraDriverSim();
   virtual ~DepthCameraDriverSim();
 
 private:
-  virtual void Initialize();
-  virtual void Deinitialize();  
-  virtual void UpdateData();
-
-  void InitializeCameraInfoManager();
+  virtual void Initialize() override;
+  virtual void Deinitialize() override;
+  virtual void UpdateData() override;
 
 private:
-  // key for connection
-  std::string m_hashKeySub;
-
-  // buffer from simulation
-  gazebo::msgs::ImageStamped m_pbBuf;
-
-  // message for ROS2 communictaion
-  sensor_msgs::msg::Image msg_img;
+  // Camera info publisher
+  // rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubDepthCameraInfo{nullptr};
 
   // Store current point cloud.
   // sensor_msgs::msg::PointCloud2 msg_pc2;
-
-  // Camera info publisher
-  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubDepthCameraInfo{nullptr};
-
-  // Depth Camera info manager
-  std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager;
-
-  // Depth image publisher.
-  image_transport::Publisher pubDepthImage;
 
   // Point cloud publisher.
   // rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubPointCloud;
