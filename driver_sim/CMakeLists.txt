@@ -32,9 +32,6 @@ add_library(${PROJECT_NAME} SHARED
   src/driver_sim.cpp
   ${PROTOBUF_MSG_SRCS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
-  ${dependencies})
-
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   geometry_msgs
@@ -49,10 +46,9 @@ install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/
   RUNTIME DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY include/
-  DESTINATION include/)
+install(DIRECTORY include/ DESTINATION include/)
 
 ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME} ${dependencies})
+ament_export_libraries(${PROJECT_NAME})
 
 ament_package()

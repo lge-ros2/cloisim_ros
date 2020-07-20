@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
   rclcpp::init(argc, argv);
-  auto pNode = std::make_shared<CElevatorSystem>();
-  rclcpp::spin(pNode->get_node_base_interface());
+  auto node = std::make_shared<CElevatorSystem>();
+  rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
 
   return 0;
