@@ -19,6 +19,7 @@
 #include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <protobuf/image_stamped.pb.h>
+#include <protobuf/camerasensor.pb.h>
 
 class CameraDriverSim : public DriverSim
 {
@@ -31,26 +32,31 @@ protected:
   virtual void Deinitialize() override;
   virtual void UpdateData() override;
 
-  void InitializeCameraInfoMessage();
+private:
+  void GetCameraSensorMessage();
+  void InitializeCameraInfoMessage(std::string frame_id);
 
-protected:
+private:
   // key for connection
   std::string m_hashKeySub;
 
-  // buffer from simulation
-  gazebo::msgs::ImageStamped m_pbBuf;
+  // image buffer from simulator
+  gazebo::msgs::ImageStamped m_pbImgBuf;
 
   // message for ROS2 communictaion
   sensor_msgs::msg::Image msg_img;
+
+  // Image publisher
+  image_transport::Publisher pubImage;
+
+  // Camera sensor info buffer from simulator
+  gazebo::msgs::CameraSensor m_pbBufCameraSensorInfo;
 
   // Camera info publisher
   rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubCameraInfo{nullptr};
 
   // Camera info manager
   std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager;
-
-  // Image publisher
-  image_transport::Publisher pubImage;
 };
 
 #endif
