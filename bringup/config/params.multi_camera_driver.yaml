@@ -13,33 +13,10 @@ multi_camera_driver:
     transform: [-0.048500, 0.0, 0.948300, 0.0, -1.5707, 0.0]
     camera_list: ["left", "right"]
 
-
     left:
-      name: "left"
       transform_offset: [0.0, 0.252, 0.0, -0.0, -0.0, 0.785398]
       frame_id: "left_link"
-      camera_info:
-        width: 704
-        height: 478
-        hfov: 1.18
-        distortion:
-          k1: 0.0
-          k2: 0.0
-          k3: 0.0
-          t1: 0.0
-          t2: 0.0
 
     right:
-      name: "right"
       transform_offset: [0.0, -0.252, 0.0, -0.0, -0.0, -0.785398]
       frame_id: "right_link"
-      camera_info:
-        width: 704
-        height: 478
-        hfov: 1.18
-        distortion:
-          k1: 0.0
-          k2: 0.0
-          k3: 0.0
-          t1: 0.0
-          t2: 0.0
