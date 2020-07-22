@@ -14,15 +14,19 @@ Please setup ROS2 environment first!
 - $ colcon build --packages-up-to simdevice_bringup
 
 # Usage
+
 ## driver sim
+- check here [details](https://github.com/lge-ros2/sim-device/tree/dashing/bringup)
 - $ ros2 launch simdevice_bringup **driver_sim**.launch.py robot_name:=cloi1 
+
+
 
 ## elevator system sim
 - $ ros2 launch simdevice_bringup **elevator_system_sim**.launch.py
 
 ## simulator(CLOiSim) with world
 - only simulator
-  - $ ros2 launch simdevice_bringup **cloisim**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.2.0 world:=lg_seocho.world
+  - $ ros2 launch simdevice_bringup **cloisim**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
 
 - simulator + unity-ros2 packge(clock topic)
-  - $ ros2 launch simdevice_bringup **cloisim_world**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.2.0 world:=lg_seocho.world
+  - $ ros2 launch simdevice_bringup **cloisim_world**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
