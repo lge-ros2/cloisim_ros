@@ -19,6 +19,7 @@
 #include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <protobuf/images_stamped.pb.h>
+#include <protobuf/camerasensor.pb.h>
 
 class MultiCameraDriverSim : public DriverSim
 {
@@ -31,13 +32,11 @@ private:
   virtual void Deinitialize();
   virtual void UpdateData();
 
-  void InitializeCameraInfoManager(const std::string target_camera_item);
+  void GetCameraSensorMessage(const std::string camera_name);
+  void InitializeCameraInfoMessage(const std::string camera_name, const std::string frame_id);
 
 private:
   std::string m_hashKeySub;
-
-  // Yaml parameters
-  bool m_bIntensity;
 
   // buffer from simulation
   gazebo::msgs::ImagesStamped m_pbBuf;
@@ -45,13 +44,16 @@ private:
   // message for ROS2 communictaion
   sensor_msgs::msg::Image msg_img;
 
+  // Camera sensor info buffer from simulator
+  gazebo::msgs::CameraSensor m_pbBufCameraSensorInfo;
+
   // Camera info publishers.
   std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCamerasInfo;
 
   // Camera info managers
   std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
 
-  // Laser publisher
+  // Image publisher
   std::vector<image_transport::Publisher> pubImages;
 };
 #endif

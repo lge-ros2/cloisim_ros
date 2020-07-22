@@ -34,7 +34,7 @@ protected:
 
 private:
   void GetCameraSensorMessage();
-  void InitializeCameraInfoMessage(std::string frame_id);
+  void InitializeCameraInfoMessage(const std::string frame_id);
 
 private:
   // key for connection

@@ -16,9 +16,11 @@
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <tf2/LinearMath/Quaternion.h>
+#include <protobuf/param.pb.h>
 
 using namespace std;
 using namespace chrono_literals;
+using namespace gazebo;
 
 CameraDriverSim::CameraDriverSim(const std::string node_name)
     : DriverSim(node_name, 2)
@@ -89,7 +91,12 @@ void CameraDriverSim::Deinitialize()
 
 void CameraDriverSim::GetCameraSensorMessage()
 {
-  string serializedBuffer = "request_camera_info";
+  msgs::Param request_msg;
+  request_msg.set_name("request_camera_info");
+
+  string serializedBuffer;
+  request_msg.SerializeToString(&serializedBuffer);
+
   GetSimBridge(1)->Send(serializedBuffer.data(), serializedBuffer.size());
 
   void *pBuffer = nullptr;
@@ -109,7 +116,7 @@ void CameraDriverSim::GetCameraSensorMessage()
   }
 }
 
-void CameraDriverSim::InitializeCameraInfoMessage(string frame_id)
+void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
 {
   sensor_msgs::msg::CameraInfo camera_info_msg;
 
