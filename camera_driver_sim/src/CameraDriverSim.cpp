@@ -97,11 +97,12 @@ void CameraDriverSim::GetCameraSensorMessage()
   string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  GetSimBridge(1)->Send(serializedBuffer.data(), serializedBuffer.size());
+  auto simBridge = GetSimBridge(1);
+  simBridge->Send(serializedBuffer.data(), serializedBuffer.size());
 
   void *pBuffer = nullptr;
   int bufferLength = 0;
-  const auto succeeded = GetSimBridge(1)->Receive(&pBuffer, bufferLength);
+  const auto succeeded = simBridge->Receive(&pBuffer, bufferLength);
 
   if (!succeeded || bufferLength < 0)
   {
@@ -196,12 +197,13 @@ void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
   cameraInfoManager->setCameraInfo(camera_info_msg);
 }
 
-void CameraDriverSim::UpdateData()
+void CameraDriverSim::UpdateData(const int bridge_index)
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = GetSimBridge(0)->Receive(&pBuffer, bufferLength, false);
+  auto simBridge = GetSimBridge(bridge_index);
+  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
@@ -209,7 +211,7 @@ void CameraDriverSim::UpdateData()
     // try reconnect1ion
     if (IsRunThread())
     {
-      GetSimBridge(0)->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
     return;

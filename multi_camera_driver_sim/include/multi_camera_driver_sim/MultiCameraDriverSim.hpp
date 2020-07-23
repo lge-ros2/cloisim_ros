@@ -28,9 +28,9 @@ public:
   virtual ~MultiCameraDriverSim();
 
 private:
-  virtual void Initialize();
-  virtual void Deinitialize();
-  virtual void UpdateData();
+  virtual void Initialize() override;
+  virtual void Deinitialize() override;
+  virtual void UpdateData(const int bridge_index) override;
 
   void GetCameraSensorMessage(const std::string camera_name);
   void InitializeCameraInfoMessage(const std::string camera_name, const std::string frame_id);
@@ -45,7 +45,7 @@ private:
   sensor_msgs::msg::Image msg_img;
 
   // Camera sensor info buffer from simulator
-  gazebo::msgs::CameraSensor m_pbBufCameraSensorInfo;
+  gazebo::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;
 
   // Camera info publishers.
   std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCamerasInfo;

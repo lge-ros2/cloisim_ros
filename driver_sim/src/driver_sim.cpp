@@ -63,15 +63,19 @@ DriverSim::~DriverSim()
   }
 }
 
-void DriverSim::Start()
+void DriverSim::Start(const bool runDefaultUpdateDataThread)
 {
+  m_bRunThread = true;
+
   Initialize();
 
-  m_bRunThread = true;
-  m_thread = thread([=]() {
-    while (IsRunThread()) {
-      UpdateData();
-    }});
+  if (runDefaultUpdateDataThread)
+  {
+    m_thread = thread([=]() {
+      while (IsRunThread()) {
+        UpdateData();
+      }});
+  }
 
   auto callback_pub = [this]() -> void {
     PublishStaticTF();
@@ -116,4 +120,12 @@ void DriverSim::PublishStaticTF()
 SimBridge* DriverSim::GetSimBridge(const int bridge_index)
 {
   return m_simBridgeList.at(bridge_index);
+}
+
+void DriverSim::DisconnectAllSimBridge()
+{
+  for (auto pSimBridge : m_simBridgeList)
+  {
+    pSimBridge->Disconnect();
+  }
 }

@@ -87,12 +87,13 @@ void LidarDriverSim::Deinitialize()
   GetSimBridge()->Disconnect();
 }
 
-void LidarDriverSim::UpdateData()
+void LidarDriverSim::UpdateData(const int bridge_index)
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+  auto simBridge = GetSimBridge();
+  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
 
   if (!succeeded || bufferLength < 0)
   {
@@ -101,7 +102,7 @@ void LidarDriverSim::UpdateData()
     // try reconnect1ion
     if (IsRunThread())
     {
-      GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
     return;

@@ -30,7 +30,7 @@ public:
 protected:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
-  virtual void UpdateData() override;
+  virtual void UpdateData(const int bridge_index = 0) override;
 
 private:
   void GetCameraSensorMessage();

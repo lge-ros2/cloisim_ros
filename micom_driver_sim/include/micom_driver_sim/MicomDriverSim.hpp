@@ -33,9 +33,9 @@ public:
   virtual ~MicomDriverSim();
 
 private:
-  virtual void Initialize();
-  virtual void Deinitialize();
-  virtual void UpdateData();
+  virtual void Initialize() override;
+  virtual void Deinitialize() override;
+  virtual void UpdateData(const int bridge_index) override;
 
 private:
   void MicomWrite(const void* const pcBuf, const uint32_t unSize);

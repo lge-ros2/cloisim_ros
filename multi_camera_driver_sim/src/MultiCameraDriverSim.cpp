@@ -40,7 +40,6 @@ void MultiCameraDriverSim::Initialize()
 
   get_parameter_or("camera_name", multicamera_name_, string("multi_camera"));
   get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
-
   get_parameter("camera_list", camera_list_);
 
   tf2::Quaternion fixed_rot;
@@ -121,11 +120,12 @@ void MultiCameraDriverSim::GetCameraSensorMessage(const string camera_name)
   string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  GetSimBridge(0)->Send(serializedBuffer.data(), serializedBuffer.size());
+  auto simBridge = GetSimBridge(0);
+  simBridge->Send(serializedBuffer.data(), serializedBuffer.size());
 
   void *pBuffer = nullptr;
   int bufferLength = 0;
-  const auto succeeded = GetSimBridge(0)->Receive(&pBuffer, bufferLength);
+  const auto succeeded = simBridge->Receive(&pBuffer, bufferLength);
 
   if (!succeeded || bufferLength < 0)
   {
@@ -133,7 +133,7 @@ void MultiCameraDriverSim::GetCameraSensorMessage(const string camera_name)
   }
   else
   {
-    if (m_pbBufCameraSensorInfo.ParseFromArray(pBuffer, bufferLength) == false)
+    if (m_pbTmpBufCameraSensorInfo.ParseFromArray(pBuffer, bufferLength) == false)
     {
       DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
     }
@@ -144,14 +144,14 @@ void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name,
 {
   sensor_msgs::msg::CameraInfo camera_info_msg;
 
-  int width_ = m_pbBufCameraSensorInfo.image_size().x();
-  int height_ = m_pbBufCameraSensorInfo.image_size().y();
+  int width_ = m_pbTmpBufCameraSensorInfo.image_size().x();
+  int height_ = m_pbTmpBufCameraSensorInfo.image_size().y();
 
   // C parameters
   auto cx_ = (static_cast<double>(width_) + 1.0) / 2.0;
   auto cy_ = (static_cast<double>(height_) + 1.0) / 2.0;
 
-  double hfov_ = m_pbBufCameraSensorInfo.horizontal_fov();
+  double hfov_ = m_pbTmpBufCameraSensorInfo.horizontal_fov();
 
   auto computed_focal_length = (static_cast<double>(width_)) / (2.0 * tan(hfov_ / 2.0));
 
@@ -165,11 +165,11 @@ void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name,
   const auto hack_baseline = 0.0f;
 
   // Get distortion from camera
-  double distortion_k1 = m_pbBufCameraSensorInfo.distortion().k1();
-  double distortion_k2 = m_pbBufCameraSensorInfo.distortion().k2();
-  double distortion_k3 = m_pbBufCameraSensorInfo.distortion().k3();
-  double distortion_t1 = m_pbBufCameraSensorInfo.distortion().p1();
-  double distortion_t2 = m_pbBufCameraSensorInfo.distortion().p2();
+  double distortion_k1 = m_pbTmpBufCameraSensorInfo.distortion().k1();
+  double distortion_k2 = m_pbTmpBufCameraSensorInfo.distortion().k2();
+  double distortion_k3 = m_pbTmpBufCameraSensorInfo.distortion().k3();
+  double distortion_t1 = m_pbTmpBufCameraSensorInfo.distortion().p1();
+  double distortion_t2 = m_pbTmpBufCameraSensorInfo.distortion().p2();
 
   // D = {k1, k2, t1, t2, k3}, as specified in:
   // - sensor_msgs/CameraInfo: http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html
@@ -222,12 +222,13 @@ void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name,
   cameraInfoManager.back()->setCameraInfo(camera_info_msg);
 }
 
-void MultiCameraDriverSim::UpdateData()
+void MultiCameraDriverSim::UpdateData(const int bridge_index)
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = GetSimBridge(1)->Receive(&pBuffer, bufferLength, false);
+  auto simBridge = GetSimBridge(1);
+  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
@@ -235,7 +236,7 @@ void MultiCameraDriverSim::UpdateData()
     // try reconnect1ion
     if (IsRunThread())
     {
-      GetSimBridge(1)->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
     return;

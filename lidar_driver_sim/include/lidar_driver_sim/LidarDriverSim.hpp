@@ -27,9 +27,9 @@ public:
   ~LidarDriverSim();
 
 private:
-  virtual void Initialize();
-  virtual void Deinitialize();
-  virtual void UpdateData();
+  virtual void Initialize() override;
+  virtual void Deinitialize() override;
+  virtual void UpdateData(const int bridge_index) override;
 
   void UpdateLaserData();
 

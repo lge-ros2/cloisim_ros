@@ -31,9 +31,9 @@ public:
 protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
-  virtual void UpdateData() = 0; // Function called at loop thread
+  virtual void UpdateData(const int bridge_index = 0) = 0; // Function called at loop thread
 
-  void Start();
+  void Start(const bool runDefaultUpdateDataThread = true);
   void Stop();
 
   void AddTf2(const geometry_msgs::msg::TransformStamped _tf)
@@ -51,6 +51,8 @@ protected:
   rclcpp::Node* GetNode() { return m_node_handle.get(); }
 
   SimBridge* GetSimBridge(const int bridge_index = 0);
+
+  void DisconnectAllSimBridge();
 
   std::string GetRobotName() { return m_robot_name; }
   std::string GetPartsName() { return m_parts_name; }

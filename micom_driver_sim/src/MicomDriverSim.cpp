@@ -22,6 +22,7 @@
 
 using namespace std;
 using namespace chrono_literals;
+using namespace gazebo;
 
 MicomDriverSim::MicomDriverSim()
     : DriverSim("micom_driver_sim"),
@@ -159,24 +160,24 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   double vel_left_wheel = vel_lin - vel_rot_wheel;
   double vel_right_wheel = vel_lin + vel_rot_wheel;
 
-  gazebo::msgs::Param writeBuf;
-  gazebo::msgs::Any *pVal;
+  msgs::Param writeBuf;
+  msgs::Any *pVal;
 
   writeBuf.set_name("control_type");
   pVal = writeBuf.mutable_value();
-  pVal->set_type(gazebo::msgs::Any::INT32);
+  pVal->set_type(msgs::Any::INT32);
   pVal->set_int_value(1);
 
-  gazebo::msgs::Param *const pLinearVel = writeBuf.add_children();
+  msgs::Param *const pLinearVel = writeBuf.add_children();
   pLinearVel->set_name("nLeftWheelVelocity");
   pVal = pLinearVel->mutable_value();
-  pVal->set_type(gazebo::msgs::Any::INT32);
+  pVal->set_type(msgs::Any::INT32);
   pVal->set_int_value(vel_left_wheel);
 
-  gazebo::msgs::Param *const pAngularVel = writeBuf.add_children();
+  msgs::Param *const pAngularVel = writeBuf.add_children();
   pAngularVel->set_name("nRightWheelVelocity");
   pVal = pAngularVel->mutable_value();
-  pVal->set_type(gazebo::msgs::Any::INT32);
+  pVal->set_type(msgs::Any::INT32);
   pVal->set_int_value(vel_right_wheel);
 
   string message = "";
@@ -192,7 +193,7 @@ void MicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
   }
 }
 
-void MicomDriverSim::UpdateData()
+void MicomDriverSim::UpdateData(const int bridge_index)
 {
   void *pBuffer = nullptr;
   int bufferLength = 0;
@@ -271,7 +272,7 @@ bool MicomDriverSim::CalculateOdometry(
   double delta_theta = 0.0f;
   static double last_theta = 0.0f;
 
-  double v = 0.0f; // v = translational velocity [m/s]
+  double v = 0.0f; //  v = translationalvelocity [m/s]
   double w = 0.0f; // w = rotational velocity [rad/s]
 
    // rotation value of wheel [rad]

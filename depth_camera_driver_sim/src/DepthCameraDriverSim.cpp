@@ -41,7 +41,8 @@ void DepthCameraDriverSim::Deinitialize()
   DBG_SIM_INFO("DepthCamera Deinitialization");
 }
 
-void DepthCameraDriverSim::UpdateData()
+void DepthCameraDriverSim::UpdateData(const int bridge_index)
 {
+  (void)bridge_index;
   CameraDriverSim::UpdateData();
 }
