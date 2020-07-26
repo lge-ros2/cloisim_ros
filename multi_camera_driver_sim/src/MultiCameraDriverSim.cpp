@@ -224,10 +224,11 @@ void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name,
 
 void MultiCameraDriverSim::UpdateData(const int bridge_index)
 {
+  (void)bridge_index;
+  auto simBridge = GetSimBridge(1);
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  auto simBridge = GetSimBridge(1);
   const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
   if (!succeeded || bufferLength < 0)
   {

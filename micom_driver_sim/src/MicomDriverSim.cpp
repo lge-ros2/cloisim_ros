@@ -195,10 +195,12 @@ void MicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
 
 void MicomDriverSim::UpdateData(const int bridge_index)
 {
+  (void)bridge_index;
+  auto simBridge = GetSimBridge();
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
 
   if (!succeeded || bufferLength < 0)
   {
@@ -207,8 +209,8 @@ void MicomDriverSim::UpdateData(const int bridge_index)
     // try reconnection
     if (IsRunThread())
     {
-      GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-      GetSimBridge()->Reconnect(SimBridge::Mode::PUB, m_hashKeyPub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::PUB, m_hashKeyPub);
     }
 
     return;

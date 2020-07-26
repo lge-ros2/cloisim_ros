@@ -18,10 +18,10 @@ using namespace std::literals;
 
 int main(int argc, char** argv)
 {
+  rclcpp::sleep_for(100ms);
   rclcpp::init(argc, argv);
   auto node = std::make_shared<MicomDriverSim>();
   rclcpp::spin(node);
-  rclcpp::sleep_for(100ms);
   rclcpp::shutdown();
   return 0;
 }

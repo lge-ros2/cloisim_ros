@@ -94,7 +94,6 @@ void RealSenseDriverSim::Initialize()
     GetCameraSensorMessage(simBridgeCount + 1);
     InitializeCameraInfoMessage(module);
 
-    // m_threads.emplace_back([this]() {
     m_threads.emplace_back(thread([=]() {
       while (IsRunThread())
       {

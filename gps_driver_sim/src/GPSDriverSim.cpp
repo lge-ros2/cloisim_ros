@@ -88,10 +88,11 @@ void GPSDriverSim::Deinitialize()
 
 void GPSDriverSim::UpdateData(const int bridge_index)
 {
+  (void)bridge_index;
+  auto simBridge = GetSimBridge();
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  auto simBridge = GetSimBridge();
   const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
 
   if (!succeeded || bufferLength < 0)

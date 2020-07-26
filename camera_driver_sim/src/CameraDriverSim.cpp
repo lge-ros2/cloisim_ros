@@ -199,10 +199,10 @@ void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
 
 void CameraDriverSim::UpdateData(const int bridge_index)
 {
+  auto simBridge = GetSimBridge(bridge_index);
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  auto simBridge = GetSimBridge(bridge_index);
   const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
   if (!succeeded || bufferLength < 0)
   {
