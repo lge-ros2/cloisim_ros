@@ -1,5 +1,5 @@
 # sim-device (dashing version)
-ROS2 simulation device packages to connect an Unity3D based multi-robot simulator.
+ROS2 simulation device packages to connect the unity3D based multi-robot simulator(latest version).
 
 # prerequisite
 
