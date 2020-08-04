@@ -66,9 +66,9 @@ void GPSDriverSim::Initialize()
 
   // Fill covariances
   // TODO: need to applying noise
-  msg_navsat.position_covariance[0] = 1.0f;
-  msg_navsat.position_covariance[4] = 1.0f;
-  msg_navsat.position_covariance[8] = 1.0f;
+  msg_navsat.position_covariance[0] = 0.0001f;
+  msg_navsat.position_covariance[4] = 0.0001f;
+  msg_navsat.position_covariance[8] = 0.0001f;
   msg_navsat.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
 
   // Fill gps status

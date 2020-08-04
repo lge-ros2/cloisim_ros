@@ -418,6 +418,7 @@ void MicomDriverSim::UpdateImu()
   msg_imu.orientation.z = m_pbBufMicom.imu().orientation().z();
   msg_imu.orientation.w = m_pbBufMicom.imu().orientation().w();
 
+   // Fill covariances
   msg_imu.orientation_covariance[0] = 0.0;
   msg_imu.orientation_covariance[1] = 0.0;
   msg_imu.orientation_covariance[2] = 0.0;
