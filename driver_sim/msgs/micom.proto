@@ -13,12 +13,12 @@ message Micom
 {
   message USS
   {
-    repeated uint32 distance  = 1;
+    repeated double distance  = 1;
   }
 
   message IR
   {
-    repeated uint32 distance  = 1;
+    repeated double distance  = 1;
   }
 
   message Magnet
@@ -28,8 +28,8 @@ message Micom
 
   message Odometry
   {
-    required int32 speed_left   = 1 [default = 0];
-    required int32 speed_right  = 2 [default = 0];
+    required double speed_left   = 1 [default = 0];
+    required double speed_right  = 2 [default = 0];
   }
 
   message AccGyro

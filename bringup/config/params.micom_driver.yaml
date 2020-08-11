@@ -19,5 +19,5 @@ micom_driver:
         right: [0.001, -0.225, 0.07, 0.0, 0.0, 0.0]
 
     wheel:
-      base: 449.0
-      radius: 95.5
+      base: 0.449
+      radius: 0.0955

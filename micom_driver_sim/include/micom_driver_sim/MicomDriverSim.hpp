@@ -24,11 +24,6 @@
 class MicomDriverSim : public DriverSim
 {
 public:
-  static constexpr double WHEEL_RADIUS_RATIO = 1.00f;
-  static constexpr double RAD2DEG = 57.29577951f; ///< 180.0/PI
-  static constexpr double DEG2RAD = 0.017453292f; ///< PI/180.0
-
-public:
   MicomDriverSim();
   virtual ~MicomDriverSim();
 

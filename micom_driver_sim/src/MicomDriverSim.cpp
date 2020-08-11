@@ -17,8 +17,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include "protobuf/param.pb.h"
 
-#define MM2M(X) ((X)*0.001)
-#define LOGGING_PERIOD 200
+#define LOGGING_PERIOD 1000
 
 using namespace std;
 using namespace chrono_literals;
@@ -60,16 +59,15 @@ void MicomDriverSim::Initialize()
   get_parameter_or("transform.imu", transform_imu, vector<double>({0, 0, 0, 0, 0, 0}));
   get_parameter_or("transform.wheel.left", transform_wheelLeft, vector<double>({0, 0, 0, 0, 0, 0}));
   get_parameter_or("transform.wheel.right", transform_wheelRight, vector<double>({0, 0, 0, 0, 0, 0}));
-  get_parameter_or("wheel.base", wheel_base, 449.0);
-  get_parameter_or("wheel.radius", wheel_radius, 95.5);
+  get_parameter_or("wheel.base", wheel_base, 0.449);
+  get_parameter_or("wheel.radius", wheel_radius, 0.0955);
 
   m_hashKeyPub = GetRobotName() + input_part_name;
   m_hashKeySub = GetRobotName() + sensor_part_name;
 
-  DBG_SIM_INFO("[CONFIG] sim.parts_tx:%s,", input_part_name.c_str());
-  DBG_SIM_INFO("[CONFIG] sim.parts_rx:%s,", sensor_part_name.c_str());
-  DBG_SIM_INFO("[CONFIG] wheel.base:%f", wheel_base);
-  DBG_SIM_INFO("[CONFIG] wheel.radius:%f", wheel_radius);
+  DBG_SIM_INFO("[CONFIG] sim.parts_tx:%s, sim.parts_rx:%s", input_part_name.c_str(), sensor_part_name.c_str());
+  DBG_SIM_INFO("[CONFIG] wheel.base:%f m", wheel_base);
+  DBG_SIM_INFO("[CONFIG] wheel.radius:%f m", wheel_radius);
 
   DBG_SIM_INFO("Hash Key sub(%s) pub(%s)", m_hashKeySub.c_str(), m_hashKeyPub.c_str());
 
@@ -135,7 +133,7 @@ void MicomDriverSim::Initialize()
   pubImu = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
 
   auto callback_sub = [this](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
-    const string msgBuf = MakeControlMessage(msg);
+    const auto msgBuf = MakeControlMessage(msg);
     MicomWrite(msgBuf.data(), msgBuf.size());
   };
 
@@ -150,15 +148,15 @@ void MicomDriverSim::Deinitialize()
 
 string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
-  auto vel_lin = msg->linear.x * 1000.0; // mm/s
-  auto vel_rot = msg->angular.z;         // rad/s
+  auto vel_lin = msg->linear.x; // m/s
+  auto vel_rot = msg->angular.z; // rad/s
 
-  // mm/s velocity input
+  // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f * 1000.0) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f * 1000.0) / 2.0));
-  const double vel_rot_wheel = (0.5f * vel_rot * wheel_base);
-  double vel_left_wheel = vel_lin - vel_rot_wheel;
-  double vel_right_wheel = vel_lin + vel_rot_wheel;
+  const auto vel_rot_wheel = (0.5f * vel_rot * wheel_base);
+  auto lin_vel_left_wheel = vel_lin - vel_rot_wheel;
+  auto lin_vel_right_wheel = vel_lin + vel_rot_wheel;
 
   msgs::Param writeBuf;
   msgs::Any *pVal;
@@ -169,16 +167,16 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   pVal->set_int_value(1);
 
   msgs::Param *const pLinearVel = writeBuf.add_children();
-  pLinearVel->set_name("nLeftWheelVelocity");
+  pLinearVel->set_name("LeftWheelVelocity");
   pVal = pLinearVel->mutable_value();
-  pVal->set_type(msgs::Any::INT32);
-  pVal->set_int_value(vel_left_wheel);
+  pVal->set_type(msgs::Any::DOUBLE);
+  pVal->set_double_value(lin_vel_left_wheel);
 
   msgs::Param *const pAngularVel = writeBuf.add_children();
-  pAngularVel->set_name("nRightWheelVelocity");
+  pAngularVel->set_name("RightWheelVelocity");
   pVal = pAngularVel->mutable_value();
-  pVal->set_type(msgs::Any::INT32);
-  pVal->set_int_value(vel_right_wheel);
+  pVal->set_type(msgs::Any::DOUBLE);
+  pVal->set_double_value(lin_vel_right_wheel);
 
   string message = "";
   writeBuf.SerializeToString(&message);
@@ -332,18 +330,13 @@ void MicomDriverSim::UpdateOdom()
     return;
   }
 
-  // get wheel linear velocity mm/s
-  const int16_t nSpeedLeft_MM = m_pbBufMicom.odom().speed_left();
-  const int16_t nSpeedRight_MM = m_pbBufMicom.odom().speed_right();
   // DBG_SIM_MSG("nSpeedLeft: %d, nSpeedRight: %d, imu.x: %f, imu.y: %f, imu.z: %f, imu.w: %f",
-  //         nSpeedLeft_MM, nSpeedRight_MM, m_pbBufMicom.imu().orientation().x(), m_pbBufMicom.imu().orientation().y(),
+  //         nSpeedLeft, nSpeedRight, m_pbBufMicom.imu().orientation().x(), m_pbBufMicom.imu().orientation().y(),
   //         m_pbBufMicom.imu().orientation().z(), m_pbBufMicom.imu().orientation().w());
-  // update velocity m/s
-  const double fWheelVelLeft_M = MM2M((float)nSpeedLeft_MM / WHEEL_RADIUS_RATIO);
-  const double fWheelVelRight_M = MM2M((float)nSpeedRight_MM / WHEEL_RADIUS_RATIO);
 
-  const double wheel_left = fWheelVelLeft_M;
-  const double wheel_right = fWheelVelRight_M;
+  // update velocity m/s
+  const double wheel_left = m_pbBufMicom.odom().speed_left();
+  const double wheel_right = m_pbBufMicom.odom().speed_right();
 
   const auto orientation = m_pbBufMicom.imu().orientation();
   const double theta = atan2f(2 * ((orientation.w() * orientation.z()) + (orientation.x() * orientation.y())),
@@ -411,7 +404,6 @@ void MicomDriverSim::UpdateOdom()
 void MicomDriverSim::UpdateImu()
 {
   msg_imu.header.stamp = m_simTime;
-  // 	imuLink.rotation.eulerAngles.ToString("F4"), imuInitialRotation.
 
   msg_imu.orientation.x = m_pbBufMicom.imu().orientation().x();
   msg_imu.orientation.y = m_pbBufMicom.imu().orientation().y();
