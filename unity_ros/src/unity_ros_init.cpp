@@ -30,7 +30,7 @@ UnityRosInit::UnityRosInit()
         .allow_undeclared_parameters(true)
         .automatically_declare_parameters_from_overrides(true))
   , m_pSimBridge(nullptr)
-  , m_hashKey("")
+  , m_hashKey("UnityRosInit")
   , throttler_(nullptr)
   , m_bRun(false)
 {
@@ -46,10 +46,6 @@ UnityRosInit::UnityRosInit()
 
   DBG_SIM_INFO("[CONFIG] sim manage ip:%s, port:%d, publish_rate:%f", sim_ip.c_str(), sim_manager_port, publish_rate);
 
-  // set param for use_sim_time if not set by user already
-  // if(!(hasParam("/use_sim_time")))
-  //   setParam("/use_sim_time", true);
-
   throttler_ = new Throttler(publish_rate);
 
   m_pSimBridge = new SimBridge();
@@ -60,11 +56,10 @@ UnityRosInit::UnityRosInit()
     m_pSimBridge->SetPortManagerPort(sim_manager_port);
   }
 
-  // Offer transient local durability on the clock topic so that if publishing is infrequent (e.g.
-  // the simulation is paused), late subscribers can receive the previously published message(s).
-  clock_pub_ = create_publisher<rosgraph_msgs::msg::Clock>(
-    "/clock",
-    rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+  // Offer transient local durability on the clock topic so that if publishing is infrequent,
+  // late subscribers can receive the previously published message(s).
+  clock_pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock",
+                                                           rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
   Start();
 }
@@ -78,7 +73,6 @@ UnityRosInit::~UnityRosInit()
 
 void UnityRosInit::Start()
 {
-  m_hashKey = "UnityRosInit";
   DBG_SIM_MSG("TAG=[%s]", m_hashKey.c_str());
 
   if (m_pSimBridge)
