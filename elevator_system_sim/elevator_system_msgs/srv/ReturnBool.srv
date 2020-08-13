@@ -1,0 +1,12 @@
+##
+## Copyright (c) 2020 LG Electronics Inc.
+##
+## SPDX-License-Identifier: MIT
+##
+
+# This message used for below services
+# - reserve elevator
+# - release elevator
+
+---
+bool result
