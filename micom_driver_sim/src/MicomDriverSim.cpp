@@ -355,13 +355,13 @@ void MicomDriverSim::UpdateOdom()
                 odom_vel[0], odom_pose[2]);
   }
 
-  geometry_msgs::msg::Quaternion *q_msg;
-
+  msg_odom.header.stamp = m_simTime;
   msg_odom.pose.pose.position.x = odom_pose[0];
   msg_odom.pose.pose.position.y = odom_pose[1];
   msg_odom.pose.pose.position.z = 0.0;
 
   tf2::Quaternion q;
+  geometry_msgs::msg::Quaternion *q_msg;
   q.setRPY(0.0, 0.0, odom_pose[2]);
   q_msg = &msg_odom.pose.pose.orientation;
   q_msg->x = q.x();
