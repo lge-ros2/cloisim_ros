@@ -70,6 +70,7 @@ private:
   uint16_t simPortManagerPortNumber;
 
   void* m_pCtx;
+
   void* m_pPub;
   void* m_pSub;
   void* m_pReq;
@@ -77,6 +78,7 @@ private:
 
   zmq_msg_t m_msgRx; // for subscriber and reply
   size_t m_nHashTagTx; // for publisher and request
+
   void* m_pSockTx; // for Send function
   void* m_pSockRx; // for Recieve function
 

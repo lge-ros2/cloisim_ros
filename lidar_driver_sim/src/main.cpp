@@ -12,13 +12,13 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-#include "lidar_driver_sim/CLidarDriverSim.hpp"
+#include "lidar_driver_sim/LidarDriverSim.hpp"
 using namespace std::literals;
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<CLidarDriverSim>();
+  auto node = std::make_shared<LidarDriverSim>();
   rclcpp::spin(node);
   rclcpp::sleep_for(100ms);
   rclcpp::shutdown();

@@ -33,8 +33,11 @@ def generate_launch_description():
     _launch_list = [
         'lidar_driver_sim',
         'micom_driver_sim',
-        'camera_driver_sim',
+        # 'camera_driver_sim',
+        # 'depth_camera_driver_sim',
+        # 'realsense_driver_sim',
         # 'multi_camera_driver_sim'
+        # 'gps_driver_sim',
     ]
 
     declare_launch_argument_rn = DeclareLaunchArgument(

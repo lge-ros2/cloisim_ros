@@ -16,7 +16,10 @@
 
 #include "driver_sim/driver_sim.hpp"
 #include <image_transport/image_transport.h>
+#include <camera_info_manager/camera_info_manager.h>
+#include <sensor_msgs/msg/camera_info.hpp>
 #include <protobuf/images_stamped.pb.h>
+#include <protobuf/camerasensor.pb.h>
 
 class MultiCameraDriverSim : public DriverSim
 {
@@ -24,17 +27,16 @@ public:
   MultiCameraDriverSim();
   virtual ~MultiCameraDriverSim();
 
-  virtual void Initialize();
-
 private:
-  virtual void Deinitialize();
-  virtual void UpdateData();
+  virtual void Initialize() override;
+  virtual void Deinitialize() override;
+  virtual void UpdateData(const int bridge_index) override;
+
+  void GetCameraSensorMessage(const std::string camera_name);
+  void InitializeCameraInfoMessage(const std::string camera_name, const std::string frame_id);
 
 private:
   std::string m_hashKeySub;
-
-  // Yaml parameters
-  bool m_bIntensity;
 
   // buffer from simulation
   gazebo::msgs::ImagesStamped m_pbBuf;
@@ -42,7 +44,16 @@ private:
   // message for ROS2 communictaion
   sensor_msgs::msg::Image msg_img;
 
-  // Laser publisher
+  // Camera sensor info buffer from simulator
+  gazebo::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;
+
+  // Camera info publishers.
+  std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCamerasInfo;
+
+  // Camera info managers
+  std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
+
+  // Image publisher
   std::vector<image_transport::Publisher> pubImages;
 };
 #endif

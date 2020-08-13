@@ -20,19 +20,20 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include "sim_bridge/sim_bridge.hpp"
+#include <vector>
 
 class DriverSim : public rclcpp::Node
 {
 public:
-  explicit DriverSim(const std::string node_name);
+  explicit DriverSim(const std::string node_name, const int number_of_simbridge = 1);
   ~DriverSim();
 
 protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
-  virtual void UpdateData() = 0;
+  virtual void UpdateData(const int bridge_index = 0) = 0; // Function called at loop thread
 
-  void Start();
+  void Start(const bool runDefaultUpdateDataThread = true);
   void Stop();
 
   void AddTf2(const geometry_msgs::msg::TransformStamped _tf)
@@ -49,14 +50,12 @@ protected:
 
   rclcpp::Node* GetNode() { return m_node_handle.get(); }
 
-  SimBridge* GetSimBridge() { return m_pSimBridge; }
+  SimBridge* GetSimBridge(const int bridge_index = 0);
+
+  void DisconnectAllSimBridge();
 
   std::string GetRobotName() { return m_robot_name; }
-
-  rclcpp::QoS GetDriverQoS()
-  {
-    return rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-  }
+  std::string GetPartsName() { return m_parts_name; }
 
   void PublishTF();
 
@@ -64,7 +63,7 @@ private:
   void PublishStaticTF();
 
 private:
-  SimBridge *m_pSimBridge;
+  std::vector<SimBridge *> m_simBridgeList;
 
   bool m_bRunThread;
   std::thread m_thread;
@@ -80,6 +79,7 @@ private:
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
   std::string m_robot_name;
+  std::string m_parts_name;
 
 protected:
   rclcpp::Time m_simTime;

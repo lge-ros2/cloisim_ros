@@ -15,6 +15,8 @@
 
 #include "elevator_system/CElevatorSystem.hpp"
 
+using namespace std::literals;
+
 int main(int argc, char *argv[])
 {
   // Force flush of the stdout buffer.
@@ -22,9 +24,10 @@ int main(int argc, char *argv[])
   // even when executed simultaneously within the launch file.
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
+  rclcpp::sleep_for(1000ms);
   rclcpp::init(argc, argv);
-  auto pNode = std::make_shared<CElevatorSystem>();
-  rclcpp::spin(pNode->get_node_base_interface());
+  auto node = std::make_shared<CElevatorSystem>();
+  rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
 
   return 0;

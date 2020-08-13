@@ -14,11 +14,9 @@ multi_camera_driver:
     camera_list: ["left", "right"]
 
     left:
-      name: "left"
       transform_offset: [0.0, 0.252, 0.0, -0.0, -0.0, 0.785398]
       frame_id: "left_link"
 
     right:
-      name: "right"
       transform_offset: [0.0, -0.252, 0.0, -0.0, -0.0, -0.785398]
       frame_id: "right_link"

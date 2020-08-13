@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>gps_driver_sim</name>
+  <version>1.1.1</version>
+  <description>virtual gps driver for simulation</description>
+  <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+  <build_depend>sim_bridge</build_depend>
+  <build_depend>driver_sim</build_depend>
+  <build_depend>rmw</build_depend>
+  <build_depend>rclcpp</build_depend>
+
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>sim_bridge</exec_depend>
+  <exec_depend>driver_sim</exec_depend>
+  <exec_depend>rmw</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

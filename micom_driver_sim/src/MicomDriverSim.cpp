@@ -1,5 +1,5 @@
 /**
- *  @file   CMicomDriversim.cpp
+ *  @file   MicomDriverSim.cpp
  *  @date   2020-05-25Z
  *  @author Hyunseok Yang
  *  @brief
@@ -13,17 +13,17 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "micom_driver_sim/CMicomDriverSim.hpp"
+#include "micom_driver_sim/MicomDriverSim.hpp"
 #include <tf2/LinearMath/Quaternion.h>
 #include "protobuf/param.pb.h"
 
-#define MM2M(X) ((X)*0.001)
-#define LOGGING_PERIOD 200
+#define LOGGING_PERIOD 1000
 
 using namespace std;
 using namespace chrono_literals;
+using namespace gazebo;
 
-CMicomDriverSim::CMicomDriverSim()
+MicomDriverSim::MicomDriverSim()
     : DriverSim("micom_driver_sim"),
       m_hashKeyPub(""),
       m_hashKeySub(""),
@@ -39,12 +39,12 @@ CMicomDriverSim::CMicomDriverSim()
   Start();
 }
 
-CMicomDriverSim::~CMicomDriverSim()
+MicomDriverSim::~MicomDriverSim()
 {
   Stop();
 }
 
-void CMicomDriverSim::Initialize()
+void MicomDriverSim::Initialize()
 {
   string input_part_name;
   string sensor_part_name;
@@ -59,16 +59,15 @@ void CMicomDriverSim::Initialize()
   get_parameter_or("transform.imu", transform_imu, vector<double>({0, 0, 0, 0, 0, 0}));
   get_parameter_or("transform.wheel.left", transform_wheelLeft, vector<double>({0, 0, 0, 0, 0, 0}));
   get_parameter_or("transform.wheel.right", transform_wheelRight, vector<double>({0, 0, 0, 0, 0, 0}));
-  get_parameter_or("wheel.base", wheel_base, 449.0);
-  get_parameter_or("wheel.radius", wheel_radius, 95.5);
+  get_parameter_or("wheel.base", wheel_base, 0.449);
+  get_parameter_or("wheel.radius", wheel_radius, 0.0955);
 
   m_hashKeyPub = GetRobotName() + input_part_name;
   m_hashKeySub = GetRobotName() + sensor_part_name;
 
-  DBG_SIM_INFO("[CONFIG] sim.parts_tx:%s,", input_part_name.c_str());
-  DBG_SIM_INFO("[CONFIG] sim.parts_rx:%s,", sensor_part_name.c_str());
-  DBG_SIM_INFO("[CONFIG] wheel.base:%f", wheel_base);
-  DBG_SIM_INFO("[CONFIG] wheel.radius:%f", wheel_radius);
+  DBG_SIM_INFO("[CONFIG] sim.parts_tx:%s, sim.parts_rx:%s", input_part_name.c_str(), sensor_part_name.c_str());
+  DBG_SIM_INFO("[CONFIG] wheel.base:%f m", wheel_base);
+  DBG_SIM_INFO("[CONFIG] wheel.radius:%f m", wheel_radius);
 
   DBG_SIM_INFO("Hash Key sub(%s) pub(%s)", m_hashKeySub.c_str(), m_hashKeyPub.c_str());
 
@@ -129,62 +128,62 @@ void CMicomDriverSim::Initialize()
   }
 
   // ROS2 Publisher
-  pubBatteryState = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", GetDriverQoS());
-  pubOdometry = create_publisher<nav_msgs::msg::Odometry>("odom", GetDriverQoS());
-  pubImu = create_publisher<sensor_msgs::msg::Imu>("imu", GetDriverQoS());
+  pubBatteryState = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
+  pubOdometry = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SensorDataQoS());
+  pubImu = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
 
   auto callback_sub = [this](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
-    const string msgBuf = MakeControlMessage(msg);
+    const auto msgBuf = MakeControlMessage(msg);
     MicomWrite(msgBuf.data(), msgBuf.size());
   };
 
   // ROS2 Subscriber
-  subMicom = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", GetDriverQoS(), callback_sub);
+  subMicom = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
 }
 
-void CMicomDriverSim::Deinitialize()
+void MicomDriverSim::Deinitialize()
 {
   GetSimBridge()->Disconnect();
 }
 
-string CMicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
+string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
-  auto vel_lin = msg->linear.x * 1000.0; // mm/s
-  auto vel_rot = msg->angular.z;         // rad/s
+  auto vel_lin = msg->linear.x; // m/s
+  auto vel_rot = msg->angular.z; // rad/s
 
-  // mm/s velocity input
+  // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f * 1000.0) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f * 1000.0) / 2.0));
-  const double vel_rot_wheel = (0.5f * vel_rot * wheel_base);
-  double vel_left_wheel = vel_lin - vel_rot_wheel;
-  double vel_right_wheel = vel_lin + vel_rot_wheel;
+  const auto vel_rot_wheel = (0.5f * vel_rot * wheel_base);
+  auto lin_vel_left_wheel = vel_lin - vel_rot_wheel;
+  auto lin_vel_right_wheel = vel_lin + vel_rot_wheel;
 
-  gazebo::msgs::Param writeBuf;
-  gazebo::msgs::Any *pVal;
+  msgs::Param writeBuf;
+  msgs::Any *pVal;
 
   writeBuf.set_name("control_type");
   pVal = writeBuf.mutable_value();
-  pVal->set_type(gazebo::msgs::Any::INT32);
+  pVal->set_type(msgs::Any::INT32);
   pVal->set_int_value(1);
 
-  gazebo::msgs::Param *const pLinearVel = writeBuf.add_children();
-  pLinearVel->set_name("nLeftWheelVelocity");
+  msgs::Param *const pLinearVel = writeBuf.add_children();
+  pLinearVel->set_name("LeftWheelVelocity");
   pVal = pLinearVel->mutable_value();
-  pVal->set_type(gazebo::msgs::Any::INT32);
-  pVal->set_int_value(vel_left_wheel);
+  pVal->set_type(msgs::Any::DOUBLE);
+  pVal->set_double_value(lin_vel_left_wheel);
 
-  gazebo::msgs::Param *const pAngularVel = writeBuf.add_children();
-  pAngularVel->set_name("nRightWheelVelocity");
+  msgs::Param *const pAngularVel = writeBuf.add_children();
+  pAngularVel->set_name("RightWheelVelocity");
   pVal = pAngularVel->mutable_value();
-  pVal->set_type(gazebo::msgs::Any::INT32);
-  pVal->set_int_value(vel_right_wheel);
+  pVal->set_type(msgs::Any::DOUBLE);
+  pVal->set_double_value(lin_vel_right_wheel);
 
   string message = "";
   writeBuf.SerializeToString(&message);
   return message;
 }
 
-void CMicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
+void MicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
 {
   if (pcBuf != nullptr && unSize > 0)
   {
@@ -192,48 +191,48 @@ void CMicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
   }
 }
 
-void CMicomDriverSim::UpdateData()
+void MicomDriverSim::UpdateData(const int bridge_index)
 {
+  (void)bridge_index;
+  auto simBridge = GetSimBridge();
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (IsRunThread())
+  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
+
+  if (!succeeded || bufferLength < 0)
   {
-    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
 
-    if (!succeeded || bufferLength < 0)
+    // try reconnection
+    if (IsRunThread())
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnection
-      if (IsRunThread())
-      {
-        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-        GetSimBridge()->Reconnect(SimBridge::Mode::PUB, m_hashKeyPub);
-      }
-
-      continue;
+      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::PUB, m_hashKeyPub);
     }
 
-    if (!m_pbBufMicom.ParseFromArray(pBuffer, bufferLength))
-    {
-      DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-      continue;
-    }
+    return;
+  }
 
-    m_simTime = rclcpp::Time(m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec());
+  if (!m_pbBufMicom.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
 
-    //DBG_SIM_WRN("Simulation time %u %u size(%d)",
-    //  m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec(), bufferLength);
+  m_simTime = rclcpp::Time(m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec());
 
-    // reset odom info when sim time is reset
-    if (m_pbBufMicom.time().sec() == 0 && m_pbBufMicom.time().nsec() < 50000000)
-    {
-      DBG_SIM_WRN("Simulation time has been reset!!!");
-      odom_pose.fill(0.0);
-      odom_vel.fill(0.0);
-      last_rad.fill(0.0);
-    }
+  //DBG_SIM_WRN("Simulation time %u %u size(%d)",
+  //  m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec(), bufferLength);
+
+  // reset odom info when sim time is reset
+  if (m_pbBufMicom.time().sec() == 0 && m_pbBufMicom.time().nsec() < 50000000)
+  {
+    DBG_SIM_WRN("Simulation time has been reset!!!");
+    odom_pose.fill(0.0);
+    odom_vel.fill(0.0);
+    last_rad.fill(0.0);
+  }
 
 #if 0
     static int cnt = 0;
@@ -246,20 +245,19 @@ void CMicomDriverSim::UpdateData()
     }
 #endif
 
-    UpdateOdom();
-    UpdateImu();
-    UpdateBattery();
+  UpdateOdom();
+  UpdateImu();
+  UpdateBattery();
 
-    PublishTF();
+  PublishTF();
 
-    // publish data
-    pubOdometry->publish(msg_odom);
-    pubImu->publish(msg_imu);
-    pubBatteryState->publish(msg_battery);
-  }
+  // publish data
+  pubOdometry->publish(msg_odom);
+  pubImu->publish(msg_imu);
+  pubBatteryState->publish(msg_battery);
 }
 
-bool CMicomDriverSim::CalculateOdometry(
+bool MicomDriverSim::CalculateOdometry(
     const rclcpp::Duration duration,
     const double _wheel_left,
     const double _wheel_right,
@@ -274,7 +272,7 @@ bool CMicomDriverSim::CalculateOdometry(
   double delta_theta = 0.0f;
   static double last_theta = 0.0f;
 
-  double v = 0.0f; // v = translational velocity [m/s]
+  double v = 0.0f; //  v = translationalvelocity [m/s]
   double w = 0.0f; // w = rotational velocity [rad/s]
 
    // rotation value of wheel [rad]
@@ -325,25 +323,20 @@ bool CMicomDriverSim::CalculateOdometry(
   return true;
 }
 
-void CMicomDriverSim::UpdateOdom()
+void MicomDriverSim::UpdateOdom()
 {
   if (!m_pbBufMicom.has_odom() || !m_pbBufMicom.has_imu())
   {
     return;
   }
 
-  // get wheel linear velocity mm/s
-  const int16_t nSpeedLeft_MM = m_pbBufMicom.odom().speed_left();
-  const int16_t nSpeedRight_MM = m_pbBufMicom.odom().speed_right();
   // DBG_SIM_MSG("nSpeedLeft: %d, nSpeedRight: %d, imu.x: %f, imu.y: %f, imu.z: %f, imu.w: %f",
-  //         nSpeedLeft_MM, nSpeedRight_MM, m_pbBufMicom.imu().orientation().x(), m_pbBufMicom.imu().orientation().y(),
+  //         nSpeedLeft, nSpeedRight, m_pbBufMicom.imu().orientation().x(), m_pbBufMicom.imu().orientation().y(),
   //         m_pbBufMicom.imu().orientation().z(), m_pbBufMicom.imu().orientation().w());
-  // update velocity m/s
-  const double fWheelVelLeft_M = MM2M((float)nSpeedLeft_MM / WHEEL_RADIUS_RATIO);
-  const double fWheelVelRight_M = MM2M((float)nSpeedRight_MM / WHEEL_RADIUS_RATIO);
 
-  const double wheel_left = fWheelVelLeft_M;
-  const double wheel_right = fWheelVelRight_M;
+  // update velocity m/s
+  const double wheel_left = m_pbBufMicom.odom().speed_left();
+  const double wheel_right = m_pbBufMicom.odom().speed_right();
 
   const auto orientation = m_pbBufMicom.imu().orientation();
   const double theta = atan2f(2 * ((orientation.w() * orientation.z()) + (orientation.x() * orientation.y())),
@@ -408,16 +401,16 @@ void CMicomDriverSim::UpdateOdom()
   last_time = m_simTime;
 }
 
-void CMicomDriverSim::UpdateImu()
+void MicomDriverSim::UpdateImu()
 {
   msg_imu.header.stamp = m_simTime;
-  // 	imuLink.rotation.eulerAngles.ToString("F4"), imuInitialRotation.
 
   msg_imu.orientation.x = m_pbBufMicom.imu().orientation().x();
   msg_imu.orientation.y = m_pbBufMicom.imu().orientation().y();
   msg_imu.orientation.z = m_pbBufMicom.imu().orientation().z();
   msg_imu.orientation.w = m_pbBufMicom.imu().orientation().w();
 
+   // Fill covariances
   msg_imu.orientation_covariance[0] = 0.0;
   msg_imu.orientation_covariance[1] = 0.0;
   msg_imu.orientation_covariance[2] = 0.0;
@@ -457,7 +450,7 @@ void CMicomDriverSim::UpdateImu()
   msg_imu.linear_acceleration_covariance[8] = 0.0;
 }
 
-void CMicomDriverSim::UpdateBattery()
+void MicomDriverSim::UpdateBattery()
 {
   msg_battery.header.stamp = m_simTime;
   msg_battery.voltage = 0.0;

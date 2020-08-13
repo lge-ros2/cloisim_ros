@@ -1,5 +1,5 @@
 /**
- *  @file   CLidarDriverSim.cpp
+ *  @file   LidarDriverSim.cpp
  *  @date   2019-04-02
  *  @author Hyunseok Yang
  *  @brief
@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "lidar_driver_sim/CLidarDriverSim.hpp"
+#include "lidar_driver_sim/LidarDriverSim.hpp"
 #include <unistd.h>
 #include <math.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -24,7 +24,7 @@
 using namespace std;
 using namespace chrono_literals;
 
-CLidarDriverSim::CLidarDriverSim()
+LidarDriverSim::LidarDriverSim()
     : DriverSim("lidar_driver_sim"),
     m_bIntensity(false),
     m_fLowerAngle(MAX_LOWER_ANGLE),
@@ -33,18 +33,15 @@ CLidarDriverSim::CLidarDriverSim()
   Start();
 }
 
-CLidarDriverSim::~CLidarDriverSim()
+LidarDriverSim::~LidarDriverSim()
 {
   Stop();
 }
 
-void CLidarDriverSim::Initialize()
+void LidarDriverSim::Initialize()
 {
-  string part_name_;
   string topic_name_;
   vector<double> transform_;
-
-  get_parameter_or("sim.parts", part_name_, string("front_lidar"));
 
   get_parameter_or("topic_name", topic_name_, string("scan"));
   get_parameter_or("frame_id", frame_id_, string("base_scan"));
@@ -56,11 +53,10 @@ void CLidarDriverSim::Initialize()
 
   DBG_SIM_INFO("[CONFIG] intensity: %d, filter.lower_angle: %f, filter.upper_angle: %f",
                m_bIntensity, m_fLowerAngle, m_fUpperAngle);
-  DBG_SIM_INFO("[CONFIG] sim.part: %s", part_name_.c_str());
   DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
   DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
 
-  m_hashKeySub = GetRobotName() + part_name_;
+  m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   geometry_msgs::msg::TransformStamped scan_tf;
@@ -81,53 +77,52 @@ void CLidarDriverSim::Initialize()
   AddStaticTf2(scan_tf);
 
   // ROS2 Publisher
-  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, GetDriverQoS());
+  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
 
   GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);
 }
 
-void CLidarDriverSim::Deinitialize()
+void LidarDriverSim::Deinitialize()
 {
   GetSimBridge()->Disconnect();
 }
 
-void CLidarDriverSim::UpdateData()
+void LidarDriverSim::UpdateData(const int bridge_index)
 {
+  (void)bridge_index;
+  auto simBridge = GetSimBridge();
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  while (IsRunThread())
+  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
+
+  if (!succeeded || bufferLength < 0)
   {
-    const bool succeeded = GetSimBridge()->Receive(&pBuffer, bufferLength, false);
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
 
-    if (!succeeded || bufferLength < 0)
+    // try reconnect1ion
+    if (IsRunThread())
     {
-      DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnect1ion
-      if (IsRunThread())
-      {
-        GetSimBridge()->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-      }
-
-      continue;
+      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
-    if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
-    {
-      DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-      continue;
-    }
-
-    m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
-
-    UpdateLaser();
-
-    pubLaser->publish(msg_Laser);
+    return;
   }
+
+  if (!m_pbBuf.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
+
+  m_simTime = rclcpp::Time(m_pbBuf.time().sec(), m_pbBuf.time().nsec());
+
+  UpdateLaserData();
+
+  pubLaser->publish(msg_Laser);
 }
 
-void CLidarDriverSim::UpdateLaser()
+void LidarDriverSim::UpdateLaserData()
 {
   msg_Laser.header.stamp = m_simTime;
   msg_Laser.header.frame_id = frame_id_;

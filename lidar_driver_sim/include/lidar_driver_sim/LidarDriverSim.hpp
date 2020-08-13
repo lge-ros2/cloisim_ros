@@ -1,5 +1,5 @@
 /**
- *  @file   CLidarDriverSim.hpp
+ *  @file   LidarDriverSim.hpp
  *  @date   2019-04-02
  *  @author Hyunseok Yang
  *  @brief
@@ -13,30 +13,30 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLIDARDRIVERSIM_H_
-#define _CLIDARDRIVERSIM_H_
+#ifndef _LIDARDRIVERSIM_H_
+#define _LIDARDRIVERSIM_H_
 
 #include "driver_sim/driver_sim.hpp"
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include "protobuf/laserscan_stamped.pb.h"
 
-class CLidarDriverSim : public DriverSim
+class LidarDriverSim : public DriverSim
 {
 public:
-  CLidarDriverSim();
-  ~CLidarDriverSim();
-
-  virtual void Initialize();
-  virtual void Deinitialize();
+  LidarDriverSim();
+  ~LidarDriverSim();
 
 private:
-  virtual void UpdateData();
+  virtual void Initialize() override;
+  virtual void Deinitialize() override;
+  virtual void UpdateData(const int bridge_index) override;
 
-  void UpdateLaser();
+  void UpdateLaserData();
 
   void SetIntensity(const bool val) { m_bIntensity = val; }
   void SetLowerAngle(const double val) { m_fLowerAngle = val; }
   void SetUpperAngle(const double val) { m_fUpperAngle = val; }
+
 
 private:
   // key for connection
