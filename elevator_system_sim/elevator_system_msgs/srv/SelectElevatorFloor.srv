@@ -7,7 +7,7 @@
 # Select the floor where to go
 
 # The index of an elevator
-int32 elevator_index
+string elevator_index
 
 # Target floor where the robot wants to go. ex) "1F", "B1F"
 string target_floor

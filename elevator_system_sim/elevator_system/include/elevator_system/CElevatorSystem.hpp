@@ -27,11 +27,13 @@
 #include "elevator_system_msgs/srv/get_elevator_information.hpp"
 #include "elevator_system_msgs/srv/select_elevator_floor.hpp"
 #include "elevator_system_msgs/srv/request_door.hpp"
+#include "elevator_system_msgs/srv/return_bool.hpp"
 
 using CallElevator = elevator_system_msgs::srv::CallElevator;
 using GetElevatorInfo = elevator_system_msgs::srv::GetElevatorInformation;
 using SelectElevatorFloor = elevator_system_msgs::srv::SelectElevatorFloor;
 using RequestDoor = elevator_system_msgs::srv::RequestDoor;
+using ReturnBool = elevator_system_msgs::srv::ReturnBool;
 
 using namespace std::chrono_literals;
 using namespace gazebo;
@@ -64,6 +66,8 @@ private:
   rclcpp::Service<RequestDoor>::SharedPtr m_pSrvRequestDoorOpen;
   rclcpp::Service<RequestDoor>::SharedPtr m_pSrvRequestDoorClose;
   rclcpp::Service<RequestDoor>::SharedPtr m_pSrvIsDoorOpened;
+  rclcpp::Service<ReturnBool>::SharedPtr m_pSrvReserveElevator;
+  rclcpp::Service<ReturnBool>::SharedPtr m_pSrvReleaseElevator;
 
   std::mutex m_mtxSendRequest;
   std::mutex m_mtxReceiveResponse;
@@ -98,6 +102,14 @@ private:
                                const std::shared_ptr<RequestDoor::Request> request,
                                const std::shared_ptr<RequestDoor::Response> response);
 
+  void callback_reserve_elevator(const std::shared_ptr<rmw_request_id_t> request_header,
+                               const std::shared_ptr<ReturnBool::Request> request,
+                               const std::shared_ptr<ReturnBool::Response> response);
+
+  void callback_release_elevator(const std::shared_ptr<rmw_request_id_t> request_header,
+                               const std::shared_ptr<ReturnBool::Request> request,
+                               const std::shared_ptr<ReturnBool::Response> response);                                                              
+
   msgs::Param create_request_message(std::string service_name, int elevator_index);
 
   msgs::Param create_request_message(std::string service_name,
@@ -110,6 +122,7 @@ private:
   std::string get_current_floor_from_response_message(const msgs::Param &response_msg);
   float get_height_from_response_message(const msgs::Param &response_msg);
 
+  bool m_boolSrvMode;
 
   bool send_request(const msgs::Param &request_msg);
   bool receive_response(msgs::Param &response_msg);

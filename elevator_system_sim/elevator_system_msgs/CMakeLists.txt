@@ -12,6 +12,7 @@ set(msg_files
 
 set(srv_files
   srv/ReturnBool.srv
+  srv/StringValue.srv
   srv/CallElevator.srv
   srv/GetElevatorInformation.srv
   srv/RequestDoor.srv

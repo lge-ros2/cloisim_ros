@@ -19,4 +19,4 @@ string target_floor
 bool result
 
 # The index of an elevator called
-int32 elevator_index
+string elevator_index
