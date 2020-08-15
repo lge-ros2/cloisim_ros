@@ -19,8 +19,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
-#include "sim_bridge/sim_bridge.hpp"
+#include <protobuf/param.pb.h>
+#include <protobuf/pose.pb.h>
 #include <vector>
+#include "sim_bridge/sim_bridge.hpp"
 
 class DriverSim : public rclcpp::Node
 {
@@ -31,7 +33,8 @@ public:
 protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
-  virtual void UpdateData(const int bridge_index = 0) = 0; // Function called at loop thread
+  virtual void UpdateData(const uint bridge_index = 0) = 0; // Function called at loop thread
+  virtual void InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id) = 0;
 
   void Start(const bool runDefaultUpdateDataThread = true);
   void Stop();
@@ -50,14 +53,17 @@ protected:
 
   rclcpp::Node* GetNode() { return m_node_handle.get(); }
 
-  SimBridge* GetSimBridge(const int bridge_index = 0);
+  SimBridge* GetSimBridge(const uint bridge_index = 0);
 
-  void DisconnectAllSimBridge();
+  void DisconnectSimBridges();
 
   std::string GetRobotName() { return m_robot_name; }
   std::string GetPartsName() { return m_parts_name; }
 
   void PublishTF();
+
+  gazebo::msgs::Pose GetObjectTransform(SimBridge* const simBridge, const std::string target_name = "");
+  gazebo::msgs::Pose GetObjectTransform(const int bridge_index, const std::string target_name = "");
 
 private:
   void PublishStaticTF();

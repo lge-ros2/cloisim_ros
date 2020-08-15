@@ -34,67 +34,44 @@ MultiCameraDriverSim::~MultiCameraDriverSim()
 
 void MultiCameraDriverSim::Initialize()
 {
-  string multicamera_name_;
-  vector<double> transform_;
-  vector<string> camera_list_;
+  vector<string> frame_id_;
 
-  get_parameter_or("camera_name", multicamera_name_, string("multi_camera"));
-  get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
-  get_parameter("camera_list", camera_list_);
+  get_parameter_or("camera_name", multicamera_name, string("multi_camera"));
+  get_parameter("frame_id", frame_id_);
 
   tf2::Quaternion fixed_rot;
 
   m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
-  GetSimBridge(0)->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
+  auto pSimBridgeInfo = GetSimBridge(0);
+  auto pSimBridgeData = GetSimBridge(1);
 
-  for (auto camera_name : camera_list_)
+  if (pSimBridgeInfo != nullptr)
   {
-    vector<double> transform_offset;
-    string frame_id;
+    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
+  }
 
-    get_parameter_or(camera_name + ".transform_offset", transform_offset, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
-    get_parameter_or(camera_name + ".frame_id", frame_id, string("noname_link"));
-
-    transform_offset[0] += transform_[0];
-    transform_offset[1] += transform_[1];
-    transform_offset[2] += transform_[2];
-    transform_offset[3] += transform_[3];
-    transform_offset[4] += transform_[4];
-    transform_offset[5] += transform_[5];
-
-    geometry_msgs::msg::TransformStamped camera_tf;
-    camera_tf.header.frame_id = "base_footprint";
-    camera_tf.child_frame_id = frame_id;
-    camera_tf.transform.translation.x = transform_offset[0];
-    camera_tf.transform.translation.y = transform_offset[1];
-    camera_tf.transform.translation.z = transform_offset[2];
-
-    fixed_rot.setRPY(transform_offset[3], transform_offset[4], transform_offset[5]);
-
-    camera_tf.transform.rotation.x = fixed_rot.x();
-    camera_tf.transform.rotation.y = fixed_rot.y();
-    camera_tf.transform.rotation.z = fixed_rot.z();
-    camera_tf.transform.rotation.w = fixed_rot.w();
-
-    AddStaticTf2(camera_tf);
+  for (auto frame_id : frame_id_)
+  {
+    const auto transform = GetObjectTransform(pSimBridgeInfo, frame_id);
+    InitializeTfMessage(transform, frame_id);
 
     // Image publisher
-    auto topic_base_name_ = multicamera_name_ + "/" + camera_name;
+    auto topic_base_name_ = multicamera_name + "/" + frame_id;
     DBG_SIM_INFO("[CONFIG] topic_base_name:%s", topic_base_name_.c_str());
 
     pubImages.push_back(image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw"));
 
     // Camera info publisher
-    pubCamerasInfo.push_back(
-      create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS()));
+    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
+    pubCamerasInfo.push_back(camInfoPub);
 
-    GetCameraSensorMessage(camera_name);
-    InitializeCameraInfoMessage(camera_name, frame_id);
+    GetCameraSensorMessage(frame_id);
+    InitializeCameraInfoMessage(frame_id, frame_id);
   }
 
-  GetSimBridge(1)->Connect(SimBridge::Mode::SUB, m_hashKeySub);
+  pSimBridgeData->Connect(SimBridge::Mode::SUB, m_hashKeySub);
 }
 
 void MultiCameraDriverSim::Deinitialize()
@@ -104,8 +81,23 @@ void MultiCameraDriverSim::Deinitialize()
     pub.shutdown();
   }
 
-  GetSimBridge(0)->Disconnect();
-  GetSimBridge(1)->Disconnect();
+  DisconnectSimBridges();
+}
+
+void MultiCameraDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const string frame_id)
+{
+  geometry_msgs::msg::TransformStamped camera_tf;
+  camera_tf.header.frame_id = "base_link";
+  camera_tf.child_frame_id = multicamera_name + "_" + frame_id;
+  camera_tf.transform.translation.x = transform.position().x();
+  camera_tf.transform.translation.y = transform.position().y();
+  camera_tf.transform.translation.z = transform.position().z();
+  camera_tf.transform.rotation.x = transform.orientation().x();
+  camera_tf.transform.rotation.y = transform.orientation().y();
+  camera_tf.transform.rotation.z = transform.orientation().z();
+  camera_tf.transform.rotation.w = transform.orientation().w();
+
+  AddStaticTf2(camera_tf);
 }
 
 void MultiCameraDriverSim::GetCameraSensorMessage(const string camera_name)
@@ -165,11 +157,11 @@ void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name,
   const auto hack_baseline = 0.0f;
 
   // Get distortion from camera
-  double distortion_k1 = m_pbTmpBufCameraSensorInfo.distortion().k1();
-  double distortion_k2 = m_pbTmpBufCameraSensorInfo.distortion().k2();
-  double distortion_k3 = m_pbTmpBufCameraSensorInfo.distortion().k3();
-  double distortion_t1 = m_pbTmpBufCameraSensorInfo.distortion().p1();
-  double distortion_t2 = m_pbTmpBufCameraSensorInfo.distortion().p2();
+  auto distortion_k1 = m_pbTmpBufCameraSensorInfo.distortion().k1();
+  auto distortion_k2 = m_pbTmpBufCameraSensorInfo.distortion().k2();
+  auto distortion_k3 = m_pbTmpBufCameraSensorInfo.distortion().k3();
+  auto distortion_t1 = m_pbTmpBufCameraSensorInfo.distortion().p1();
+  auto distortion_t2 = m_pbTmpBufCameraSensorInfo.distortion().p2();
 
   // D = {k1, k2, t1, t2, k3}, as specified in:
   // - sensor_msgs/CameraInfo: http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html
@@ -181,48 +173,34 @@ void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name,
   camera_info_msg.d[4] = distortion_k3;
 
   // Original camera matrix
+  camera_info_msg.k.fill(0.0);
   camera_info_msg.k[0] = computed_focal_length;
-  camera_info_msg.k[1] = 0.0;
   camera_info_msg.k[2] = cx_;
-  camera_info_msg.k[3] = 0.0;
   camera_info_msg.k[4] = computed_focal_length;
   camera_info_msg.k[5] = cy_;
-  camera_info_msg.k[6] = 0.0;
-  camera_info_msg.k[7] = 0.0;
-  camera_info_msg.k[8] = 1.0;
 
   // rectification
+  camera_info_msg.r.fill(0.0);
   camera_info_msg.r[0] = 1.0;
-  camera_info_msg.r[1] = 0.0;
-  camera_info_msg.r[2] = 0.0;
-  camera_info_msg.r[3] = 0.0;
   camera_info_msg.r[4] = 1.0;
-  camera_info_msg.r[5] = 0.0;
-  camera_info_msg.r[6] = 0.0;
-  camera_info_msg.r[7] = 0.0;
   camera_info_msg.r[8] = 1.0;
 
   // camera_ projection matrix (same as camera_ matrix due
   // to lack of distortion/rectification) (is this generated?)
+  camera_info_msg.p.fill(0.0);
   camera_info_msg.p[0] = computed_focal_length;
-  camera_info_msg.p[1] = 0.0;
   camera_info_msg.p[2] = cx_;
   camera_info_msg.p[3] = -computed_focal_length * hack_baseline;
-  camera_info_msg.p[4] = 0.0;
   camera_info_msg.p[5] = computed_focal_length;
   camera_info_msg.p[6] = cy_;
-  camera_info_msg.p[7] = 0.0;
-  camera_info_msg.p[8] = 0.0;
-  camera_info_msg.p[9] = 0.0;
   camera_info_msg.p[10] = 1.0;
-  camera_info_msg.p[11] = 0.0;
 
   // Initialize camera_info_manager
   cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), camera_name));
   cameraInfoManager.back()->setCameraInfo(camera_info_msg);
 }
 
-void MultiCameraDriverSim::UpdateData(const int bridge_index)
+void MultiCameraDriverSim::UpdateData(const uint bridge_index)
 {
   (void)bridge_index;
   auto simBridge = GetSimBridge(1);

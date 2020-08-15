@@ -19,6 +19,7 @@
 #include "driver_sim/driver_sim.hpp"
 
 using namespace std;
+using namespace gazebo;
 
 DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
     : Node(node_name,
@@ -117,15 +118,79 @@ void DriverSim::PublishStaticTF()
   m_static_tf_broadcaster->sendTransform(m_static_tf_list);
 }
 
-SimBridge* DriverSim::GetSimBridge(const int bridge_index)
+SimBridge* DriverSim::GetSimBridge(const uint bridge_index)
 {
+  if (bridge_index >= m_simBridgeList.capacity())
+  {
+    DBG_SIM_WRN("Wrong bridge index(%d) / total sim bridges(%d)", bridge_index, m_simBridgeList.capacity());
+    return nullptr;
+  }
+
   return m_simBridgeList.at(bridge_index);
 }
 
-void DriverSim::DisconnectAllSimBridge()
+void DriverSim::DisconnectSimBridges()
 {
   for (auto pSimBridge : m_simBridgeList)
   {
     pSimBridge->Disconnect();
   }
+}
+
+msgs::Pose DriverSim::GetObjectTransform(const int bridge_index, const string target_name)
+{
+  auto const pSimBridge = GetSimBridge(bridge_index);
+  return GetObjectTransform(pSimBridge, target_name);
+}
+
+msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const std::string target_name)
+{
+  msgs::Pose transform;
+  transform.Clear();
+
+  if (pSimBridge == nullptr)
+  {
+    return transform;
+  }
+
+  msgs::Param request_msg;
+  request_msg.set_name("request_transform");
+
+  if (target_name != "")
+  {
+    auto pVal = request_msg.mutable_value();
+    pVal->set_type(msgs::Any::STRING);
+    pVal->set_string_value(target_name);
+  }
+
+  string serializedBuffer;
+  request_msg.SerializeToString(&serializedBuffer);
+
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+
+  void *pBuffer = nullptr;
+  int bufferLength = 0;
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("Faild to get camera info, length(%d)", bufferLength);
+  }
+  else
+  {
+    msgs::Param m_pbBufParam;
+    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+    }
+
+    if (m_pbBufParam.IsInitialized() &&
+        m_pbBufParam.name() == "transform" &&
+        m_pbBufParam.has_value())
+    {
+      transform.CopyFrom(m_pbBufParam.value().pose3d_value());
+    }
+  }
+
+  return transform;
 }

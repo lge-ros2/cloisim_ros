@@ -36,29 +36,9 @@ RealSenseDriverSim::~RealSenseDriverSim()
 
 void RealSenseDriverSim::Initialize()
 {
-  string frame_id_;
-  vector<double> transform_;
   vector<string> module_list_;
 
-  get_parameter_or("frame_id", frame_id_, string("realsense_link"));
-  get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
-
-  geometry_msgs::msg::TransformStamped camera_tf;
-  tf2::Quaternion fixed_rot;
-  fixed_rot.setRPY(transform_[3], transform_[4], transform_[5]);
-
-  camera_tf.header.frame_id = "base_footprint";
-  camera_tf.child_frame_id = frame_id_;
-  camera_tf.transform.translation.x = transform_[0];
-  camera_tf.transform.translation.y = transform_[1];
-  camera_tf.transform.translation.z = transform_[2];
-  camera_tf.transform.rotation.x = fixed_rot.x();
-  camera_tf.transform.rotation.y = fixed_rot.y();
-  camera_tf.transform.rotation.z = fixed_rot.z();
-  camera_tf.transform.rotation.w = fixed_rot.w();
-
-  AddStaticTf2(camera_tf);
-
+  get_parameter_or("frame_id", mainframe_id, string("realsense_link"));
   get_parameter("module_list", module_list_);
 
   while (module_list_.size() > max_modules)
@@ -88,8 +68,21 @@ void RealSenseDriverSim::Initialize()
     auto pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
     pubCameraInfos.push_back(pubCameraInfo);
 
-    GetSimBridge(simBridgeCount)->Connect(SimBridge::Mode::SUB, hashKeySub);
-    GetSimBridge(simBridgeCount + 1)->Connect(SimBridge::Mode::CLIENT, hashKeySub + "Info");
+    auto pSimBridgeInfo = GetSimBridge(simBridgeCount);
+    auto pSimBridgeData = GetSimBridge(simBridgeCount + 1);
+
+    if (pSimBridgeData != nullptr)
+    {
+      pSimBridgeData->Connect(SimBridge::Mode::SUB, hashKeySub);
+    }
+
+    if (pSimBridgeInfo != nullptr)
+    {
+      pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, hashKeySub + "Info");
+    }
+
+    const auto transform = GetObjectTransform(pSimBridgeInfo, module);
+    InitializeTfMessage(transform, module);
 
     GetCameraSensorMessage(simBridgeCount + 1);
     InitializeCameraInfoMessage(module);
@@ -121,7 +114,23 @@ void RealSenseDriverSim::Deinitialize()
     pub.shutdown();
   }
 
-  DisconnectAllSimBridge();
+  DisconnectSimBridges();
+}
+
+void RealSenseDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id)
+{
+  geometry_msgs::msg::TransformStamped camera_tf;
+  camera_tf.header.frame_id = "base_link";
+  camera_tf.child_frame_id = mainframe_id + "_" + frame_id;
+  camera_tf.transform.translation.x = transform.position().x();
+  camera_tf.transform.translation.y = transform.position().y();
+  camera_tf.transform.translation.z = transform.position().z();
+  camera_tf.transform.rotation.x = transform.orientation().x();
+  camera_tf.transform.rotation.y = transform.orientation().y();
+  camera_tf.transform.rotation.z = transform.orientation().z();
+  camera_tf.transform.rotation.w = transform.orientation().w();
+
+  AddStaticTf2(camera_tf);
 }
 
 void RealSenseDriverSim::GetCameraSensorMessage(const int bridge_index)
@@ -193,48 +202,34 @@ void RealSenseDriverSim::InitializeCameraInfoMessage(const string frame_id)
   camera_info_msg.d[4] = distortion_k3;
 
   // Original camera matrix
+  camera_info_msg.k.fill(0.0);
   camera_info_msg.k[0] = computed_focal_length;
-  camera_info_msg.k[1] = 0.0;
   camera_info_msg.k[2] = cx_;
-  camera_info_msg.k[3] = 0.0;
   camera_info_msg.k[4] = computed_focal_length;
   camera_info_msg.k[5] = cy_;
-  camera_info_msg.k[6] = 0.0;
-  camera_info_msg.k[7] = 0.0;
-  camera_info_msg.k[8] = 1.0;
 
   // rectification
+  camera_info_msg.r.fill(0.0);
   camera_info_msg.r[0] = 1.0;
-  camera_info_msg.r[1] = 0.0;
-  camera_info_msg.r[2] = 0.0;
-  camera_info_msg.r[3] = 0.0;
   camera_info_msg.r[4] = 1.0;
-  camera_info_msg.r[5] = 0.0;
-  camera_info_msg.r[6] = 0.0;
-  camera_info_msg.r[7] = 0.0;
   camera_info_msg.r[8] = 1.0;
 
   // camera_ projection matrix (same as camera_ matrix due
   // to lack of distortion/rectification) (is this generated?)
+  camera_info_msg.p.fill(0.0);
   camera_info_msg.p[0] = computed_focal_length;
-  camera_info_msg.p[1] = 0.0;
   camera_info_msg.p[2] = cx_;
   camera_info_msg.p[3] = -computed_focal_length * hack_baseline;
-  camera_info_msg.p[4] = 0.0;
   camera_info_msg.p[5] = computed_focal_length;
   camera_info_msg.p[6] = cy_;
-  camera_info_msg.p[7] = 0.0;
-  camera_info_msg.p[8] = 0.0;
-  camera_info_msg.p[9] = 0.0;
   camera_info_msg.p[10] = 1.0;
-  camera_info_msg.p[11] = 0.0;
 
   // Initialize camera_info_manager
   cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), frame_id));
   cameraInfoManager.back()->setCameraInfo(camera_info_msg);
 }
 
-void RealSenseDriverSim::UpdateData(const int bridge_index)
+void RealSenseDriverSim::UpdateData(const uint bridge_index)
 {
   const int module_index = bridge_index / 2;
   void *pBuffer = nullptr;

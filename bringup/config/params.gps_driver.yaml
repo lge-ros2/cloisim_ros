@@ -10,8 +10,5 @@ gps_driver:
 
     remapping_list: ['/tf', '/tf_static']
 
-    transform: [0.0, 0.0, 0.21, 0.0, 0.0, 0.0]
-    intensity: False
-
     frame_id: "gps"
     topic_name: "navsatfix"

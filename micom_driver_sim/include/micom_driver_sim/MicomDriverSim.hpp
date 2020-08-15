@@ -30,7 +30,8 @@ public:
 private:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
-  virtual void UpdateData(const int bridge_index) override;
+  virtual void UpdateData(const uint bridge_index) override;
+  virtual void InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
 private:
   void MicomWrite(const void* const pcBuf, const uint32_t unSize);

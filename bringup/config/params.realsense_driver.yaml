@@ -1,6 +1,7 @@
 realsense_driver:
   ros__parameters:
     use_sim_time: True
+
     sim:
       model: "cloi"
       parts: "realsense"
@@ -9,8 +10,5 @@ realsense_driver:
 
     remapping_list: ['/tf', '/tf_static']
 
-    transform: [0.344000, 0.0, 1.014100, 0.0, 0.0, 0.0]
-
     frame_id: "realsense_link"
-
     module_list: ["rgb", "ir1", "ir2", "depth"]

@@ -1,6 +1,7 @@
 multi_camera_driver:
   ros__parameters:
     use_sim_time: True
+
     sim:
       model: "cloi"
       parts: "multi_camera"
@@ -10,13 +11,4 @@ multi_camera_driver:
     remapping_list: ['/tf', '/tf_static']
 
     camera_name: "multi_camera"
-    transform: [-0.048500, 0.0, 0.948300, 0.0, -1.5707, 0.0]
-    camera_list: ["left", "right"]
-
-    left:
-      transform_offset: [0.0, 0.252, 0.0, -0.0, -0.0, 0.785398]
-      frame_id: "left_link"
-
-    right:
-      transform_offset: [0.0, -0.252, 0.0, -0.0, -0.0, -0.785398]
-      frame_id: "right_link"
+    frame_id: ["left", "right"]

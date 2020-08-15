@@ -26,7 +26,7 @@ public:
 private:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
-  virtual void UpdateData(const int bridge_index) override;
+  virtual void UpdateData(const uint bridge_index) override;
 
 private:
   // Camera info publisher

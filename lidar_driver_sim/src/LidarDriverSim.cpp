@@ -25,7 +25,7 @@ using namespace std;
 using namespace chrono_literals;
 
 LidarDriverSim::LidarDriverSim()
-    : DriverSim("lidar_driver_sim"),
+    : DriverSim("lidar_driver_sim", 2),
     m_bIntensity(false),
     m_fLowerAngle(MAX_LOWER_ANGLE),
     m_fUpperAngle(MAX_UPPER_ANGLE)
@@ -41,56 +41,70 @@ LidarDriverSim::~LidarDriverSim()
 void LidarDriverSim::Initialize()
 {
   string topic_name_;
-  vector<double> transform_;
 
   get_parameter_or("topic_name", topic_name_, string("scan"));
   get_parameter_or("frame_id", frame_id_, string("base_scan"));
-  get_parameter_or("transform", transform_, vector<double>({0, 0, 0, 0, 0, 0}));
 
   get_parameter("intensity", m_bIntensity);
   get_parameter("filter.lower_angle", m_fLowerAngle);
   get_parameter("filter.upper_angle", m_fUpperAngle);
 
-  DBG_SIM_INFO("[CONFIG] intensity: %d, filter.lower_angle: %f, filter.upper_angle: %f",
-               m_bIntensity, m_fLowerAngle, m_fUpperAngle);
   DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
   DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
+  DBG_SIM_INFO("[CONFIG] intensity: %d, filter.lower_angle: %f, filter.upper_angle: %f",
+               m_bIntensity, m_fLowerAngle, m_fUpperAngle);
 
   m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
-  geometry_msgs::msg::TransformStamped scan_tf;
-  tf2::Quaternion convertQuternion;
-  convertQuternion.setRPY(transform_[3], transform_[4], transform_[5]);
-  convertQuternion = convertQuternion.normalize();
-
-  scan_tf.header.frame_id = "base_link";
-  scan_tf.child_frame_id = frame_id_;
-  scan_tf.transform.translation.x = transform_[0];
-  scan_tf.transform.translation.y = transform_[1];
-  scan_tf.transform.translation.z = transform_[2];
-  scan_tf.transform.rotation.x = convertQuternion.x();
-  scan_tf.transform.rotation.y = convertQuternion.y();
-  scan_tf.transform.rotation.z = convertQuternion.z();
-  scan_tf.transform.rotation.w = convertQuternion.w();
-
-  AddStaticTf2(scan_tf);
-
   // ROS2 Publisher
   pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
 
-  GetSimBridge()->Connect(SimBridge::Mode::SUB, m_hashKeySub);
+  auto pSimBridgeData = GetSimBridge(0);
+  auto pSimBridgeInfo = GetSimBridge(1);
+
+  if (pSimBridgeData != nullptr)
+  {
+    pSimBridgeData->Connect(SimBridge::Mode::SUB, m_hashKeySub);
+  }
+
+  if (pSimBridgeInfo != nullptr)
+  {
+    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
+    const auto transform = GetObjectTransform(pSimBridgeInfo);
+    InitializeTfMessage(transform, frame_id_);
+  }
 }
 
 void LidarDriverSim::Deinitialize()
 {
-  GetSimBridge()->Disconnect();
+  DisconnectSimBridges();
 }
 
-void LidarDriverSim::UpdateData(const int bridge_index)
+void LidarDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const string frame_id)
 {
-  (void)bridge_index;
-  auto simBridge = GetSimBridge();
+  geometry_msgs::msg::TransformStamped scan_tf;
+  scan_tf.header.frame_id = "base_link";
+  scan_tf.child_frame_id = frame_id;
+  scan_tf.transform.translation.x = transform.position().x();
+  scan_tf.transform.translation.y = transform.position().y();
+  scan_tf.transform.translation.z = transform.position().z();
+  scan_tf.transform.rotation.x = transform.orientation().x();
+  scan_tf.transform.rotation.y = transform.orientation().y();
+  scan_tf.transform.rotation.z = transform.orientation().z();
+  scan_tf.transform.rotation.w = transform.orientation().w();
+
+  AddStaticTf2(scan_tf);
+}
+
+void LidarDriverSim::UpdateData(const uint bridge_index)
+{
+  auto simBridge = GetSimBridge(bridge_index);
+  if (simBridge == nullptr)
+  {
+    return;
+  }
+
   void *pBuffer = nullptr;
   int bufferLength = 0;
 

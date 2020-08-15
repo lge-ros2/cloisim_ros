@@ -20,6 +20,7 @@
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <protobuf/image_stamped.pb.h>
 #include <protobuf/camerasensor.pb.h>
+#include <protobuf/pose.pb.h>
 
 class CameraDriverSim : public DriverSim
 {
@@ -30,7 +31,8 @@ public:
 protected:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
-  virtual void UpdateData(const int bridge_index = 0) override;
+  virtual void UpdateData(const uint bridge_index = 0) override;
+  virtual void InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
 private:
   void GetCameraSensorMessage();

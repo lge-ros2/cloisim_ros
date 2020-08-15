@@ -38,33 +38,15 @@ void CameraDriverSim::Initialize()
 {
   string frame_id_;
   string topic_name_;
-  vector<double> transform_;
 
   get_parameter_or("topic_name", topic_name_, string("topic"));
   get_parameter_or("frame_id", frame_id_, string("camera_link"));
-  get_parameter_or("transform", transform_, vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
 
   const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
   m_hashKeySub = GetRobotName() + GetPartsName();
 
   DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
   DBG_SIM_INFO("[CONFIG] hash Key sub: %s", m_hashKeySub.c_str());
-
-  geometry_msgs::msg::TransformStamped camera_tf;
-  tf2::Quaternion fixed_rot;
-  fixed_rot.setRPY(transform_[3], transform_[4], transform_[5]);
-
-  camera_tf.header.frame_id = "base_footprint";
-  camera_tf.child_frame_id = frame_id_;
-  camera_tf.transform.translation.x = transform_[0];
-  camera_tf.transform.translation.y = transform_[1];
-  camera_tf.transform.translation.z = transform_[2];
-  camera_tf.transform.rotation.x = fixed_rot.x();
-  camera_tf.transform.rotation.y = fixed_rot.y();
-  camera_tf.transform.rotation.z = fixed_rot.z();
-  camera_tf.transform.rotation.w = fixed_rot.w();
-
-  AddStaticTf2(camera_tf);
 
   msg_img.header.frame_id = frame_id_;
 
@@ -77,16 +59,32 @@ void CameraDriverSim::Initialize()
 
   cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), GetPartsName());
 
-  GetCameraSensorMessage();
+  const auto transform = GetObjectTransform(1);
+  InitializeTfMessage(transform, frame_id_);
+
   InitializeCameraInfoMessage(frame_id_);
 }
 
 void CameraDriverSim::Deinitialize()
 {
   pubImage.shutdown();
+  DisconnectSimBridges();
+}
 
-  GetSimBridge(0)->Disconnect();
-  GetSimBridge(1)->Disconnect();
+void CameraDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const string frame_id)
+{
+  geometry_msgs::msg::TransformStamped camera_tf;
+  camera_tf.header.frame_id = "base_link";
+  camera_tf.child_frame_id = frame_id;
+  camera_tf.transform.translation.x = transform.position().x();
+  camera_tf.transform.translation.y = transform.position().y();
+  camera_tf.transform.translation.z = transform.position().z();
+  camera_tf.transform.rotation.x = transform.orientation().x();
+  camera_tf.transform.rotation.y = transform.orientation().y();
+  camera_tf.transform.rotation.z = transform.orientation().z();
+  camera_tf.transform.rotation.w = transform.orientation().w();
+
+  AddStaticTf2(camera_tf);
 }
 
 void CameraDriverSim::GetCameraSensorMessage()
@@ -119,7 +117,7 @@ void CameraDriverSim::GetCameraSensorMessage()
 
 void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
 {
-  sensor_msgs::msg::CameraInfo camera_info_msg;
+  GetCameraSensorMessage();
 
   int width_ = m_pbBufCameraSensorInfo.image_size().x();
   int height_ = m_pbBufCameraSensorInfo.image_size().y();
@@ -133,6 +131,7 @@ void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
   auto computed_focal_length = (static_cast<double>(width_)) / (2.0 * tan(hfov_ / 2.0));
 
   // CameraInfo
+  sensor_msgs::msg::CameraInfo camera_info_msg;
   camera_info_msg.header.frame_id = frame_id;
   camera_info_msg.height = height_;
   camera_info_msg.width = width_;
@@ -148,7 +147,7 @@ void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
   double distortion_t1 = m_pbBufCameraSensorInfo.distortion().p1();
   double distortion_t2 = m_pbBufCameraSensorInfo.distortion().p2();
 
-  // D = {k1, k2, t1, t2, k3}, as specified in:
+    // D = {k1, k2, t1, t2, k3}, as specified in:
   // - sensor_msgs/CameraInfo: http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html
   // - OpenCV: http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
   camera_info_msg.d[0] = distortion_k1;
@@ -158,46 +157,32 @@ void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
   camera_info_msg.d[4] = distortion_k3;
 
   // Original camera matrix
+  camera_info_msg.k.fill(0.0);
   camera_info_msg.k[0] = computed_focal_length;
-  camera_info_msg.k[1] = 0.0;
   camera_info_msg.k[2] = cx_;
-  camera_info_msg.k[3] = 0.0;
   camera_info_msg.k[4] = computed_focal_length;
   camera_info_msg.k[5] = cy_;
-  camera_info_msg.k[6] = 0.0;
-  camera_info_msg.k[7] = 0.0;
-  camera_info_msg.k[8] = 1.0;
 
   // rectification
+  camera_info_msg.r.fill(0.0);
   camera_info_msg.r[0] = 1.0;
-  camera_info_msg.r[1] = 0.0;
-  camera_info_msg.r[2] = 0.0;
-  camera_info_msg.r[3] = 0.0;
   camera_info_msg.r[4] = 1.0;
-  camera_info_msg.r[5] = 0.0;
-  camera_info_msg.r[6] = 0.0;
-  camera_info_msg.r[7] = 0.0;
   camera_info_msg.r[8] = 1.0;
 
   // camera_ projection matrix (same as camera_ matrix due
   // to lack of distortion/rectification) (is this generated?)
+  camera_info_msg.p.fill(0.0);
   camera_info_msg.p[0] = computed_focal_length;
-  camera_info_msg.p[1] = 0.0;
   camera_info_msg.p[2] = cx_;
   camera_info_msg.p[3] = -computed_focal_length * hack_baseline;
-  camera_info_msg.p[4] = 0.0;
   camera_info_msg.p[5] = computed_focal_length;
   camera_info_msg.p[6] = cy_;
-  camera_info_msg.p[7] = 0.0;
-  camera_info_msg.p[8] = 0.0;
-  camera_info_msg.p[9] = 0.0;
   camera_info_msg.p[10] = 1.0;
-  camera_info_msg.p[11] = 0.0;
 
   cameraInfoManager->setCameraInfo(camera_info_msg);
 }
 
-void CameraDriverSim::UpdateData(const int bridge_index)
+void CameraDriverSim::UpdateData(const uint bridge_index)
 {
   auto simBridge = GetSimBridge(bridge_index);
   void *pBuffer = nullptr;

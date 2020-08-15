@@ -30,12 +30,15 @@ public:
 private:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
-  virtual void UpdateData(const int bridge_index) override;
+  virtual void UpdateData(const uint bridge_index) override;
+  virtual void InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
   void GetCameraSensorMessage(const std::string camera_name);
   void InitializeCameraInfoMessage(const std::string camera_name, const std::string frame_id);
 
 private:
+  std::string multicamera_name;
+
   std::string m_hashKeySub;
 
   // buffer from simulation

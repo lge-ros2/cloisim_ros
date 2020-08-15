@@ -1,10 +1,10 @@
 unity_ros:
   ros__parameters:
     use_sim_time: True
+
     sim:
       model: "UnityRosInit"
       ip_address: "127.0.0.1"
       manager_port: 25554
-      retry_connection_period: 1700 # millisecond
 
     publish_rate: 10.0

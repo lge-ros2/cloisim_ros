@@ -10,12 +10,10 @@ lidar_driver:
 
     remapping_list: ['/tf', '/tf_static']
 
-    transform: [0.27000, 0.0, 0.1125, 0.0, 0.0, 0.0]
-    intensity: False
-
     frame_id: "base_scan"
     topic_name: "scan"
 
+    intensity: False
     filter:
       lower_angle: -1.85005
       upper_angle: 1.85005

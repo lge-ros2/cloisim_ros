@@ -143,7 +143,11 @@ void MicomDriverSim::Initialize()
 
 void MicomDriverSim::Deinitialize()
 {
-  GetSimBridge()->Disconnect();
+  DisconnectSimBridges();
+}
+
+void MicomDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id)
+{
 }
 
 string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
@@ -166,13 +170,13 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   pVal->set_type(msgs::Any::INT32);
   pVal->set_int_value(1);
 
-  msgs::Param *const pLinearVel = writeBuf.add_children();
+  auto const pLinearVel = writeBuf.add_children();
   pLinearVel->set_name("LeftWheelVelocity");
   pVal = pLinearVel->mutable_value();
   pVal->set_type(msgs::Any::DOUBLE);
   pVal->set_double_value(lin_vel_left_wheel);
 
-  msgs::Param *const pAngularVel = writeBuf.add_children();
+  auto const pAngularVel = writeBuf.add_children();
   pAngularVel->set_name("RightWheelVelocity");
   pVal = pAngularVel->mutable_value();
   pVal->set_type(msgs::Any::DOUBLE);
@@ -191,7 +195,7 @@ void MicomDriverSim::MicomWrite(const void *const pcBuf, const uint32_t unSize)
   }
 }
 
-void MicomDriverSim::UpdateData(const int bridge_index)
+void MicomDriverSim::UpdateData(const uint bridge_index)
 {
   (void)bridge_index;
   auto simBridge = GetSimBridge();

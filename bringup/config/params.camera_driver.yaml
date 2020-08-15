@@ -1,6 +1,7 @@
 camera_driver:
   ros__parameters:
     use_sim_time: True
+
     sim:
       model: "cloi"
       parts: "camera"
@@ -11,5 +12,3 @@ camera_driver:
 
     topic_name: "rgb"
     frame_id: "camera_link"
-
-    transform: [0.344000, 0.0, 1.014100, 0.0, 0.0, 0.0]
