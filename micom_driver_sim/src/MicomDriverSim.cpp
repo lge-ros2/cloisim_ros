@@ -81,9 +81,9 @@ void MicomDriverSim::Initialize()
   geometry_msgs::msg::TransformStamped base_tf;
   base_tf.header.frame_id = "base_footprint";
   base_tf.child_frame_id = "base_link";
-  base_tf.transform.translation.x = transform_base[0];
-  base_tf.transform.translation.y = transform_base[1];
-  base_tf.transform.translation.z = transform_base[2];
+  base_tf.transform.translation.x = 0.0;
+  base_tf.transform.translation.y = 0.0;
+  base_tf.transform.translation.z = 0.0;
   base_tf.transform.rotation = q_msg;
   AddStaticTf2(base_tf);
 
@@ -103,14 +103,14 @@ void MicomDriverSim::Initialize()
   odom_tf.transform.translation.z = 0;
   odom_tf.transform.rotation = q_msg;
 
-  wheel_left_tf.header.frame_id = "base_link";
+  wheel_left_tf.header.frame_id = base_tf.child_frame_id;
   wheel_left_tf.child_frame_id = "wheel_left_link";
   wheel_left_tf.transform.translation.x = transform_wheelLeft[0];
   wheel_left_tf.transform.translation.y = transform_wheelLeft[1];
   wheel_left_tf.transform.translation.z = transform_wheelLeft[2];
   wheel_left_tf.transform.rotation = q_msg;
 
-  wheel_right_tf.header.frame_id = "base_link";
+  wheel_right_tf.header.frame_id = base_tf.child_frame_id;
   wheel_right_tf.child_frame_id = "wheel_right_link";
   wheel_right_tf.transform.translation.x = transform_wheelRight[0];
   wheel_right_tf.transform.translation.y = transform_wheelRight[1];
