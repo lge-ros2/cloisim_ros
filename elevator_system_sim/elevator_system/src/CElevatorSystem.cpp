@@ -24,10 +24,11 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
                         .allow_undeclared_parameters(true)
                         .automatically_declare_parameters_from_overrides(true)
                         .use_intra_process_comms(intra_process_comms))
+    , m_pSimBridge(new SimBridge())
 {
-  std::string model_name;
-  std::string parts_name;
-  std::string sim_ip("");
+  string model_name;
+  string parts_name;
+  string sim_ip("");
   int sim_manager_port(0);
 
   get_parameter_or("sim.model", model_name, string("SeochoTower"));
@@ -38,7 +39,6 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
   get_parameter("srv_mode", m_boolSrvMode);
 
   m_hashKey = model_name + parts_name;
-  m_pSimBridge = new SimBridge();
 
   if (m_pSimBridge)
   {
@@ -94,7 +94,7 @@ CallbackReturn CElevatorSystem::on_activate(const State &)
 
   m_pSrvReleaseElevator = this->create_service<ReturnBool>(
       nodeName + string("/release_elevator"),
-      bind(&CElevatorSystem::callback_release_elevator, this, _1, _2, _3));      
+      bind(&CElevatorSystem::callback_release_elevator, this, _1, _2, _3));
 
   return CallbackReturn::SUCCESS;
 }
@@ -143,9 +143,9 @@ void CElevatorSystem::callback_call_elevator(
 }
 
 void CElevatorSystem::callback_get_called_elevator(
-    const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<CallElevator::Request> request,
-    const std::shared_ptr<CallElevator::Response> response)
+    const shared_ptr<rmw_request_id_t> /*request_header*/,
+    const shared_ptr<CallElevator::Request> request,
+    const shared_ptr<CallElevator::Response> response)
 {
   auto request_msg = create_request_message("get_called_elevator",
                                             request->current_floor,
@@ -202,9 +202,9 @@ void CElevatorSystem::callback_select_elevator_floor(
 }
 
 void CElevatorSystem::callback_request_door_open(
-    const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<RequestDoor::Request> request,
-    const std::shared_ptr<RequestDoor::Response> response)
+    const shared_ptr<rmw_request_id_t> /*request_header*/,
+    const shared_ptr<RequestDoor::Request> request,
+    const shared_ptr<RequestDoor::Response> response)
 {
   auto request_msg = create_request_message("request_door_open", stoi(request->elevator_index));
 
@@ -219,9 +219,9 @@ void CElevatorSystem::callback_request_door_open(
 }
 
 void CElevatorSystem::callback_request_door_close(
-    const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<RequestDoor::Request> request,
-    const std::shared_ptr<RequestDoor::Response> response)
+    const shared_ptr<rmw_request_id_t> /*request_header*/,
+    const shared_ptr<RequestDoor::Request> request,
+    const shared_ptr<RequestDoor::Response> response)
 {
   auto request_msg = create_request_message("request_door_close", stoi(request->elevator_index));
 
@@ -236,9 +236,9 @@ void CElevatorSystem::callback_request_door_close(
 }
 
 void CElevatorSystem::callback_is_door_opened(
-    const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<RequestDoor::Request> request,
-    const std::shared_ptr<RequestDoor::Response> response)
+    const shared_ptr<rmw_request_id_t> /*request_header*/,
+    const shared_ptr<RequestDoor::Request> request,
+    const shared_ptr<RequestDoor::Response> response)
 {
   auto request_msg = create_request_message("is_door_opened", stoi(request->elevator_index));
 
@@ -253,17 +253,17 @@ void CElevatorSystem::callback_is_door_opened(
 }
 
 void CElevatorSystem::callback_reserve_elevator(
-  const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-  const std::shared_ptr<ReturnBool::Request> /*request*/,
-  const std::shared_ptr<ReturnBool::Response> response)
+  const shared_ptr<rmw_request_id_t> /*request_header*/,
+  const shared_ptr<ReturnBool::Request> /*request*/,
+  const shared_ptr<ReturnBool::Response> response)
 {
   response->result = m_boolSrvMode;
 }
 
 void CElevatorSystem::callback_release_elevator(
-  const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-  const std::shared_ptr<ReturnBool::Request> /*request*/,
-  const std::shared_ptr<ReturnBool::Response> response)
+  const shared_ptr<rmw_request_id_t> /*request_header*/,
+  const shared_ptr<ReturnBool::Request> /*request*/,
+  const shared_ptr<ReturnBool::Response> response)
 {
   response->result = m_boolSrvMode;
 }
