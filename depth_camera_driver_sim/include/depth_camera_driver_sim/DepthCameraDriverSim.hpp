@@ -14,7 +14,7 @@
 #ifndef _DepthCameraDriverSim_H_
 #define _DepthCameraDriverSim_H_
 
-#include "camera_driver_sim/CameraDriverSim.hpp"
+#include <camera_driver_sim/CameraDriverSim.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
 class DepthCameraDriverSim : public CameraDriverSim

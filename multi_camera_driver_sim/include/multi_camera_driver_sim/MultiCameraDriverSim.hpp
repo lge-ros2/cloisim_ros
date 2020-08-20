@@ -14,7 +14,7 @@
 #ifndef _MultiCameraDriverSim_H_
 #define _MultiCameraDriverSim_H_
 
-#include "driver_sim/driver_sim.hpp"
+#include <driver_sim/driver_sim.hpp>
 #include <image_transport/image_transport.h>
 #include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/msg/camera_info.hpp>

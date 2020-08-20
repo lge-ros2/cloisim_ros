@@ -16,9 +16,9 @@
 #ifndef _GPSDRIVERSIM_H_
 #define _GPSDRIVERSIM_H_
 
-#include "driver_sim/driver_sim.hpp"
+#include <driver_sim/driver_sim.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include "protobuf/gps.pb.h"
+#include <protobuf/gps.pb.h>
 
 class GPSDriverSim : public DriverSim
 {

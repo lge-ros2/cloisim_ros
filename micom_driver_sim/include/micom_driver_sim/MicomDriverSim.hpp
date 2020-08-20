@@ -15,11 +15,11 @@
 #ifndef _MICOMDRIVERSIM_HPP__
 #define _MICOMDRIVERSIM_HPP__
 
-#include "driver_sim/driver_sim.hpp"
+#include <driver_sim/driver_sim.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <nav_msgs/msg/odometry.hpp>
-#include "protobuf/micom.pb.h"
+#include <protobuf/micom.pb.h>
 
 class MicomDriverSim : public DriverSim
 {

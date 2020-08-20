@@ -17,7 +17,7 @@
 #ifndef _UnityRosInit_H_
 #define _UnityRosInit_H_
 
-#include "sim_bridge/sim_bridge.hpp"
+#include <sim_bridge/sim_bridge.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rosgraph_msgs/msg/clock.hpp>
 

@@ -16,9 +16,9 @@
 #ifndef _LIDARDRIVERSIM_H_
 #define _LIDARDRIVERSIM_H_
 
-#include "driver_sim/driver_sim.hpp"
+#include <driver_sim/driver_sim.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
-#include "protobuf/laserscan_stamped.pb.h"
+#include <protobuf/laserscan_stamped.pb.h>
 
 class LidarDriverSim : public DriverSim
 {

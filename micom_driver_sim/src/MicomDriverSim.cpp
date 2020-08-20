@@ -15,7 +15,7 @@
 
 #include "micom_driver_sim/MicomDriverSim.hpp"
 #include <tf2/LinearMath/Quaternion.h>
-#include "protobuf/param.pb.h"
+#include <protobuf/param.pb.h>
 
 #define LOGGING_PERIOD 1000
 

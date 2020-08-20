@@ -14,9 +14,8 @@
  */
 
 #include <rclcpp/rclcpp.hpp>
-#include <tf2_ros/static_transform_broadcaster.h>
 #include <unistd.h>
-#include "driver_sim/driver_sim.hpp"
+#include <driver_sim/driver_sim.hpp>
 
 using namespace std;
 using namespace gazebo;

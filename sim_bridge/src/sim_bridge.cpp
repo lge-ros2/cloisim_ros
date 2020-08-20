@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "sim_bridge/sim_bridge.hpp"
+#include <sim_bridge/sim_bridge.hpp>
 #include <cstring>
 #include <thread>
 
