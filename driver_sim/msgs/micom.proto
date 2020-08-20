@@ -8,6 +8,7 @@ package gazebo.msgs;
 import "time.proto";
 import "imu.proto";
 import "battery.proto";
+import "pose.proto";
 
 message Micom
 {
@@ -50,8 +51,7 @@ message Micom
     repeated bool bumped = 1;
   }
 
-  // Time when the data sent
-  required Time time        = 1;
+  required Time time        = 1; /// Time when the data sent
   required Odometry odom    = 2;
   optional USS uss          = 3;
   optional IR ir            = 4;
@@ -60,4 +60,5 @@ message Micom
   optional IMU imu          = 7;
   optional Bumper bumper    = 8;
   optional Battery battery  = 9;
+  optional Pose pose        = 10;
 }
