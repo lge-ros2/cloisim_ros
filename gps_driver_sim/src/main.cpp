@@ -14,14 +14,12 @@
  */
 
 #include "gps_driver_sim/GPSDriverSim.hpp"
-using namespace std::literals;
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<GPSDriverSim>();
   rclcpp::spin(node);
-  rclcpp::sleep_for(100ms);
   rclcpp::shutdown();
   return 0;
 }

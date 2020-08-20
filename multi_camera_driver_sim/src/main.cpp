@@ -14,16 +14,11 @@
  */
 #include "multi_camera_driver_sim/MultiCameraDriverSim.hpp"
 
-using namespace std::literals;
-
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::sleep_for(100ms);
-
   auto cam_node = std::make_shared<MultiCameraDriverSim>();
   rclcpp::spin(cam_node);
   rclcpp::shutdown();
-
   return 0;
 }

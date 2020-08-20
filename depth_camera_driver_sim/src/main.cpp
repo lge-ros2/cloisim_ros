@@ -14,13 +14,9 @@
  */
 #include "depth_camera_driver_sim/DepthCameraDriverSim.hpp"
 
-using namespace std::literals;
-
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::sleep_for(100ms);
-
   auto node = std::make_shared<DepthCameraDriverSim>();
   rclcpp::spin(node);
   rclcpp::shutdown();
