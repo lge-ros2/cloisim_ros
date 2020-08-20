@@ -159,8 +159,8 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f * 1000.0) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f * 1000.0) / 2.0));
   const auto vel_rot_wheel = (0.5f * vel_rot * wheel_base);
-  auto lin_vel_left_wheel = vel_lin - vel_rot_wheel;
-  auto lin_vel_right_wheel = vel_lin + vel_rot_wheel;
+  auto lin_vel_left_wheel = vel_lin - vel_rot_wheel; // m/s
+  auto lin_vel_right_wheel = vel_lin + vel_rot_wheel; // m/s
 
   msgs::Param writeBuf;
   msgs::Any *pVal;
