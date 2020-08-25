@@ -60,9 +60,9 @@ void MicomDriverSim::Initialize()
 
   DBG_SIM_INFO("Hash Key sub(%s) pub(%s)", m_hashKeySub.c_str(), m_hashKeyPub.c_str());
 
-  msg_odom.header.frame_id = "odom";
-  msg_odom.child_frame_id = "base_footprint";
-  msg_imu.header.frame_id = "imu_link";
+  msg_odom_.header.frame_id = "odom";
+  msg_odom_.child_frame_id = "base_footprint";
+  msg_imu_.header.frame_id = "imu_link";
 
   geometry_msgs::msg::Quaternion quatIdentity;
   quatIdentity.x = 0.0;
@@ -70,12 +70,12 @@ void MicomDriverSim::Initialize()
   quatIdentity.z = 0.0;
   quatIdentity.w = 1.0;
 
-  odom_tf.header.frame_id = msg_odom.header.frame_id;
-  odom_tf.child_frame_id = msg_odom.child_frame_id;
-  odom_tf.transform.translation.x = 0;
-  odom_tf.transform.translation.y = 0;
-  odom_tf.transform.translation.z = 0;
-  odom_tf.transform.rotation = quatIdentity;
+  odom_tf_.header.frame_id = msg_odom_.header.frame_id;
+  odom_tf_.child_frame_id = msg_odom_.child_frame_id;
+  odom_tf_.transform.translation.x = 0;
+  odom_tf_.transform.translation.y = 0;
+  odom_tf_.transform.translation.z = 0;
+  odom_tf_.transform.rotation = quatIdentity;
 
   geometry_msgs::msg::TransformStamped base_tf;
   base_tf.header.frame_id = "base_footprint";
@@ -111,16 +111,16 @@ void MicomDriverSim::Initialize()
     SetupStaticTf2Message(transform_imu, transform_imu_name);
 
     const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheels_name.at(0));
-    SetupTf2Message(wheel_left_tf, transform_wheel_0, transform_wheels_name.at(0));
+    SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheels_name.at(0));
 
     const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheels_name.at(1));
-    SetupTf2Message(wheel_right_tf, transform_wheel_1, transform_wheels_name.at(1));
+    SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheels_name.at(1));
   }
 
   // ROS2 Publisher
-  pubBatteryState = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
-  pubOdometry = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SensorDataQoS());
-  pubImu = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
+  pubBatteryState_ = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
+  pubOdometry_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SensorDataQoS());
+  pubImu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
 
   auto callback_sub = [this](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
     const auto msgBuf = MakeControlMessage(msg);
@@ -128,7 +128,7 @@ void MicomDriverSim::Initialize()
   };
 
   // ROS2 Subscriber
-  subMicom = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
+  subMicom_ = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
 }
 
 
@@ -285,24 +285,24 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
     return;
   }
 
-  if (!m_pbBufMicom.ParseFromArray(pBuffer, bufferLength))
+  if (!m_pbBufMicom_.ParseFromArray(pBuffer, bufferLength))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
     return;
   }
 
-  m_simTime = rclcpp::Time(m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec());
+  m_simTime = rclcpp::Time(m_pbBufMicom_.time().sec(), m_pbBufMicom_.time().nsec());
 
   //DBG_SIM_WRN("Simulation time %u %u size(%d)",
-  //  m_pbBufMicom.time().sec(), m_pbBufMicom.time().nsec(), bufferLength);
+  //  m_pbBufMicom_.time().sec(), m_pbBufMicom_.time().nsec(), bufferLength);
 
   // reset odom info when sim time is reset
-  if (m_pbBufMicom.time().sec() == 0 && m_pbBufMicom.time().nsec() < 50000000)
+  if (m_pbBufMicom_.time().sec() == 0 && m_pbBufMicom_.time().nsec() < 50000000)
   {
     DBG_SIM_WRN("Simulation time has been reset!!!");
-    odom_pose.fill(0.0);
-    odom_vel.fill(0.0);
-    last_rad.fill(0.0);
+    odom_pose_.fill(0.0);
+    odom_vel_.fill(0.0);
+    last_rad_.fill(0.0);
   }
 
 #if 0
@@ -311,8 +311,8 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
     {
       DBG_SIM_INFO("recv [%06d][%d][%d][%f]",
           cnt,
-          m_pbBufMicom.odom().speed_left(), m_pbBufMicom.odom().speed_right(),
-          m_pbBufMicom.imu().angular_velocity().z());
+          m_pbBufMicom_.odom().speed_left(), m_pbBufMicom_.odom().speed_right(),
+          m_pbBufMicom_.imu().angular_velocity().z());
     }
 #endif
 
@@ -323,37 +323,36 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
   PublishTF();
 
   // publish data
-  pubOdometry->publish(msg_odom);
-  pubImu->publish(msg_imu);
-  pubBatteryState->publish(msg_battery);
+  pubOdometry_->publish(msg_odom_);
+  pubImu_->publish(msg_imu_);
+  pubBatteryState_->publish(msg_battery_);
 }
 
 bool MicomDriverSim::CalculateOdometry(
     const rclcpp::Duration duration,
-    const double _wheel_left,
-    const double _wheel_right,
+    const double _wheel_angular_vel_left,
+    const double _wheel_angular_vel_right,
     const double _theta)
 {
   static const double M_2PI = M_PI * 2;
+  static double last_theta = 0.0f;
+
   const double step_time = duration.seconds();
 
   if (step_time <= 0.0000000f)
     return false;
 
-  // rotation value of wheel [rad]
-  double wheel_l_dist = _wheel_left * step_time;
-  double wheel_r_dist = _wheel_right * step_time;
+  // circumference of wheel [rad] per step time.
+  double wheel_l_circum = _wheel_angular_vel_left * step_time;
+  double wheel_r_circum = _wheel_angular_vel_right * step_time;
 
-  if (isnan(wheel_l_dist))
-    wheel_l_dist = 0.0f;
+  if (isnan(wheel_l_circum))
+    wheel_l_circum = 0.0f;
 
-  if (isnan(wheel_r_dist))
-    wheel_r_dist = 0.0f;
+  if (isnan(wheel_r_circum))
+    wheel_r_circum = 0.0f;
 
-  double delta_theta = 0.0f;
-  static double last_theta = 0.0f;
-
-  delta_theta = _theta - last_theta;
+  double delta_theta = _theta - last_theta;
 
   if (delta_theta > M_PI)
     delta_theta -= M_2PI;
@@ -361,168 +360,167 @@ bool MicomDriverSim::CalculateOdometry(
   if (delta_theta < -M_PI)
     delta_theta += M_2PI;
 
-  // origin: delta_s = wheel_radius * (wheel_r_dist + wheel_l_dist) / 2.0f;
-  const double delta_s = (wheel_r_dist + wheel_l_dist) / 2.0f;
+  const double delta_s = wheel_radius * (wheel_l_circum + wheel_r_circum) / 2.0f;
 
   // compute odometric pose
-  odom_pose[0] += delta_s * cos(odom_pose[2] + (delta_theta / 2.0f));
-  odom_pose[1] += delta_s * sin(odom_pose[2] + (delta_theta / 2.0f));
-  odom_pose[2] += delta_theta;
+  odom_pose_[0] += delta_s * cos(odom_pose_[2] + (delta_theta / 2.0f));
+  odom_pose_[1] += delta_s * sin(odom_pose_[2] + (delta_theta / 2.0f));
+  odom_pose_[2] += delta_theta;
 
-  if (odom_pose[2] > M_2PI)
-    odom_pose[2] -= M_2PI;
+  if (odom_pose_[2] > M_2PI)
+    odom_pose_[2] -= M_2PI;
 
-  if (odom_pose[2] < -M_2PI)
-    odom_pose[2] += M_2PI;
+  if (odom_pose_[2] < -M_2PI)
+    odom_pose_[2] += M_2PI;
 
   // compute odometric instantaneouse velocity
   // v = translational velocity [m/s]
   // w = rotational velocity [rad/s]
   // origin: v = delta_s / step_time;
-  const auto v = (_wheel_right + _wheel_left) / 2.0f;
+  const auto v = delta_s / step_time;
   const auto w = delta_theta / step_time;
 
-  odom_vel[0] = v;
-  odom_vel[1] = 0.0;
-  odom_vel[2] = w;
+  odom_vel_[0] = v;
+  odom_vel_[1] = 0.0;
+  odom_vel_[2] = w;
 
+  last_rad_[0] += wheel_l_circum;
+  last_rad_[1] += wheel_r_circum;
   last_theta = _theta;
-  last_rad[0] += wheel_l_dist;
-  last_rad[1] += wheel_r_dist;
 
   return true;
 }
 
 void MicomDriverSim::UpdateOdom()
 {
-  if (!m_pbBufMicom.has_odom() || !m_pbBufMicom.has_imu())
+  if (!m_pbBufMicom_.has_odom() || !m_pbBufMicom_.has_imu())
   {
     return;
   }
 
   // DBG_SIM_MSG("nSpeedLeft: %d, nSpeedRight: %d, imu.x: %f, imu.y: %f, imu.z: %f, imu.w: %f",
-  //         nSpeedLeft, nSpeedRight, m_pbBufMicom.imu().orientation().x(), m_pbBufMicom.imu().orientation().y(),
-  //         m_pbBufMicom.imu().orientation().z(), m_pbBufMicom.imu().orientation().w());
+  //         nSpeedLeft, nSpeedRight, m_pbBufMicom_.imu().orientation().x(), m_pbBufMicom_.imu().orientation().y(),
+  //         m_pbBufMicom_.imu().orientation().z(), m_pbBufMicom_.imu().orientation().w());
 
-  // update linear velocity m/s
-  const double wheel_left = m_pbBufMicom.odom().speed_left();
-  const double wheel_right = m_pbBufMicom.odom().speed_right();
+  // update angular velocity rad/s
+  const double wheel_anglular_vel_left = m_pbBufMicom_.odom().angular_velocity_left();
+  const double wheel_anglular_vel_right = m_pbBufMicom_.odom().angular_velocity_right();
 
-  const auto orientation = m_pbBufMicom.imu().orientation();
+  const auto orientation = m_pbBufMicom_.imu().orientation();
   const double theta = atan2f(2 * ((orientation.w() * orientation.z()) + (orientation.x() * orientation.y())),
                               1 - 2 * ((orientation.y() * orientation.y()) + (orientation.z() * orientation.z())));
 
   static rclcpp::Time last_time = m_simTime;
   const rclcpp::Duration duration(m_simTime.nanoseconds() - last_time.nanoseconds());
 
-  CalculateOdometry(duration, wheel_left, wheel_right, theta);
+  CalculateOdometry(duration, wheel_anglular_vel_left, wheel_anglular_vel_right, theta);
 
   static int cnt = 0;
   if (cnt++ % LOGGING_PERIOD == 0)
   {
     DBG_SIM_MSG("Wheel odom x[%f] y[%f] theta[%f] vel_lin[%f] vel_ang[%f]",
-                odom_pose[0], odom_pose[1], odom_pose[2],
-                odom_vel[0], odom_pose[2]);
+                odom_pose_[0], odom_pose_[1], odom_pose_[2],
+                odom_vel_[0], odom_pose_[2]);
   }
 
-  msg_odom.header.stamp = m_simTime;
-  msg_odom.pose.pose.position.x = odom_pose[0];
-  msg_odom.pose.pose.position.y = odom_pose[1];
-  msg_odom.pose.pose.position.z = 0.0;
+  msg_odom_.header.stamp = m_simTime;
+  msg_odom_.pose.pose.position.x = odom_pose_[0];
+  msg_odom_.pose.pose.position.y = odom_pose_[1];
+  msg_odom_.pose.pose.position.z = 0.0;
 
   tf2::Quaternion q;
   geometry_msgs::msg::Quaternion *q_msg;
-  q.setRPY(0.0, 0.0, odom_pose[2]);
-  q_msg = &msg_odom.pose.pose.orientation;
+  q.setRPY(0.0, 0.0, odom_pose_[2]);
+  q_msg = &msg_odom_.pose.pose.orientation;
   q_msg->x = q.x();
   q_msg->y = q.y();
   q_msg->z = q.z();
   q_msg->w = q.w();
 
-  msg_odom.twist.twist.linear.x = odom_vel[0];
-  msg_odom.twist.twist.angular.z = odom_vel[2];
+  msg_odom_.twist.twist.linear.x = odom_vel_[0];
+  msg_odom_.twist.twist.angular.z = odom_vel_[2];
 
   // Update TF
-  odom_tf.header.stamp = m_simTime;
-  odom_tf.transform.translation.x = msg_odom.pose.pose.position.x;
-  odom_tf.transform.translation.y = msg_odom.pose.pose.position.y;
-  odom_tf.transform.translation.z = msg_odom.pose.pose.position.z;
-  odom_tf.transform.rotation = msg_odom.pose.pose.orientation;
-  AddTf2(odom_tf);
+  odom_tf_.header.stamp = m_simTime;
+  odom_tf_.transform.translation.x = msg_odom_.pose.pose.position.x;
+  odom_tf_.transform.translation.y = msg_odom_.pose.pose.position.y;
+  odom_tf_.transform.translation.z = msg_odom_.pose.pose.position.z;
+  odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
+  AddTf2(odom_tf_);
 
-  wheel_left_tf.header.stamp = m_simTime;
-  q_msg = &wheel_left_tf.transform.rotation;
-  q.setRPY(0, last_rad[0], 0);
+  wheel_left_tf_.header.stamp = m_simTime;
+  q_msg = &wheel_left_tf_.transform.rotation;
+  q.setRPY(0, last_rad_[0], 0);
   q_msg->x = q.x();
   q_msg->y = q.y();
   q_msg->z = q.z();
   q_msg->w = q.w();
-  AddTf2(wheel_left_tf);
+  AddTf2(wheel_left_tf_);
 
-  wheel_right_tf.header.stamp = m_simTime;
-  q_msg = &wheel_right_tf.transform.rotation;
-  q.setRPY(0, last_rad[1], 0);
+  wheel_right_tf_.header.stamp = m_simTime;
+  q_msg = &wheel_right_tf_.transform.rotation;
+  q.setRPY(0, last_rad_[1], 0);
   q_msg->x = q.x();
   q_msg->y = q.y();
   q_msg->z = q.z();
   q_msg->w = q.w();
-  AddTf2(wheel_right_tf);
+  AddTf2(wheel_right_tf_);
 
   last_time = m_simTime;
 }
 
 void MicomDriverSim::UpdateImu()
 {
-  msg_imu.header.stamp = m_simTime;
+  msg_imu_.header.stamp = m_simTime;
 
-  msg_imu.orientation.x = m_pbBufMicom.imu().orientation().x();
-  msg_imu.orientation.y = m_pbBufMicom.imu().orientation().y();
-  msg_imu.orientation.z = m_pbBufMicom.imu().orientation().z();
-  msg_imu.orientation.w = m_pbBufMicom.imu().orientation().w();
+  msg_imu_.orientation.x = m_pbBufMicom_.imu().orientation().x();
+  msg_imu_.orientation.y = m_pbBufMicom_.imu().orientation().y();
+  msg_imu_.orientation.z = m_pbBufMicom_.imu().orientation().z();
+  msg_imu_.orientation.w = m_pbBufMicom_.imu().orientation().w();
 
    // Fill covariances
-  msg_imu.orientation_covariance[0] = 0.0;
-  msg_imu.orientation_covariance[1] = 0.0;
-  msg_imu.orientation_covariance[2] = 0.0;
-  msg_imu.orientation_covariance[3] = 0.0;
-  msg_imu.orientation_covariance[4] = 0.0;
-  msg_imu.orientation_covariance[5] = 0.0;
-  msg_imu.orientation_covariance[6] = 0.0;
-  msg_imu.orientation_covariance[7] = 0.0;
-  msg_imu.orientation_covariance[8] = 0.0;
+  msg_imu_.orientation_covariance[0] = 0.0;
+  msg_imu_.orientation_covariance[1] = 0.0;
+  msg_imu_.orientation_covariance[2] = 0.0;
+  msg_imu_.orientation_covariance[3] = 0.0;
+  msg_imu_.orientation_covariance[4] = 0.0;
+  msg_imu_.orientation_covariance[5] = 0.0;
+  msg_imu_.orientation_covariance[6] = 0.0;
+  msg_imu_.orientation_covariance[7] = 0.0;
+  msg_imu_.orientation_covariance[8] = 0.0;
 
-  msg_imu.angular_velocity.x = m_pbBufMicom.imu().angular_velocity().x();
-  msg_imu.angular_velocity.y = m_pbBufMicom.imu().angular_velocity().y();
-  msg_imu.angular_velocity.z = m_pbBufMicom.imu().angular_velocity().z();
+  msg_imu_.angular_velocity.x = m_pbBufMicom_.imu().angular_velocity().x();
+  msg_imu_.angular_velocity.y = m_pbBufMicom_.imu().angular_velocity().y();
+  msg_imu_.angular_velocity.z = m_pbBufMicom_.imu().angular_velocity().z();
 
-  msg_imu.angular_velocity_covariance[0] = 0.0;
-  msg_imu.angular_velocity_covariance[1] = 0.0;
-  msg_imu.angular_velocity_covariance[2] = 0.0;
-  msg_imu.angular_velocity_covariance[3] = 0.0;
-  msg_imu.angular_velocity_covariance[4] = 0.0;
-  msg_imu.angular_velocity_covariance[5] = 0.0;
-  msg_imu.angular_velocity_covariance[6] = 0.0;
-  msg_imu.angular_velocity_covariance[7] = 0.0;
-  msg_imu.angular_velocity_covariance[8] = 0.0;
+  msg_imu_.angular_velocity_covariance[0] = 0.0;
+  msg_imu_.angular_velocity_covariance[1] = 0.0;
+  msg_imu_.angular_velocity_covariance[2] = 0.0;
+  msg_imu_.angular_velocity_covariance[3] = 0.0;
+  msg_imu_.angular_velocity_covariance[4] = 0.0;
+  msg_imu_.angular_velocity_covariance[5] = 0.0;
+  msg_imu_.angular_velocity_covariance[6] = 0.0;
+  msg_imu_.angular_velocity_covariance[7] = 0.0;
+  msg_imu_.angular_velocity_covariance[8] = 0.0;
 
-  msg_imu.linear_acceleration.x = m_pbBufMicom.imu().linear_acceleration().x();
-  msg_imu.linear_acceleration.y = m_pbBufMicom.imu().linear_acceleration().y();
-  msg_imu.linear_acceleration.z = m_pbBufMicom.imu().linear_acceleration().z();
+  msg_imu_.linear_acceleration.x = m_pbBufMicom_.imu().linear_acceleration().x();
+  msg_imu_.linear_acceleration.y = m_pbBufMicom_.imu().linear_acceleration().y();
+  msg_imu_.linear_acceleration.z = m_pbBufMicom_.imu().linear_acceleration().z();
 
-  msg_imu.linear_acceleration_covariance[0] = 0.0;
-  msg_imu.linear_acceleration_covariance[1] = 0.0;
-  msg_imu.linear_acceleration_covariance[2] = 0.0;
-  msg_imu.linear_acceleration_covariance[3] = 0.0;
-  msg_imu.linear_acceleration_covariance[4] = 0.0;
-  msg_imu.linear_acceleration_covariance[5] = 0.0;
-  msg_imu.linear_acceleration_covariance[6] = 0.0;
-  msg_imu.linear_acceleration_covariance[7] = 0.0;
-  msg_imu.linear_acceleration_covariance[8] = 0.0;
+  msg_imu_.linear_acceleration_covariance[0] = 0.0;
+  msg_imu_.linear_acceleration_covariance[1] = 0.0;
+  msg_imu_.linear_acceleration_covariance[2] = 0.0;
+  msg_imu_.linear_acceleration_covariance[3] = 0.0;
+  msg_imu_.linear_acceleration_covariance[4] = 0.0;
+  msg_imu_.linear_acceleration_covariance[5] = 0.0;
+  msg_imu_.linear_acceleration_covariance[6] = 0.0;
+  msg_imu_.linear_acceleration_covariance[7] = 0.0;
+  msg_imu_.linear_acceleration_covariance[8] = 0.0;
 }
 
 void MicomDriverSim::UpdateBattery()
 {
-  msg_battery.header.stamp = m_simTime;
-  msg_battery.voltage = 0.0;
-  msg_battery.current = 0.0;
+  msg_battery_.header.stamp = m_simTime;
+  msg_battery_.voltage = 0.0;
+  msg_battery_.current = 0.0;
 }

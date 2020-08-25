@@ -41,8 +41,7 @@ private:
 
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
 
-  bool CalculateOdometry(const rclcpp::Duration duration,
-      const double _wheel_left, const double _wheel_right, const double _theta);
+  bool CalculateOdometry(const rclcpp::Duration duration, const double _wheel_angular_vel_left, const double _wheel_angular_vel_right, const double _theta);
 
   void UpdateOdom();
   void UpdateImu();
@@ -60,30 +59,30 @@ private:
   bool m_use_sub;
 
   // Micom msgs
-  gazebo::msgs::Micom m_pbBufMicom;
+  gazebo::msgs::Micom m_pbBufMicom_;
 
-  std::array<double, 3> odom_pose;
-  std::array<double, 3> odom_vel;
-  std::array<double, 2> last_rad;
+  std::array<double, 3> odom_pose_;
+  std::array<double, 3> odom_vel_;
+  std::array<double, 2> last_rad_;
 
   // IMU msgs
-  sensor_msgs::msg::Imu msg_imu;
+  sensor_msgs::msg::Imu msg_imu_;
 
   // Odometry msgs
-  geometry_msgs::msg::TransformStamped odom_tf;
-  geometry_msgs::msg::TransformStamped wheel_left_tf;
-  geometry_msgs::msg::TransformStamped wheel_right_tf;
-  nav_msgs::msg::Odometry msg_odom;
+  geometry_msgs::msg::TransformStamped odom_tf_;
+  geometry_msgs::msg::TransformStamped wheel_left_tf_;
+  geometry_msgs::msg::TransformStamped wheel_right_tf_;
+  nav_msgs::msg::Odometry msg_odom_;
 
   // Battery
-  sensor_msgs::msg::BatteryState msg_battery;
+  sensor_msgs::msg::BatteryState msg_battery_;
 
   // ROS2 micom publisher
-  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pubImu;
-  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdometry;
-  rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pubBatteryState;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pubImu_;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdometry_;
+  rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pubBatteryState_;
 
   // wheel command subscriber
-  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMicom;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMicom_;
 };
 #endif

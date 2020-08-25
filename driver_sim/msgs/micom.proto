@@ -29,8 +29,10 @@ message Micom
 
   message Odometry
   {
-    required double speed_left   = 1 [default = 0];
-    required double speed_right  = 2 [default = 0];
+    required double angular_velocity_left   = 1 [default = 0];
+    required double angular_velocity_right  = 2 [default = 0];
+    optional double linear_velocity_left    = 3 [default = 0];
+    optional double linear_velocity_right   = 4 [default = 0];
   }
 
   message AccGyro
