@@ -60,7 +60,7 @@ void CameraDriverSim::Initialize()
   cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), GetPartsName());
 
   const auto transform = GetObjectTransform(1);
-  InitializeTfMessage(transform, frame_id_);
+  SetupStaticTf2Message(transform, frame_id_);
 
   InitializeCameraInfoMessage(frame_id_);
 }
@@ -71,7 +71,7 @@ void CameraDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void CameraDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const string frame_id)
+void CameraDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const string frame_id)
 {
   geometry_msgs::msg::TransformStamped camera_tf;
   camera_tf.header.frame_id = "base_link";

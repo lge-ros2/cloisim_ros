@@ -11,13 +11,6 @@ micom_driver:
 
     remapping_list: ['/tf', '/tf_static']
 
-    transform:
-      base: [0.0, 0.0, 0.01, 0.0, 0.0, 0.0]
-      imu: [0.0, 0.0, 0.19, 0.0, 0.0, 0.0]
-      wheel:
-        left: [0.001, 0.225, 0.07, 0.0, 0.0, 0.0]
-        right: [0.001, -0.225, 0.07, 0.0, 0.0, 0.0]
-
-    wheel:
-      base: 0.449
-      radius: 0.0955
+    transform_name:
+      imu: "imu"
+      wheels: ["wheel_left", "wheel_right"]

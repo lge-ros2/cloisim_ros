@@ -30,10 +30,13 @@ public:
 private:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
-  virtual void UpdateData(const uint bridge_index) override;
-  virtual void InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id) override;
+  virtual void UpdateData(const uint bridge_index = 0) override;
+  virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
 private:
+  void SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id);
+  void GetWeelInfo(SimBridge* const pSimBridge);
+
   void MicomWrite(const void* const pcBuf, const uint32_t unSize);
 
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;

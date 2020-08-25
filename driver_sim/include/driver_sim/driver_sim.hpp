@@ -34,7 +34,7 @@ protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
   virtual void UpdateData(const uint bridge_index = 0) = 0; // Function called at loop thread
-  virtual void InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id) = 0;
+  virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) = 0;
 
   void Start(const bool runDefaultUpdateDataThread = true);
   void Stop();

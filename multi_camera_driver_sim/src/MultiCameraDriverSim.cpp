@@ -55,7 +55,7 @@ void MultiCameraDriverSim::Initialize()
   for (auto frame_id : frame_id_)
   {
     const auto transform = GetObjectTransform(pSimBridgeInfo, frame_id);
-    InitializeTfMessage(transform, frame_id);
+    SetupStaticTf2Message(transform, frame_id);
 
     // Image publisher
     auto topic_base_name_ = multicamera_name + "/" + frame_id;
@@ -84,7 +84,7 @@ void MultiCameraDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void MultiCameraDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const string frame_id)
+void MultiCameraDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const string frame_id)
 {
   geometry_msgs::msg::TransformStamped camera_tf;
   camera_tf.header.frame_id = "base_link";

@@ -72,7 +72,7 @@ void GPSDriverSim::Initialize()
   {
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    InitializeTfMessage(transform, frame_id_);
+    SetupStaticTf2Message(transform, frame_id_);
   }
 }
 
@@ -81,7 +81,7 @@ void GPSDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void GPSDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const string frame_id)
+void GPSDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const string frame_id)
 {
   geometry_msgs::msg::TransformStamped gps_tf;
   gps_tf.header.frame_id = "base_link";

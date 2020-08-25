@@ -82,7 +82,7 @@ void RealSenseDriverSim::Initialize()
     }
 
     const auto transform = GetObjectTransform(pSimBridgeInfo, module);
-    InitializeTfMessage(transform, module);
+    SetupStaticTf2Message(transform, module);
 
     GetCameraSensorMessage(simBridgeCount + 1);
     InitializeCameraInfoMessage(module);
@@ -117,7 +117,7 @@ void RealSenseDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void RealSenseDriverSim::InitializeTfMessage(const gazebo::msgs::Pose transform, const std::string frame_id)
+void RealSenseDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id)
 {
   geometry_msgs::msg::TransformStamped camera_tf;
   camera_tf.header.frame_id = "base_link";
