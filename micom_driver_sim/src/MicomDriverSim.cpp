@@ -343,7 +343,6 @@ bool MicomDriverSim::CalculateOdometry(
   // rotation value of wheel [rad]
   double wheel_l_dist = _wheel_left * step_time;
   double wheel_r_dist = _wheel_right * step_time;
-  DBG_SIM_INFO("wheel left/right: %f/%f,  steptime %f sec", _wheel_left, _wheel_right, step_time);
 
   if (isnan(wheel_l_dist))
     wheel_l_dist = 0.0f;
