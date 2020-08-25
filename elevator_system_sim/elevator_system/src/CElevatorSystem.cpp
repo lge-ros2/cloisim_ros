@@ -33,8 +33,8 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
 
   get_parameter_or("sim.model", model_name, string("SeochoTower"));
   get_parameter_or("sim.parts", parts_name, string("ElevatorSystem"));
-  get_parameter_or("sim.system_name", m_systemName, string("ElevatorSystem_00"));
-  get_parameter("sim.ip_address", sim_ip);
+  get_parameter_or("system_name", m_systemName, string("ElevatorSystem_00"));
+  get_parameter("sim.manager_ip", sim_ip);
   get_parameter("sim.manager_port", sim_manager_port);
   get_parameter("srv_mode", m_boolSrvMode);
 
