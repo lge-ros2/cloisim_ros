@@ -40,7 +40,7 @@ UnityRosInit::UnityRosInit()
   int sim_manager_port(0);
   std::string model_name;
   get_parameter_or("sim.model", model_name, std::string("UnityRosInit"));
-  get_parameter("sim.ip_address", sim_ip);
+  get_parameter("sim.manager_ip", sim_ip);
   get_parameter("sim.manager_port", sim_manager_port);
   get_parameter_or("publish_rate", publish_rate, 10.0);
 
