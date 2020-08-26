@@ -33,7 +33,7 @@ private:
   virtual void UpdateData(const uint bridge_index) override;
   virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
-  void GetCameraSensorMessage(const int bridge_index);
+  void GetCameraSensorMessage(SimBridge* const pSimBridge);
   void InitializeCameraInfoMessage(const std::string frame_id);
 
 private:

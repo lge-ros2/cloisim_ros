@@ -84,13 +84,13 @@ void RealSenseDriverSim::Initialize()
     const auto transform = GetObjectTransform(pSimBridgeInfo, module);
     SetupStaticTf2Message(transform, module);
 
-    GetCameraSensorMessage(simBridgeCount + 1);
+    GetCameraSensorMessage(pSimBridgeInfo);
     InitializeCameraInfoMessage(module);
 
     m_threads.emplace_back(thread([=]() {
       while (IsRunThread())
       {
-        UpdateData(simBridgeCount);
+        UpdateData(simBridgeCount + 1);
       }
     }));
 
@@ -133,20 +133,24 @@ void RealSenseDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transfor
   AddStaticTf2(camera_tf);
 }
 
-void RealSenseDriverSim::GetCameraSensorMessage(const int bridge_index)
+void RealSenseDriverSim::GetCameraSensorMessage(SimBridge* const pSimBridge)
 {
+  if (pSimBridge == nullptr)
+  {
+    return;
+  }
+
   msgs::Param request_msg;
   request_msg.set_name("request_camera_info");
 
   string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  auto simBridge = GetSimBridge(bridge_index);
-  simBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
 
   void *pBuffer = nullptr;
   int bufferLength = 0;
-  const auto succeeded = simBridge->Receive(&pBuffer, bufferLength);
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
 
   if (!succeeded || bufferLength < 0)
   {
@@ -236,6 +240,12 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
   int bufferLength = 0;
 
   auto simBridge = GetSimBridge(bridge_index);
+  if (simBridge == nullptr)
+  {
+    DBG_SIM_ERR("sim bridge is null!!");
+    return;
+  }
+
   const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
   if (!succeeded || bufferLength < 0)
   {
