@@ -15,6 +15,7 @@
 
 #include "micom_driver_sim/MicomDriverSim.hpp"
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 #include <protobuf/param.pb.h>
 
 #define LOGGING_PERIOD 1000
@@ -29,8 +30,9 @@ MicomDriverSim::MicomDriverSim()
       m_hashKeySub(""),
       wheel_base(0.0),
       wheel_radius(0.0),
-      m_use_pub(true),
-      m_use_sub(true)
+      base_link_name_("base_link"),
+      use_pub_(true),
+      use_sub_(true)
 {
   Start();
 }
@@ -43,26 +45,19 @@ MicomDriverSim::~MicomDriverSim()
 void MicomDriverSim::Initialize()
 {
   string input_part_name, sensor_part_name;
-  string transform_imu_name;
-  vector<string> transform_wheels_name;
 
   get_parameter_or("sim.parts_tx", input_part_name, string("MICOM_INPUT"));
   get_parameter_or("sim.parts_rx", sensor_part_name, string("MICOM_SENSOR"));
-  get_parameter_or("transform_name.imu", transform_imu_name, string("imu"));
-  get_parameter_or("transform_name.wheels", transform_wheels_name, vector<string>({"wheel_left", "wheel_right"}));
 
   m_hashKeyPub = GetRobotName() + input_part_name;
   m_hashKeySub = GetRobotName() + sensor_part_name;
-
-  DBG_SIM_INFO("[CONFIG] sim.parts_tx:%s, sim.parts_rx:%s", input_part_name.c_str(), sensor_part_name.c_str());
-  DBG_SIM_INFO("[CONFIG] transform name imu:%s, wheels(0/1):%s/%s",
-    transform_imu_name.c_str(), transform_wheels_name.at(0).c_str(), transform_wheels_name.at(1).c_str());
-
   DBG_SIM_INFO("Hash Key sub(%s) pub(%s)", m_hashKeySub.c_str(), m_hashKeyPub.c_str());
 
+  DBG_SIM_INFO("[CONFIG] sim.parts_tx:%s, sim.parts_rx:%s", input_part_name.c_str(), sensor_part_name.c_str());
+
+  msg_imu_.header.frame_id = "imu_link";
   msg_odom_.header.frame_id = "odom";
   msg_odom_.child_frame_id = "base_footprint";
-  msg_imu_.header.frame_id = "imu_link";
 
   geometry_msgs::msg::Quaternion quatIdentity;
   quatIdentity.x = 0.0;
@@ -79,7 +74,7 @@ void MicomDriverSim::Initialize()
 
   geometry_msgs::msg::TransformStamped base_tf;
   base_tf.header.frame_id = "base_footprint";
-  base_tf.child_frame_id = "base_link";
+  base_tf.child_frame_id = base_link_name_;
   base_tf.transform.translation.x = 0;
   base_tf.transform.translation.y = 0;
   base_tf.transform.translation.z = 0;
@@ -91,12 +86,12 @@ void MicomDriverSim::Initialize()
 
   if (pSimBridgeData != nullptr)
   {
-    if (m_use_sub)
+    if (use_sub_)
     {
       pSimBridgeData->Connect(SimBridge::Mode::SUB, m_hashKeySub);
     }
 
-    if (m_use_pub)
+    if (use_pub_)
     {
       pSimBridgeData->Connect(SimBridge::Mode::PUB, m_hashKeyPub);
     }
@@ -104,6 +99,15 @@ void MicomDriverSim::Initialize()
 
   if (pSimBridgeInfo != nullptr)
   {
+    string transform_imu_name;
+    vector<string> transform_wheels_name;
+
+    get_parameter_or("transform_name.imu", transform_imu_name, string("imu"));
+    get_parameter_or("transform_name.wheels", transform_wheels_name, vector<string>({"wheel_left", "wheel_right"}));
+
+    DBG_SIM_INFO("[CONFIG] transform name imu:%s, wheels(0/1):%s/%s",
+                 transform_imu_name.c_str(), transform_wheels_name.at(0).c_str(), transform_wheels_name.at(1).c_str());
+
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
     GetWeelInfo(pSimBridgeInfo);
 
@@ -113,8 +117,16 @@ void MicomDriverSim::Initialize()
     const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheels_name.at(0));
     SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheels_name.at(0));
 
+    const auto init_left_q_msg = &wheel_left_tf_.transform.rotation;
+    const auto wheel_left_quat = tf2::Quaternion(init_left_q_msg->x, init_left_q_msg->y, init_left_q_msg->z, init_left_q_msg->w);
+    tf2::Matrix3x3(wheel_left_quat).getRPY(orig_left_wheel_rot_[0], orig_left_wheel_rot_[1], orig_left_wheel_rot_[2]);
+
     const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheels_name.at(1));
     SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheels_name.at(1));
+
+    const auto init_right_q_msg = &wheel_right_tf_.transform.rotation;
+    const auto wheel_right_quat = tf2::Quaternion(init_right_q_msg->x, init_right_q_msg->y, init_right_q_msg->z, init_right_q_msg->w);
+    tf2::Matrix3x3(wheel_right_quat).getRPY(orig_right_wheel_rot_[0], orig_right_wheel_rot_[1], orig_right_wheel_rot_[2]);
   }
 
   // ROS2 Publisher
@@ -140,7 +152,7 @@ void MicomDriverSim::Deinitialize()
 void MicomDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id)
 {
   geometry_msgs::msg::TransformStamped camera_tf;
-  camera_tf.header.frame_id = "base_link";
+  camera_tf.header.frame_id = base_link_name_;
   camera_tf.child_frame_id = frame_id + "_link";
   camera_tf.transform.translation.x = transform.position().x();
   camera_tf.transform.translation.y = transform.position().y();
@@ -155,7 +167,7 @@ void MicomDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, c
 
 void MicomDriverSim::SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id)
 {
-  src_tf.header.frame_id = "base_link";
+  src_tf.header.frame_id = base_link_name_;
   src_tf.child_frame_id = frame_id + "_link";
   src_tf.transform.translation.x = transform.position().x();
   src_tf.transform.translation.y = transform.position().y();
@@ -328,37 +340,35 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
   pubBatteryState_->publish(msg_battery_);
 }
 
+
+
 bool MicomDriverSim::CalculateOdometry(
     const rclcpp::Duration duration,
     const double _wheel_angular_vel_left,
     const double _wheel_angular_vel_right,
     const double _theta)
 {
-  static const double M_2PI = M_PI * 2;
+  static const double _2_M_PI = M_PI * 2;
   static double last_theta = 0.0f;
 
   const double step_time = duration.seconds();
 
   if (step_time <= 0.0000000f)
+  {
     return false;
+  }
 
   // circumference of wheel [rad] per step time.
-  double wheel_l_circum = _wheel_angular_vel_left * step_time;
-  double wheel_r_circum = _wheel_angular_vel_right * step_time;
-
-  if (isnan(wheel_l_circum))
-    wheel_l_circum = 0.0f;
-
-  if (isnan(wheel_r_circum))
-    wheel_r_circum = 0.0f;
+  const auto wheel_l_circum = (isnan(_wheel_angular_vel_left))? 0.0f : (_wheel_angular_vel_left * step_time);
+  const auto wheel_r_circum = (isnan(_wheel_angular_vel_right))? 0.0f : (_wheel_angular_vel_right * step_time);
 
   double delta_theta = _theta - last_theta;
 
   if (delta_theta > M_PI)
-    delta_theta -= M_2PI;
+    delta_theta -= _2_M_PI;
 
   if (delta_theta < -M_PI)
-    delta_theta += M_2PI;
+    delta_theta += _2_M_PI;
 
   const double delta_s = wheel_radius * (wheel_l_circum + wheel_r_circum) / 2.0f;
 
@@ -367,17 +377,18 @@ bool MicomDriverSim::CalculateOdometry(
   odom_pose_[1] += delta_s * sin(odom_pose_[2] + (delta_theta / 2.0f));
   odom_pose_[2] += delta_theta;
 
-  if (odom_pose_[2] > M_2PI)
-    odom_pose_[2] -= M_2PI;
+  // DBG_SIM_INFO("w(%f / %f), th %f, delta_theta: %f odom_pose_: %f", _wheel_angular_vel_left, _wheel_angular_vel_right, _theta, delta_theta, odom_pose_[2]);
 
-  if (odom_pose_[2] < -M_2PI)
-    odom_pose_[2] += M_2PI;
+  if (odom_pose_[2] > _2_M_PI)
+    odom_pose_[2] -= _2_M_PI;
+
+  if (odom_pose_[2] < -_2_M_PI)
+    odom_pose_[2] += _2_M_PI;
 
   // compute odometric instantaneouse velocity
   // v = translational velocity [m/s]
   // w = rotational velocity [rad/s]
-  // origin: v = delta_s / step_time;
-  const auto v = delta_s / step_time;
+  const auto v = delta_s / step_time ;
   const auto w = delta_theta / step_time;
 
   odom_vel_[0] = v;
@@ -407,13 +418,16 @@ void MicomDriverSim::UpdateOdom()
   const double wheel_anglular_vel_right = m_pbBufMicom_.odom().angular_velocity_right();
 
   const auto orientation = m_pbBufMicom_.imu().orientation();
-  const double theta = atan2f(2 * ((orientation.w() * orientation.z()) + (orientation.x() * orientation.y())),
-                              1 - 2 * ((orientation.y() * orientation.y()) + (orientation.z() * orientation.z())));
+  const tf2::Quaternion imu_quat(orientation.x(), orientation.y(), orientation.z(), orientation.w());
+  const tf2::Matrix3x3 imu_mat(imu_quat);
+  double roll, pitch, yaw;
+  imu_mat.getRPY(roll, pitch, yaw);
+  // DBG_SIM_MSG("R P Y, %f %f %f", roll, pitch, yaw);
 
   static rclcpp::Time last_time = m_simTime;
   const rclcpp::Duration duration(m_simTime.nanoseconds() - last_time.nanoseconds());
 
-  CalculateOdometry(duration, wheel_anglular_vel_left, wheel_anglular_vel_right, theta);
+  CalculateOdometry(duration, wheel_anglular_vel_left, wheel_anglular_vel_right, yaw);
 
   static int cnt = 0;
   if (cnt++ % LOGGING_PERIOD == 0)
@@ -449,8 +463,8 @@ void MicomDriverSim::UpdateOdom()
   AddTf2(odom_tf_);
 
   wheel_left_tf_.header.stamp = m_simTime;
+  q.setRPY(orig_left_wheel_rot_[0], last_rad_[0], orig_left_wheel_rot_[2]);
   q_msg = &wheel_left_tf_.transform.rotation;
-  q.setRPY(0, last_rad_[0], 0);
   q_msg->x = q.x();
   q_msg->y = q.y();
   q_msg->z = q.z();
@@ -458,8 +472,8 @@ void MicomDriverSim::UpdateOdom()
   AddTf2(wheel_left_tf_);
 
   wheel_right_tf_.header.stamp = m_simTime;
+  q.setRPY(orig_right_wheel_rot_[0], last_rad_[1], orig_right_wheel_rot_[2]);
   q_msg = &wheel_right_tf_.transform.rotation;
-  q.setRPY(0, last_rad_[1], 0);
   q_msg->x = q.x();
   q_msg->y = q.y();
   q_msg->z = q.z();

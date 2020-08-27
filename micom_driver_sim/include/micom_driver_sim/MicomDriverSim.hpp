@@ -54,9 +54,10 @@ private:
   // Yaml parameters
   double wheel_base;
   double wheel_radius;
+  std::string base_link_name_;
 
-  bool m_use_pub;
-  bool m_use_sub;
+  bool use_pub_;
+  bool use_sub_;
 
   // Micom msgs
   gazebo::msgs::Micom m_pbBufMicom_;
@@ -73,6 +74,9 @@ private:
   geometry_msgs::msg::TransformStamped wheel_left_tf_;
   geometry_msgs::msg::TransformStamped wheel_right_tf_;
   nav_msgs::msg::Odometry msg_odom_;
+
+  std::array<double, 3> orig_left_wheel_rot_;
+  std::array<double, 3> orig_right_wheel_rot_;
 
   // Battery
   sensor_msgs::msg::BatteryState msg_battery_;
