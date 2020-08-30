@@ -5,8 +5,6 @@ camera_driver:
     sim:
       model: "cloi"
       parts: "camera"
-      manager_ip: "127.0.0.1"
-      manager_port: 25554
 
     remapping_list: ['/tf', '/tf_static']
 

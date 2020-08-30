@@ -28,14 +28,9 @@ DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
       m_bRunThread(false),
       m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
-  string sim_ip;
-  int sim_manager_port;
-  get_parameter_or("sim.manager_ip", sim_ip, string(""));
-  get_parameter_or("sim.manager_port", sim_manager_port, int(0));
   get_parameter_or("sim.model", m_robot_name, string("cloi"));
   get_parameter_or("sim.parts", m_parts_name, string("_parts_"));
 
-  DBG_SIM_INFO("[CONFIG] sim.manage_ip = %s, sim.manage_port = %d", sim_ip.c_str(), sim_manager_port);
   DBG_SIM_INFO("[CONFIG] sim.model = %s", m_robot_name.c_str());
   DBG_SIM_INFO("[CONFIG] sim.part = %s", m_parts_name.c_str());
 
@@ -44,8 +39,6 @@ DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
   for (auto index = 0; index < number_of_simbridge; index++)
   {
     auto pSimBridge = new SimBridge();
-    pSimBridge->SetSimMasterAddress(sim_ip);
-    pSimBridge->SetPortManagerPort(sim_manager_port);
     m_simBridgeList.push_back(pSimBridge);
   }
 

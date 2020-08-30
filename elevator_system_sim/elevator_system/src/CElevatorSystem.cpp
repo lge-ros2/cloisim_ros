@@ -28,23 +28,13 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
 {
   string model_name;
   string parts_name;
-  string sim_ip("");
-  int sim_manager_port(0);
 
   get_parameter_or("sim.model", model_name, string("SeochoTower"));
   get_parameter_or("sim.parts", parts_name, string("ElevatorSystem"));
   get_parameter_or("system_name", m_systemName, string("ElevatorSystem_00"));
-  get_parameter("sim.manager_ip", sim_ip);
-  get_parameter("sim.manager_port", sim_manager_port);
   get_parameter("srv_mode", m_boolSrvMode);
 
   m_hashKey = model_name + parts_name;
-
-  if (m_pSimBridge)
-  {
-    m_pSimBridge->SetSimMasterAddress(sim_ip);
-    m_pSimBridge->SetPortManagerPort(sim_manager_port);
-  }
 }
 
 CallbackReturn CElevatorSystem::on_configure(const State &)

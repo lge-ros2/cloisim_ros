@@ -19,31 +19,57 @@
 
 using namespace std;
 
-#define DEFAULT_MASTER_SIM_IP "127.0.0.1"
-#define DEFAULT_PORT_MANAGER_PORT 25554
+#define DEFAULT_SIM_BRIDGE_IP "127.0.0.1"
+#define DEFAULT_SIM_BRIDGE_MANAGER_PORT 25554
+
 
 SimBridge::SimBridge()
-  : simMasterAddress(DEFAULT_MASTER_SIM_IP)
-  , simPortManagerPortNumber(DEFAULT_PORT_MANAGER_PORT)
-  , m_pCtx(nullptr)
-  , m_pPub(nullptr)
-  , m_pSub(nullptr)
-  , m_pReq(nullptr)
-  , m_pRep(nullptr)
-  , m_pSockTx(nullptr)
-  , m_pSockRx(nullptr)
-  , m_retryPortRequest(1700)
+  : simBridgeIP(DEFAULT_SIM_BRIDGE_IP)
+  , simBridgeManagerPort(DEFAULT_SIM_BRIDGE_MANAGER_PORT)
+  , pCtx_(nullptr)
+  , pPub_(nullptr)
+  , pSub_(nullptr)
+  , pReq_(nullptr)
+  , pRep_(nullptr)
+  , pSockTx_(nullptr)
+  , pSockRx_(nullptr)
+  , retryPortRequest_(1700)
   , lastErrMsg("")
 {
-  m_pCtx = zmq_ctx_new();
+  auto env_sim_bridge_ip = getenv("SIM_BRIDGE_IP");
+  auto env_sim_bridge_manager_port = getenv("SIM_BRIDGE_MANAGER_PORT");
+
+  if (env_sim_bridge_ip == nullptr)
+  {
+    DBG_SIM_WRN("[SIM_BRIDGE] env for SIM_BRIDGE_IP is null, will use default.");
+  }
+  else
+  {
+    SetSimBridgeAddress(string(env_sim_bridge_ip));
+  }
+
+  if (env_sim_bridge_manager_port == nullptr)
+  {
+    DBG_SIM_WRN("[SIM_BRIDGE] env for SIM_BRIDGE_MANAGER_PORT is null, will use default.");
+  }
+  else
+  {
+    const auto port = atoi(env_sim_bridge_manager_port);
+    SetBridgeManagerPort(port);
+  }
+
+  pCtx_ = zmq_ctx_new();
+
+  DBG_SIM_INFO("[SIM_BRIDGE] bridge_ip = %s, bridge_manager = %d", simBridgeIP.c_str(), simBridgeManagerPort);
 }
+
 
 SimBridge::~SimBridge()
 {
-  if (m_pCtx)
+  if (pCtx_)
   {
-    zmq_ctx_term(m_pCtx);
-    m_pCtx = nullptr;
+    zmq_ctx_term(pCtx_);
+    pCtx_ = nullptr;
   }
 }
 
@@ -104,37 +130,37 @@ bool SimBridge::SetupCommon(void* const targetSocket)
 bool SimBridge::SetupSubscriber()
 {
   // condition check
-  if (m_pSub != nullptr)
+  if (pSub_ != nullptr)
   {
-    lastErrMsg = "m_pSub is Already setup!!!";
+    lastErrMsg = "pSub_ is Already setup!!!";
     return false;
   }
-  else if (m_pRep != nullptr || m_pReq != nullptr)
+  else if (pRep_ != nullptr || pReq_ != nullptr)
   {
-    lastErrMsg = "m_pReq or m_pRep is Already setup!!!";
+    lastErrMsg = "pReq_ or pRep_ is Already setup!!!";
     return false;
   }
 
-  m_pSub = zmq_socket(m_pCtx, ZMQ_SUB);
+  pSub_ = zmq_socket(pCtx_, ZMQ_SUB);
 
-  if (m_pSub == nullptr)
+  if (pSub_ == nullptr)
   {
     lastErrMsg = "NULL Socket for sub!!";
     return false;
   }
 
-  if (!SetupCommon(m_pSub))
+  if (!SetupCommon(pSub_))
   {
     return false;
   }
 
-  if (zmq_setsockopt(m_pSub, ZMQ_CONFLATE, &keepOnlyLastMsg, sizeof(keepOnlyLastMsg)))
+  if (zmq_setsockopt(pSub_, ZMQ_CONFLATE, &keepOnlyLastMsg, sizeof(keepOnlyLastMsg)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_setsockopt(m_pSub, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
+  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -146,7 +172,7 @@ bool SimBridge::SetupSubscriber()
     return false;
   }
 
-  m_pSockRx = m_pSub;
+  pSockRx_ = pSub_;
 
   return true;
 }
@@ -154,25 +180,25 @@ bool SimBridge::SetupSubscriber()
 bool SimBridge::SetupPublisher()
 {
   // condition check
-  if (m_pPub != nullptr)
+  if (pPub_ != nullptr)
   {
-    lastErrMsg = "m_pPub is Already setup!!!";
+    lastErrMsg = "pPub_ is Already setup!!!";
     return false;
   }
-  else if (m_pRep != nullptr || m_pReq != nullptr)
+  else if (pRep_ != nullptr || pReq_ != nullptr)
   {
-    lastErrMsg = "m_pReq or m_pRep is Already setup!!!";
-    return false;
-  }
-
-  m_pPub = zmq_socket(m_pCtx, ZMQ_PUB);
-
-  if (!SetupCommon(m_pPub))
-  {
+    lastErrMsg = "pReq_ or pRep_ is Already setup!!!";
     return false;
   }
 
-  m_pSockTx = m_pPub;
+  pPub_ = zmq_socket(pCtx_, ZMQ_PUB);
+
+  if (!SetupCommon(pPub_))
+  {
+    return false;
+  }
+
+  pSockTx_ = pPub_;
 
   return true;
 }
@@ -180,25 +206,25 @@ bool SimBridge::SetupPublisher()
 bool SimBridge::SetupService()
 {
   // condition check
-  if (m_pRep != nullptr)
+  if (pRep_ != nullptr)
   {
-    lastErrMsg = "m_pRep is Already setup!!!";
+    lastErrMsg = "pRep_ is Already setup!!!";
     return false;
   }
-  else if (m_pSub != nullptr || m_pPub != nullptr)
+  else if (pSub_ != nullptr || pPub_ != nullptr)
   {
-    lastErrMsg = "m_pSub or m_pPub is Already setup!!!";
-    return false;
-  }
-
-  m_pRep = zmq_socket(m_pCtx, ZMQ_REP);
-
-  if (!SetupCommon(m_pRep))
-  {
+    lastErrMsg = "pSub_ or pPub_ is Already setup!!!";
     return false;
   }
 
-  if (zmq_setsockopt(m_pRep, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
+  pRep_ = zmq_socket(pCtx_, ZMQ_REP);
+
+  if (!SetupCommon(pRep_))
+  {
+    return false;
+  }
+
+  if (zmq_setsockopt(pRep_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -210,8 +236,8 @@ bool SimBridge::SetupService()
     return false;
   }
 
-  m_pSockTx = m_pRep;
-  m_pSockRx = m_pRep;
+  pSockTx_ = pRep_;
+  pSockRx_ = pRep_;
 
   return true;
 }
@@ -219,25 +245,25 @@ bool SimBridge::SetupService()
 bool SimBridge::SetupClient()
 {
   // condition check
-  if (m_pReq != nullptr)
+  if (pReq_ != nullptr)
   {
-    lastErrMsg = "m_pRep is Already setup!!!";
+    lastErrMsg = "pRep_ is Already setup!!!";
     return false;
   }
-  else if (m_pSub != nullptr || m_pPub != nullptr)
+  else if (pSub_ != nullptr || pPub_ != nullptr)
   {
-    lastErrMsg = "m_pSub or m_pPub is Already setup!!!";
-    return false;
-  }
-
-  m_pReq = zmq_socket(m_pCtx, ZMQ_REQ);
-
-  if (!SetupCommon(m_pReq))
-  {
+    lastErrMsg = "pSub_ or pPub_ is Already setup!!!";
     return false;
   }
 
-  if (zmq_setsockopt(m_pReq, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
+  pReq_ = zmq_socket(pCtx_, ZMQ_REQ);
+
+  if (!SetupCommon(pReq_))
+  {
+    return false;
+  }
+
+  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -249,8 +275,8 @@ bool SimBridge::SetupClient()
     return false;
   }
 
-  m_pSockTx = m_pReq;
-  m_pSockRx = m_pReq;
+  pSockTx_ = pReq_;
+  pSockRx_ = pReq_;
 
   return true;
 }
@@ -262,7 +288,7 @@ bool SimBridge::Connect(const unsigned char mode, const string hashKey)
   uint16_t port = 0;
   do
   {
-    this_thread::sleep_for(chrono::milliseconds(m_retryPortRequest));
+    this_thread::sleep_for(chrono::milliseconds(retryPortRequest_));
     port = RequestBridgePortNumber(hashKey);
   } while (port == 0);
 
@@ -304,7 +330,7 @@ bool SimBridge::Connect(const unsigned char mode, const string hashKey)
 bool SimBridge::ConnectSubscriber(const uint16_t port, const string hashKey)
 {
   size_t nHashTag = hash<string>{}(hashKey);
-  if (zmq_setsockopt(m_pSub, ZMQ_SUBSCRIBE, &nHashTag, tagSize))
+  if (zmq_setsockopt(pSub_, ZMQ_SUBSCRIBE, &nHashTag, tagSize))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -313,7 +339,7 @@ bool SimBridge::ConnectSubscriber(const uint16_t port, const string hashKey)
   const string bridgeAddress = GetSimBridgeAddress(port);
   DBG_SIM_MSG("Sub bridgeAddress=[%s]", bridgeAddress.c_str());
 
-  if (zmq_connect(m_pSub, bridgeAddress.c_str()) < 0)
+  if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectSubscriber Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -329,7 +355,7 @@ bool SimBridge::ConnectPublisher(const uint16_t port, const string hashKey)
   const string bridgeAddress = GetSimBridgeAddress(port);
   DBG_SIM_MSG("Pub bridge address=[%s]", bridgeAddress.c_str());
 
-  if (zmq_connect(m_pPub, bridgeAddress.c_str()) < 0)
+  if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectPublisher Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -345,7 +371,7 @@ bool SimBridge::ConnectService(const uint16_t port, const string hashKey)
   const string bridgeAddress = GetSimBridgeAddress(port);
   DBG_SIM_MSG("Service bridge address=[%s]", bridgeAddress.c_str());
 
-  if (zmq_connect(m_pRep, bridgeAddress.c_str()) < 0)
+  if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectService Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -360,7 +386,7 @@ bool SimBridge::ConnectClient(const uint16_t port, const string hashKey)
 
   const string bridgeAddress = GetSimBridgeAddress(port);
   DBG_SIM_MSG("Client for service bridge address=[%s]", bridgeAddress.c_str());
-  if (zmq_connect(m_pReq, bridgeAddress.c_str()) < 0)
+  if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectClient Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -373,30 +399,30 @@ bool SimBridge::Disconnect(const unsigned char mode)
 {
   bool result = true;
 
-  if ((mode == 0 || (mode & Mode::SUB)) && m_pSub)
+  if ((mode == 0 || (mode & Mode::SUB)) && pSub_)
   {
     zmq_msg_close(&m_msgRx);
-    result &= CloseSocket(m_pSub);
+    result &= CloseSocket(pSub_);
   }
 
-  if ((mode == 0 || (mode & Mode::PUB)) && m_pPub)
+  if ((mode == 0 || (mode & Mode::PUB)) && pPub_)
   {
-    result &= CloseSocket(m_pPub);
+    result &= CloseSocket(pPub_);
   }
 
-  if ((mode == 0 || (mode & Mode::SERVICE)) && m_pRep)
+  if ((mode == 0 || (mode & Mode::SERVICE)) && pRep_)
   {
     zmq_msg_close(&m_msgRx);
-    result &= CloseSocket(m_pRep);
+    result &= CloseSocket(pRep_);
   }
 
-  if ((mode == 0 || (mode & Mode::CLIENT)) && m_pReq)
+  if ((mode == 0 || (mode & Mode::CLIENT)) && pReq_)
   {
-    result &= CloseSocket(m_pReq);
+    result &= CloseSocket(pReq_);
   }
 
-  m_pSockTx = nullptr;
-  m_pSockRx = nullptr;
+  pSockTx_ = nullptr;
+  pSockRx_ = nullptr;
 
   return result;
 }
@@ -424,13 +450,13 @@ bool SimBridge::CloseSocket(void*& target)
 
 bool SimBridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode)
 {
-  if (&m_msgRx == nullptr || m_pSockRx == nullptr)
+  if (&m_msgRx == nullptr || pSockRx_ == nullptr)
   {
-    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer m_msgRx(%p) or m_pSockRx(%p)", &m_msgRx, m_pSockRx);
+    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer m_msgRx(%p) or pSockRx_(%p)", &m_msgRx, pSockRx_);
     return false;
   }
 
-  bufferLength = zmq_msg_recv(&m_msgRx, m_pSockRx, (isNonBlockingMode)? ZMQ_DONTWAIT:0);
+  bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode)? ZMQ_DONTWAIT:0);
 
   if (bufferLength == 0)
   {
@@ -455,9 +481,9 @@ bool SimBridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode
 bool SimBridge::Send(const void* buffer, const int bufferLength, bool isNonBlockingMode)
 {
   zmq_msg_t msg;
-  if (m_pSockTx == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0)
+  if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0)
   {
-    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer msg(%p) or m_pSockTx(%p)", &msg, m_pSockTx);
+    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer msg(%p) or pSockTx_(%p)", &msg, pSockTx_);
     return false;
   }
 
@@ -466,7 +492,7 @@ bool SimBridge::Send(const void* buffer, const int bufferLength, bool isNonBlock
   memcpy((void*)((uint8_t*)zmq_msg_data(&msg) + tagSize), buffer, bufferLength);
 
   /* Send the message to the socket */
-  if (zmq_msg_send(&msg, m_pSockTx, (isNonBlockingMode)? ZMQ_DONTWAIT:0) < 0)
+  if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode)? ZMQ_DONTWAIT:0) < 0)
   {
     return false;
   }
@@ -481,7 +507,7 @@ uint16_t SimBridge::RequestBridgePortNumber(const string key)
   static const ushort sizeOfPortNumber = 7;
   static char portNum[sizeOfPortNumber];
 
-  auto sockReq = zmq_socket(m_pCtx, ZMQ_REQ);
+  auto sockReq = zmq_socket(pCtx_, ZMQ_REQ);
   const auto portManagerAddress = GetPortManagerAddress();
 
   DBG_SIM_INFO("bridge addressess: %s", portManagerAddress.c_str());

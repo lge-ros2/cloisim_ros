@@ -4,7 +4,5 @@ unity_ros:
 
     sim:
       model: "UnityRosInit"
-      manager_ip: "127.0.0.1"
-      manager_port: 25554
 
     publish_rate: 10.0

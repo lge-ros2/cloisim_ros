@@ -6,8 +6,6 @@ micom_driver:
       model: "cloi"
       parts_tx: "MICOM_INPUT"
       parts_rx: "MICOM_SENSOR"
-      manager_ip: "127.0.0.1"
-      manager_port: 25554
 
     remapping_list: ['/tf', '/tf_static']
 

@@ -15,6 +15,7 @@
 
 #ifndef _SIM_BRIDGE_H_
 #define _SIM_BRIDGE_H_
+
 #include "sim_bridge/debug_log.h"
 #include <string>
 #include <zmq.h>
@@ -31,14 +32,14 @@ public:
   };
 
 public:
-  void SetSimMasterAddress(const std::string value)
+  void SetSimBridgeAddress(const std::string ip_address)
   {
-    simMasterAddress = value;
+    simBridgeIP = ip_address;
   }
 
-  void SetPortManagerPort(const uint16_t value)
+  void SetBridgeManagerPort(const uint16_t port)
   {
-    simPortManagerPortNumber = value;
+    simBridgeManagerPort = port;
   }
 
 public:
@@ -54,7 +55,7 @@ public:
 
   void SetRetryRequestPeriod(const int value)
   {
-    m_retryPortRequest = value;
+    retryPortRequest_ = value;
   }
 
 private:
@@ -66,23 +67,23 @@ private:
   const int lingerPeriod = 0;
   const int recv_timeout = 2000; // milliseconds
 
-  std::string simMasterAddress;
-  uint16_t simPortManagerPortNumber;
+  std::string simBridgeIP;
+  uint16_t simBridgeManagerPort;
 
-  void* m_pCtx;
+  void* pCtx_;
 
-  void* m_pPub;
-  void* m_pSub;
-  void* m_pReq;
-  void* m_pRep;
+  void* pPub_;
+  void* pSub_;
+  void* pReq_;
+  void* pRep_;
 
   zmq_msg_t m_msgRx; // for subscriber and reply
   size_t m_nHashTagTx; // for publisher and request
 
-  void* m_pSockTx; // for Send function
-  void* m_pSockRx; // for Recieve function
+  void* pSockTx_; // for Send function
+  void* pSockRx_; // for Recieve function
 
-  int m_retryPortRequest;
+  int retryPortRequest_;
 
   std::string lastErrMsg;
 
@@ -112,12 +113,12 @@ private:
 private:
   std::string GetPortManagerAddress()
   {
-    return GetSimBridgeAddress(simPortManagerPortNumber);
+    return GetSimBridgeAddress(simBridgeManagerPort);
   }
 
   std::string GetSimBridgeAddress(const uint16_t port)
   {
-    return std::string((useTCP)? "tcp":"udp") + "://" + simMasterAddress + ":" + std::to_string(port);
+    return std::string((useTCP)? "tcp":"udp") + "://" + simBridgeIP + ":" + std::to_string(port);
   }
 
   uint16_t RequestBridgePortNumber(const std::string key);

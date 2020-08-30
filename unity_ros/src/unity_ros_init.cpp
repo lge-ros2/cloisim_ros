@@ -29,32 +29,20 @@ UnityRosInit::UnityRosInit()
       rclcpp::NodeOptions()
         .allow_undeclared_parameters(true)
         .automatically_declare_parameters_from_overrides(true))
-  , m_pSimBridge(nullptr)
+  , m_pSimBridge(new SimBridge())
   , m_hashKey("UnityRosInit")
   , throttler_(nullptr)
   , m_bRun(false)
 {
   // Set Parameters from yaml file
   double publish_rate(10.0);
-  std::string sim_ip("");
-  int sim_manager_port(0);
   std::string model_name;
   get_parameter_or("sim.model", model_name, std::string("UnityRosInit"));
-  get_parameter("sim.manager_ip", sim_ip);
-  get_parameter("sim.manager_port", sim_manager_port);
   get_parameter_or("publish_rate", publish_rate, 10.0);
 
-  DBG_SIM_INFO("[CONFIG] sim manage ip:%s, port:%d, publish_rate:%f", sim_ip.c_str(), sim_manager_port, publish_rate);
+  DBG_SIM_INFO("[CONFIG] publish_rate:%f", publish_rate);
 
   throttler_ = new Throttler(publish_rate);
-
-  m_pSimBridge = new SimBridge();
-
-  if (m_pSimBridge)
-  {
-    m_pSimBridge->SetSimMasterAddress(sim_ip);
-    m_pSimBridge->SetPortManagerPort(sim_manager_port);
-  }
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).

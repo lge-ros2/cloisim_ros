@@ -5,7 +5,5 @@ elevator_system:
     sim:
       model: "SeochoTower"
       parts: "ElevatorSystem"
-      manager_ip: "127.0.0.1"
-      manager_port: 25554
 
     system_name: "ElevatorSystem_00"
