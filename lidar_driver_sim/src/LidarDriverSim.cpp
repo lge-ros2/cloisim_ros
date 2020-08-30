@@ -57,9 +57,6 @@ void LidarDriverSim::Initialize()
   m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
-  // ROS2 Publisher
-  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
-
   auto pSimBridgeData = GetSimBridge(0);
   auto pSimBridgeInfo = GetSimBridge(1);
 
@@ -74,6 +71,9 @@ void LidarDriverSim::Initialize()
     const auto transform = GetObjectTransform(pSimBridgeInfo);
     SetupStaticTf2Message(transform, frame_id_);
   }
+
+  // ROS2 Publisher
+  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
 }
 
 void LidarDriverSim::Deinitialize()
@@ -141,6 +141,14 @@ void LidarDriverSim::UpdateLaserData()
   msg_Laser.header.stamp = m_simTime;
   msg_Laser.header.frame_id = frame_id_;
 
+  msg_Laser.angle_min = m_pbBuf.scan().angle_min();
+  msg_Laser.angle_max = m_pbBuf.scan().angle_max();
+  msg_Laser.angle_increment = m_pbBuf.scan().angle_step();
+  msg_Laser.scan_time = 0; //getScanPeriod();
+  msg_Laser.time_increment = 0; //getTimeIncrement();
+  msg_Laser.range_min = m_pbBuf.scan().range_min();
+  msg_Laser.range_max = m_pbBuf.scan().range_max();
+
   const uint32_t num_beams = m_pbBuf.scan().count();
   //DBG_SIM_INFO("num_beams:%d", num_beams);
 
@@ -150,38 +158,10 @@ void LidarDriverSim::UpdateLaserData()
   if (msg_Laser.intensities.size() != num_beams)
     msg_Laser.intensities.resize(num_beams);
 
-  msg_Laser.angle_min = m_pbBuf.scan().angle_min();
-  msg_Laser.angle_max = m_pbBuf.scan().angle_max();
-  msg_Laser.angle_increment = m_pbBuf.scan().angle_step();
-  msg_Laser.scan_time = 0; //getScanPeriod();
-  msg_Laser.time_increment = 0; //getTimeIncrement();
-  msg_Laser.range_min = m_pbBuf.scan().range_min();
-  msg_Laser.range_max = m_pbBuf.scan().range_max();
-
-  // calculate angle filter range
-  const uint32_t filter_beam_index_lower = (msg_Laser.angle_min >= m_fLowerAngle) ? UINT32_MAX :
-    (uint32_t)((double)num_beams * ((m_fLowerAngle - msg_Laser.angle_min) / (msg_Laser.angle_max - msg_Laser.angle_min)));
-
-  const uint32_t filter_beam_index_upper = (msg_Laser.angle_max <= m_fUpperAngle) ? UINT32_MAX :
-    (uint32_t)((double)num_beams * ((m_fUpperAngle - msg_Laser.angle_min) / (msg_Laser.angle_max - msg_Laser.angle_min)));
-
-  bool filter_out;
   for (uint32_t beam_idx = 0; beam_idx < num_beams; beam_idx++)
   {
     //printf("beam_idx:%d %f\n", beam_idx, m_pbBuf.scan().ranges(beam_idx));
-
-    if ((filter_beam_index_lower != UINT32_MAX && filter_beam_index_lower > beam_idx) ||
-        (filter_beam_index_upper != UINT32_MAX && filter_beam_index_upper < beam_idx))
-    {
-      filter_out = true;
-      //printf("beam_idx:%d filterd out\n", beam_idx);
-    }
-    else
-    {
-      filter_out = false;
-    }
-
-    msg_Laser.ranges[beam_idx] = (filter_out)? 0.0 : m_pbBuf.scan().ranges(beam_idx);
-    msg_Laser.intensities[beam_idx] = (filter_out)? 0.0 : m_pbBuf.scan().intensities(beam_idx);
+    msg_Laser.ranges[beam_idx] = m_pbBuf.scan().ranges(beam_idx);
+    msg_Laser.intensities[beam_idx] = m_pbBuf.scan().intensities(beam_idx);
   }
 }
