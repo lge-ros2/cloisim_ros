@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
   // even when executed simultaneously within the launch file.
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-  rclcpp::sleep_for(1000ms);
+  rclcpp::sleep_for(5000ms);
   rclcpp::init(argc, argv);
   auto node = std::make_shared<CElevatorSystem>();
   rclcpp::spin(node->get_node_base_interface());
