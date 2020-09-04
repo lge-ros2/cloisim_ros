@@ -19,7 +19,7 @@
 
 static std::string GetImageEncondingType(const uint32_t pixel_format)
 {
-// 	UNKNOWN_PIXEL_FORMAT = 0, L_INT8, L_INT16,
+  // 	UNKNOWN_PIXEL_FORMAT = 0, L_INT8, L_INT16,
   // 	RGB_INT8 = 3, RGBA_INT8, BGRA_INT8, RGB_INT16, RGB_INT32,
   // 	BGR_INT8 = 8, BGR_INT16, BGR_INT32,
   // 	R_FLOAT16 = 11, RGB_FLOAT16 = 12, R_FLOAT32 = 13, RGB_FLOAT32,
@@ -28,6 +28,10 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
   std::string encoding;
   switch (pixel_format)
   {
+    case 1:
+      encoding = sensor_msgs::image_encodings::MONO8;
+      break;
+
     case 3:
       encoding = sensor_msgs::image_encodings::RGB8;
       break;
@@ -49,6 +53,7 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
       break;
 
     default:
+      DBG_SIM_WRN("Unsupported pixel type format !!");
       encoding = sensor_msgs::image_encodings::RGB8;
       break;
   }
