@@ -8,5 +8,6 @@ realsense_driver:
 
     remapping_list: ['/tf', '/tf_static']
 
+    topic_name: "realsense"
     frame_id: "realsense_link"
     module_list: ["rgb", "ir1", "ir2", "depth"]

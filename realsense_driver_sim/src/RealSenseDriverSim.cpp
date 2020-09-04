@@ -37,7 +37,9 @@ RealSenseDriverSim::~RealSenseDriverSim()
 void RealSenseDriverSim::Initialize()
 {
   vector<string> module_list_;
+  string topic_name;
 
+  get_parameter_or("topic_name", topic_name, string("realsense"));
   get_parameter_or("frame_id", mainframe_id, string("realsense_link"));
   get_parameter("module_list", module_list_);
 
@@ -50,7 +52,7 @@ void RealSenseDriverSim::Initialize()
   int simBridgeCount = 0;
   for (auto module : module_list_)
   {
-    const auto topic_base_name_ = "realsense/" + module;
+    const auto topic_base_name_ = topic_name + "/" + module;
     const auto hashKeySub = GetRobotName() + GetPartsName() + module;
     m_hashKeySubs.push_back(hashKeySub);
 
