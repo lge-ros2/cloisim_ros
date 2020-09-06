@@ -32,18 +32,17 @@ UnityRosInit::UnityRosInit()
         .allow_undeclared_parameters(true)
         .automatically_declare_parameters_from_overrides(true))
   , m_pSimBridge(new SimBridge())
-  , m_hashKey("UnityRosInit")
   , throttler_(nullptr)
   , m_bRun(false)
 {
+  string model_name;
+  get_parameter_or("model", model_name, string("world"));
   get_parameter_or("bridge.Clock", portClock_, uint16_t(0));
 
-  // Set Parameters from yaml file
-  double publish_rate(10.0);
-  std::string model_name;
-  get_parameter_or("sim.model", model_name, std::string("UnityRosInit"));
-  get_parameter_or("publish_rate", publish_rate, 10.0);
+  m_hashKey = model_name + get_name();
 
+  double publish_rate(10.0);
+  get_parameter_or("publish_rate", publish_rate, 10.0);
   DBG_SIM_INFO("[CONFIG] publish_rate:%f", publish_rate);
 
   throttler_ = new Throttler(publish_rate);
@@ -69,7 +68,7 @@ void UnityRosInit::Start()
 
   if (m_pSimBridge)
   {
-    m_pSimBridge->Connect(SimBridge::Mode::SUB, portClock_, m_hashKey);
+    m_pSimBridge->Connect(SimBridge::Mode::SUB, portClock_, m_hashKey + "Clock");
     m_bRun = true;
     m_thread = std::thread([=]() { RxProc(); });
   }

@@ -1,3 +1,0 @@
-elevator_system:
-  ros__parameters:
-    system_name: "ElevatorSystem_00"

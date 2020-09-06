@@ -9,7 +9,12 @@
 import os
 import sys
 import yaml
+import json
 from tempfile import NamedTemporaryFile
+from websocket import create_connection
+
+SIM_BIRDGE_IP="127.0.0.1"
+SIM_BRIDGE_SERVICE_PORT=8080
 
 
 def get_launcher_file_by_device_type(device_type):
@@ -22,7 +27,8 @@ def get_launcher_file_by_device_type(device_type):
                          'MULTICAMERA': 'multi_camera_driver_sim',
                          'REALSENSE': 'realsense_driver_sim',
                          'GPS': 'gps_driver_sim',
-                         'ELEVATOR': 'elevator_system_sim'}.get(device_type, None)
+                         'ELEVATOR': 'elevator_system_sim',
+                         'WORLD': 'unity_ros'}.get(device_type, None)
 
     return None if (launcher_filename is None) else launcher_filename + ".launch.py"
 
@@ -97,6 +103,24 @@ def _create_params_file_from_dict(params):
         return param_file_path
 
 
+def generate_temp_params(_node_name, model_name, port_maps):
+
+    # capsule config with namespace
+    config_dict = dict()
+    config_dict[_node_name] = dict()
+    config_dict[_node_name]['ros__parameters'] = dict()
+    config_dict[_node_name]['ros__parameters']['model'] = model_name
+    config_dict[_node_name]['ros__parameters']['bridge'] = port_maps
+
+    # print(config_dict)
+
+    # create temp file for config load
+    result_config_param = _create_params_file_from_dict(config_dict)
+    # print(type(result_config_param))
+    # print(result_config_param)
+
+    return result_config_param
+
 def generate_temp_params_with_ns(_namespace, _node_name, port_maps):
 
     # capsule config with namespace
@@ -114,3 +138,26 @@ def generate_temp_params_with_ns(_namespace, _node_name, port_maps):
     # print(result_config_param)
 
     return result_config_param
+
+
+def get_target_device_list(_target_model_name):
+
+    ws = create_connection("ws://" + SIM_BIRDGE_IP + ":" + str(SIM_BRIDGE_SERVICE_PORT) + "/control")
+    ws.send("{'command':'device_list', 'filter':'" + _target_model_name + "'}")
+    result = ws.recv()
+    # print("Received '%s'" % result)
+    ws.close()
+
+    device_list = json.loads(result)
+
+    try:
+        target_device_list = device_list["result"][_target_model_name]
+        # print(target_device_list)
+
+        return target_device_list
+
+    except Exception as inst:
+        print(type(inst))       # the exception instance
+        print(inst)
+        print("Target robot name is valid: " + driver_sim_robot_name)
+        return dict();

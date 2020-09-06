@@ -26,15 +26,13 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
                         .use_intra_process_comms(intra_process_comms))
     , m_pSimBridge(new SimBridge())
 {
-  string model_name = get_namespace();
-  string parts_name = get_name();
-
-  // get_parameter_or("sim.model", model_name, string("SeochoTower"));
-  // get_parameter_or("sim.parts", parts_name, string("ElevatorSystem"));
+  string model_name;
+  get_parameter_or("model", model_name, string("seocho_tower"));
   get_parameter_or("system_name", m_systemName, string("ElevatorSystem_00"));
   get_parameter("srv_mode", m_boolSrvMode);
 
-  m_hashKey = model_name + parts_name;
+  m_hashKey = model_name + get_name();
+   DBG_SIM_MSG("TAG=[%s]", m_hashKey.c_str());
 }
 
 CallbackReturn CElevatorSystem::on_configure(const State &)
@@ -44,7 +42,7 @@ CallbackReturn CElevatorSystem::on_configure(const State &)
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
 
-  m_pSimBridge->Connect(SimBridge::Mode::CLIENT, portControl, m_hashKey);
+  m_pSimBridge->Connect(SimBridge::Mode::CLIENT, portControl, m_hashKey + "Control");
 
   return CallbackReturn::SUCCESS;
 }
@@ -53,7 +51,7 @@ CallbackReturn CElevatorSystem::on_activate(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
 
-  auto nodeName = this->get_name();
+  auto nodeName = get_name();
 
   m_pSrvCallElevator = this->create_service<CallElevator>(
       nodeName + string("/call_elevator"),

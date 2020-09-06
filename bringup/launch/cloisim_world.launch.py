@@ -11,6 +11,9 @@ import launch.actions
 import launch_ros.actions
 
 from ament_index_python.packages import get_package_share_directory
+from simdevice_bringup.common import get_launcher_file_by_device_type
+from simdevice_bringup.common import get_target_device_list
+from simdevice_bringup.common import generate_temp_params
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -25,11 +28,8 @@ def generate_launch_description():
     _pkg_name = "simdevice_bringup"
     launch_dir = os.path.join(get_package_share_directory(_pkg_name), 'launch')
 
-    included_launch_elev_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([launch_dir, '/elevator_system_sim.launch.py']))
-
-    included_launch_unity_ros = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([launch_dir, '/unity_ros.launch.py']))
+    included_launch_world = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([launch_dir, '/world_sim.launch.py']))
 
     sim_path = LaunchConfiguration('sim_path')
     world = LaunchConfiguration('world')
@@ -63,7 +63,6 @@ def generate_launch_description():
     ld.add_action(declare_launch_argument_world)
 
     ld.add_action(included_launch_cloisim)
-    ld.add_action(included_launch_elev_sim)
-    ld.add_action(included_launch_unity_ros)
+    ld.add_action(included_launch_world)
 
     return ld

@@ -7,25 +7,19 @@
 #
 
 import os
-
 import launch.actions
 import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
 from simdevice_bringup.common import generate_temp_params_with_ns
 from simdevice_bringup.common import find_robot_name
 from simdevice_bringup.common import get_launcher_file_by_device_type
+from simdevice_bringup.common import get_target_device_list
 from launch.actions import IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import SetEnvironmentVariable
 from launch.actions import SetLaunchConfiguration
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-
-import json
-from websocket import create_connection
-
-SIM_BIRDGE_IP="127.0.0.1"
-SIM_BRIDGE_SERVICE_PORT=8080
 
 
 def generate_launch_description():
@@ -35,23 +29,7 @@ def generate_launch_description():
 
     driver_sim_robot_name = find_robot_name()
 
-    ws = create_connection("ws://" + SIM_BIRDGE_IP + ":" + str(SIM_BRIDGE_SERVICE_PORT) + "/control")
-    ws.send("{'command':'device_list', 'filter':'" + driver_sim_robot_name + "'}")
-    result = ws.recv()
-    # print("Received '%s'" % result)
-    ws.close()
-
-    device_list = json.loads(result)
-
-    try:
-        target_device_list = device_list["result"][driver_sim_robot_name]
-    except Exception as inst:
-        print(type(inst))       # the exception instance
-        print(inst)
-        print("Target robot name is valid: " + driver_sim_robot_name)
-        return ld;
-
-    # print(target_device_list)
+    target_device_list = get_target_device_list(driver_sim_robot_name)
 
     # Get the launch directory
     _pkg_name = "simdevice_bringup"
@@ -88,6 +66,9 @@ def generate_launch_description():
                         launch_arguments={'robot_name': robot_name, 'node_name': node_name, 'parameters': _config_params}.items())
 
                 ld.add_action(included_launch)
+
+    print("\t")
+    print("\t")
 
     # Set environment variables
     ld.add_action(stdout_linebuf_envvar)

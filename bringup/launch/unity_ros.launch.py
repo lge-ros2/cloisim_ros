@@ -12,26 +12,30 @@ import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
-
+from launch.actions import DeclareLaunchArgument
 from launch.actions import SetEnvironmentVariable
 from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
 
-    # Get the launch directory
-    _pkg_name = "simdevice_bringup"
-    config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
+    _node_name = LaunchConfiguration('node_name')
+    _parameters = LaunchConfiguration('parameters')
 
-    config_params = os.path.join(config_dir, 'params.unity_ros.yaml')
+    _package_name = 'unity_ros'
 
-    _node_name = 'unity_ros'
     start_unity_ros_init_cmd = Node(
-        package=_node_name,
-        node_executable=_node_name,
+        package=_package_name,
+        node_executable=_package_name,
         node_name=_node_name,
-        parameters=[config_params],
+        parameters=[_parameters],
         output='screen')
+
+    declare_launch_argument_nn = DeclareLaunchArgument(
+        'node_name',
+        default_value='camera',
+        description='it is node name')
 
     stdout_envvar = SetEnvironmentVariable(
         'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
@@ -41,6 +45,8 @@ def generate_launch_description():
 
     # Set environment variables
     ld.add_action(stdout_envvar)
+
+    ld.add_action(declare_launch_argument_nn)
 
     # Add the actions to launch all of the navigation nodes
     ld.add_action(start_unity_ros_init_cmd)

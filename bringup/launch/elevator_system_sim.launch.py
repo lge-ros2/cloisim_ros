@@ -8,15 +8,16 @@
 
 import os
 import lifecycle_msgs.msg
-import launch.actions
 import launch_ros
-from ament_index_python.packages import get_package_share_directory
+import launch.actions
+from launch import LaunchDescription
 from launch_ros.actions import LifecycleNode
 from launch.actions import EmitEvent
 from launch.actions import LogInfo
 from launch.actions import RegisterEventHandler
 from launch.actions import SetEnvironmentVariable
-from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
@@ -24,19 +25,13 @@ def generate_launch_description():
     _node_name = LaunchConfiguration('node_name')
     _parameters = LaunchConfiguration('parameters')
 
-    # # Get the launch directory
-    # _pkg_name = "simdevice_bringup"
-    # config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
-
-    # config_params = os.path.join(config_dir, 'params.elevator_system.yaml')
-
     _package_name = 'elevator_system'
 
     node = LifecycleNode(
         package=_package_name,
-        node_name=_node_name,
         node_executable=_package_name,
-        # parameters=[config_params],
+        node_name=_node_name,
+        parameters=[_parameters],
         output='screen')
 
     # When the node reaches the 'inactive' state, make it to the 'activate'
@@ -65,6 +60,11 @@ def generate_launch_description():
         )
     )
 
+    declare_launch_argument_nn = DeclareLaunchArgument(
+        'node_name',
+        default_value='camera',
+        description='it is node name')
+
     stdout_envvar = launch.actions.SetEnvironmentVariable(
         'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
 
@@ -75,7 +75,11 @@ def generate_launch_description():
     ld.add_action(stdout_envvar)
 
     ld.add_action(evt_hwnd)
+
+    ld.add_action(declare_launch_argument_nn)
+
     ld.add_action(node)
+
     ld.add_action(emit_configure_transition)
 
     return ld
