@@ -25,10 +25,7 @@ using namespace std;
 using namespace chrono_literals;
 
 LidarDriverSim::LidarDriverSim()
-    : DriverSim("lidar_driver_sim", 2),
-    m_bIntensity(false),
-    m_fLowerAngle(MAX_LOWER_ANGLE),
-    m_fUpperAngle(MAX_UPPER_ANGLE)
+    : DriverSim("lidar_driver_sim", 2)
 {
   Start();
 }
@@ -45,14 +42,8 @@ void LidarDriverSim::Initialize()
   get_parameter_or("topic_name", topic_name_, string("scan"));
   get_parameter_or("frame_id", frame_id_, string("base_scan"));
 
-  get_parameter("intensity", m_bIntensity);
-  get_parameter("filter.lower_angle", m_fLowerAngle);
-  get_parameter("filter.upper_angle", m_fUpperAngle);
-
   DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
   DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
-  DBG_SIM_INFO("[CONFIG] intensity: %d, filter.lower_angle: %f, filter.upper_angle: %f",
-               m_bIntensity, m_fLowerAngle, m_fUpperAngle);
 
   m_hashKeySub = GetRobotName() + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());

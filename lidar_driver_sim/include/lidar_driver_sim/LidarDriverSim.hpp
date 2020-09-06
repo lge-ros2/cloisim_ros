@@ -35,18 +35,9 @@ private:
 private:
   void UpdateLaserData();
 
-  void SetIntensity(const bool val) { m_bIntensity = val; }
-  void SetLowerAngle(const double val) { m_fLowerAngle = val; }
-  void SetUpperAngle(const double val) { m_fUpperAngle = val; }
-
 private:
   // key for connection
   std::string m_hashKeySub;
-
-  // Yaml parameters
-  bool m_bIntensity;
-  double m_fLowerAngle; // in radians
-  double m_fUpperAngle; // in radians
 
   std::string frame_id_;
 
