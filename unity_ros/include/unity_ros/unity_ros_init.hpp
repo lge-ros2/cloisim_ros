@@ -40,6 +40,7 @@ private:
 
 private:
   SimBridge *m_pSimBridge;
+  uint16_t portClock_;
   std::string m_hashKey;
   Throttler *throttler_;
   std::thread m_thread;

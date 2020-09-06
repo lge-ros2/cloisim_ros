@@ -23,17 +23,11 @@ using namespace gazebo;
 DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
     : Node(node_name,
            rclcpp::NodeOptions()
+               .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
                .allow_undeclared_parameters(true)
                .automatically_declare_parameters_from_overrides(true)),
-      m_bRunThread(false),
-      m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
+      m_bRunThread(false), m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
-  get_parameter_or("sim.model", m_robot_name, string("cloi"));
-  get_parameter_or("sim.parts", m_parts_name, string("_parts_"));
-
-  DBG_SIM_INFO("[CONFIG] sim.model = %s", m_robot_name.c_str());
-  DBG_SIM_INFO("[CONFIG] sim.part = %s", m_parts_name.c_str());
-
   m_simBridgeList.reserve(number_of_simbridge);
 
   for (auto index = 0; index < number_of_simbridge; index++)
@@ -135,7 +129,7 @@ msgs::Pose DriverSim::GetObjectTransform(const int bridge_index, const string ta
   return GetObjectTransform(pSimBridge, target_name);
 }
 
-msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const std::string target_name)
+msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const string target_name)
 {
   msgs::Pose transform;
   transform.Clear();
@@ -148,12 +142,9 @@ msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const std:
   msgs::Param request_msg;
   request_msg.set_name("request_transform");
 
-  if (target_name != "")
-  {
-    auto pVal = request_msg.mutable_value();
-    pVal->set_type(msgs::Any::STRING);
-    pVal->set_string_value(target_name);
-  }
+  auto pVal = request_msg.mutable_value();
+  pVal->set_type(msgs::Any::STRING);
+  pVal->set_string_value(target_name);
 
   string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
@@ -166,7 +157,7 @@ msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const std:
 
   if (!succeeded || bufferLength < 0)
   {
-    DBG_SIM_ERR("Faild to get camera info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get object transform, length(%d)", bufferLength);
   }
   else
   {
@@ -185,4 +176,56 @@ msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const std:
   }
 
   return transform;
+}
+
+void DriverSim::GetRos2Parameter(SimBridge* const pSimBridge)
+{
+  if (pSimBridge == nullptr)
+  {
+    return;
+  }
+
+  msgs::Param request_msg;
+  string serializedBuffer;
+  void *pBuffer = nullptr;
+  int bufferLength = 0;
+
+  request_msg.set_name("request_ros2");
+  request_msg.SerializeToString(&serializedBuffer);
+
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("Faild to get ROS2 common info, length(%d)", bufferLength);
+  }
+  else
+  {
+    msgs::Param m_pbBufParam;
+    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+    }
+
+    if (m_pbBufParam.IsInitialized() &&
+        m_pbBufParam.name() == "ros2")
+    {
+      auto param0 = m_pbBufParam.children(0);
+      if (param0.name() == "topic_name" && param0.has_value())
+      {
+        topic_name_ = param0.value().string_value();
+      }
+
+      auto param1 = m_pbBufParam.children(1);
+      if (param1.name() == "frame_id" && param1.has_value())
+      {
+        frame_id_ = param1.value().string_value();
+      }
+    }
+
+    DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
+    DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
+  }
 }

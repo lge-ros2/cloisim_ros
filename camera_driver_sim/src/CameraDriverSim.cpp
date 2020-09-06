@@ -25,6 +25,9 @@ using namespace gazebo;
 CameraDriverSim::CameraDriverSim(const std::string node_name)
     : DriverSim(node_name, 2)
 {
+  topic_name_ = "rgb";
+  frame_id_ = "camera_link";
+
   Start();
 }
 
@@ -36,33 +39,43 @@ CameraDriverSim::~CameraDriverSim()
 
 void CameraDriverSim::Initialize()
 {
-  string frame_id_;
-  string topic_name_;
+  uint16_t portInfo;
+  get_parameter_or("bridge.Data", portData_, uint16_t(0));
+  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
-  get_parameter_or("topic_name", topic_name_, string("topic"));
-  get_parameter_or("frame_id", frame_id_, string("camera_link"));
-
-  const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
-  m_hashKeySub = GetRobotName() + GetPartsName();
-
-  DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
+  m_hashKeySub = GetMainHashKey();
   DBG_SIM_INFO("[CONFIG] hash Key sub: %s", m_hashKeySub.c_str());
+
+  auto pSimBridgeData = GetSimBridge(0);
+  auto pSimBridgeInfo = GetSimBridge(1);
+
+  if (pSimBridgeData != nullptr)
+  {
+    pSimBridgeData->Connect(SimBridge::Mode::SUB, portData_, m_hashKeySub + "Data");
+  }
+
+
+  if (pSimBridgeInfo != nullptr)
+  {
+    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, m_hashKeySub + "Info");
+
+    GetRos2Parameter(pSimBridgeInfo);
+
+    const auto transform = GetObjectTransform(pSimBridgeInfo);
+    SetupStaticTf2Message(transform, frame_id_);
+
+    GetCameraSensorMessage(pSimBridgeInfo);
+
+    InitializeCameraInfoMessage(frame_id_);
+  }
 
   msg_img.header.frame_id = frame_id_;
 
-  GetSimBridge(0)->Connect(SimBridge::Mode::SUB, m_hashKeySub);
-  GetSimBridge(1)->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
+  const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
 
   pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw");
 
   pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
-
-  cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), GetPartsName());
-
-  const auto transform = GetObjectTransform(1);
-  SetupStaticTf2Message(transform, frame_id_);
-
-  InitializeCameraInfoMessage(frame_id_);
 }
 
 void CameraDriverSim::Deinitialize()
@@ -87,7 +100,7 @@ void CameraDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, 
   AddStaticTf2(camera_tf);
 }
 
-void CameraDriverSim::GetCameraSensorMessage()
+void CameraDriverSim::GetCameraSensorMessage(SimBridge* const pSimBridge)
 {
   msgs::Param request_msg;
   request_msg.set_name("request_camera_info");
@@ -95,12 +108,11 @@ void CameraDriverSim::GetCameraSensorMessage()
   string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  auto simBridge = GetSimBridge(1);
-  simBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
 
   void *pBuffer = nullptr;
   int bufferLength = 0;
-  const auto succeeded = simBridge->Receive(&pBuffer, bufferLength);
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
 
   if (!succeeded || bufferLength < 0)
   {
@@ -117,7 +129,7 @@ void CameraDriverSim::GetCameraSensorMessage()
 
 void CameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
 {
-  GetCameraSensorMessage();
+  cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), GetPartsName());
 
   int width_ = m_pbBufCameraSensorInfo.image_size().x();
   int height_ = m_pbBufCameraSensorInfo.image_size().y();
@@ -196,7 +208,7 @@ void CameraDriverSim::UpdateData(const uint bridge_index)
     // try reconnect1ion
     if (IsRunThread())
     {
-      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, portData_, m_hashKeySub);
     }
 
     return;

@@ -12,77 +12,19 @@ import yaml
 from tempfile import NamedTemporaryFile
 
 
-def _create_params_file_from_dict(params):
-    with NamedTemporaryFile(mode='w', prefix='launch_params_', delete=False) as h:
-        param_file_path = h.name
-        yaml.dump(params, h, default_flow_style=False)
-        return param_file_path
+def get_launcher_file_by_device_type(device_type):
 
+    launcher_filename = {'MICOM': 'micom_driver_sim',
+                         'LIDAR': 'lidar_driver_sim',
+                         'LASER': 'lidar_driver_sim',
+                         'CAMERA': 'camera_driver_sim',
+                         'DEPTHCAMERA': 'depth_camera_driver_sim',
+                         'MULTICAMERA': 'multi_camera_driver_sim',
+                         'REALSENSE': 'realsense_driver_sim',
+                         'GPS': 'gps_driver_sim',
+                         'ELEVATOR': 'elevator_system_sim'}.get(device_type, None)
 
-def _get_modified_config_dict(config_dict, model_name, node_name):
-
-    try:
-        config_dict[node_name]['ros__parameters']['sim']['model'] = model_name
-    except:
-        print("")
-        print("ros__parameter:")
-        print("  sim:")
-        print("    model:")
-        print("it is mandatory in yaml configuration file")
-        print("")
-        raise
-
-    return config_dict
-
-
-def _set_remapping_list(namespace, remapping_topic_list):
-
-    result_remapping_list = []
-
-    ns_for_remap = '/' + namespace
-
-    # set topic remap list with prefix
-    for remap_topic in remapping_topic_list:
-        result_remapping_list.append(
-            tuple([remap_topic, ns_for_remap + remap_topic]))
-
-    return result_remapping_list
-
-
-def get_modified_params_with_ns_and_remapping_list(config_file_path, target_node_name):
-
-    result_config_param = config_file_path
-
-    _namespace = find_robot_name()
-
-    _remapping_list = []
-
-    if type(_namespace) is str and len(_namespace.strip()) > 0:
-
-        with open(config_file_path, 'r') as stream:
-            config_dict = yaml.safe_load(stream)
-
-        # get_modify_config_dict
-        config_dict = _get_modified_config_dict(
-            config_dict, _namespace, target_node_name)
-
-        # get remmapping list
-        try:
-            _remapping_topic_list = config_dict[target_node_name]['ros__parameters']["remapping_list"]
-            _remapping_list = _set_remapping_list(
-                _namespace, _remapping_topic_list)
-        except:
-            print("No remapping list!")
-
-        # capsule config with namespace
-        config_dict_with_ns = {}
-        config_dict_with_ns[_namespace] = config_dict
-
-        # create temp file for config load
-        result_config_param = _create_params_file_from_dict(
-            config_dict_with_ns)
-
-    return (result_config_param, _remapping_list)
+    return None if (launcher_filename is None) else launcher_filename + ".launch.py"
 
 
 def get_robot_name_in_arg():
@@ -132,3 +74,43 @@ def find_robot_name():
         _robot_name = get_robot_name_in_env()
 
     return _robot_name
+
+
+def get_default_remapping_list():
+
+    default_remapping_topic_list = ["/tf", "/tf_static"]
+
+    result_remapping_list = set()
+
+    # set topic remap list with prefix
+    for remap_topic in default_remapping_topic_list:
+        result_remapping_list.add((remap_topic, remap_topic.replace("/", "")))
+
+    # print(result_remapping_list)
+    return result_remapping_list
+
+
+def _create_params_file_from_dict(params):
+    with NamedTemporaryFile(mode='w', prefix='launch_params_', delete=False) as h:
+        param_file_path = h.name
+        yaml.dump(params, h, default_flow_style=False)
+        return param_file_path
+
+
+def generate_temp_params_with_ns(_namespace, _node_name, port_maps):
+
+    # capsule config with namespace
+    config_dict = dict()
+    config_dict[_namespace] = dict()
+    config_dict[_namespace][_node_name] = dict()
+    config_dict[_namespace][_node_name]['ros__parameters'] = dict()
+    config_dict[_namespace][_node_name]['ros__parameters']['bridge'] = port_maps
+
+    # print(config_dict)
+
+    # create temp file for config load
+    result_config_param = _create_params_file_from_dict(config_dict)
+    # print(type(result_config_param))
+    # print(result_config_param)
+
+    return result_config_param

@@ -23,7 +23,7 @@ using namespace chrono_literals;
 using namespace gazebo;
 
 RealSenseDriverSim::RealSenseDriverSim()
-    : DriverSim("realsense_driver_sim", max_modules * 2)
+    : DriverSim("realsense_driver_sim", 9)
 {
   Start(false);
 }
@@ -36,73 +36,73 @@ RealSenseDriverSim::~RealSenseDriverSim()
 
 void RealSenseDriverSim::Initialize()
 {
-  vector<string> module_list_;
-  string topic_name;
-
-  get_parameter_or("topic_name", topic_name, string("realsense"));
-  get_parameter_or("frame_id", mainframe_id, string("realsense_link"));
-  get_parameter("module_list", module_list_);
-
-  while (module_list_.size() > max_modules)
-  {
-    DBG_SIM_ERR("the number of module is wrong");
-    module_list_.pop_back();
-  }
+  uint16_t portInfo;
+  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
   int simBridgeCount = 0;
+  auto pSimBridgeInfo = GetSimBridge(simBridgeCount);
+
+  if (pSimBridgeInfo != nullptr)
+  {
+    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, GetMainHashKey() + "Info");
+    GetActivatedModules(pSimBridgeInfo);
+  }
+
   for (auto module : module_list_)
   {
-    const auto topic_base_name_ = topic_name + "/" + module;
-    const auto hashKeySub = GetRobotName() + GetPartsName() + module;
-    m_hashKeySubs.push_back(hashKeySub);
+    uint16_t portCamData, portCamInfo;
+    get_parameter_or("bridge." + module + "Data", portCamData, uint16_t(0));
+    get_parameter_or("bridge." + module + "Info", portCamInfo, uint16_t(0));
+
+    const auto topic_base_name_ = GetPartsName() + "/" + module;
+
+    const auto hashKeySub = GetMainHashKey() + module;
 
     DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
     DBG_SIM_INFO("[CONFIG] hash Key sub: %s", hashKeySub.c_str());
 
-    sensor_msgs::msg::Image msg_img;
-    msg_img.header.frame_id = module;
-
-    msg_imgs.push_back(msg_img);
+    auto pSimBridgeCamInfo = GetSimBridge(++simBridgeCount);
+    auto pSimBridgeCamData = GetSimBridge(++simBridgeCount);
+    dataPortMap_[simBridgeCount] = portCamData;
+    hashKeySubs_[simBridgeCount] = hashKeySub;
 
     auto pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw");
-    pubImages.push_back(pubImage);
+    pubImages_[simBridgeCount] = pubImage;
 
     auto pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
-    pubCameraInfos.push_back(pubCameraInfo);
+    pubCameraInfos_[simBridgeCount] = pubCameraInfo;
 
-    auto pSimBridgeInfo = GetSimBridge(simBridgeCount);
-    auto pSimBridgeData = GetSimBridge(simBridgeCount + 1);
+    sensor_msgs::msg::Image msg_img;
+    msg_img.header.frame_id = module;
+    msg_imgs_[simBridgeCount] = msg_img;
 
-    if (pSimBridgeData != nullptr)
+    if (pSimBridgeCamData != nullptr)
     {
-      pSimBridgeData->Connect(SimBridge::Mode::SUB, hashKeySub);
+      pSimBridgeCamData->Connect(SimBridge::Mode::SUB, portCamData, hashKeySub + "Data");
     }
 
-    if (pSimBridgeInfo != nullptr)
+    if (pSimBridgeCamInfo != nullptr)
     {
-      pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, hashKeySub + "Info");
+      pSimBridgeCamInfo->Connect(SimBridge::Mode::CLIENT, portCamInfo, hashKeySub + "Info");
+      const auto transform = GetObjectTransform(pSimBridgeCamInfo, module);
+      SetupStaticTf2Message(transform, module);
+
+      GetCameraSensorMessage(pSimBridgeCamInfo);
+      InitializeCameraInfoMessage(simBridgeCount, module);
     }
 
-    const auto transform = GetObjectTransform(pSimBridgeInfo, module);
-    SetupStaticTf2Message(transform, module);
-
-    GetCameraSensorMessage(pSimBridgeInfo);
-    InitializeCameraInfoMessage(module);
-
-    m_threads.emplace_back(thread([=]() {
+    threads_.emplace_back(thread([=]() {
       while (IsRunThread())
       {
-        UpdateData(simBridgeCount + 1);
+        UpdateData(simBridgeCount);
       }
     }));
-
-    simBridgeCount += 2;
   }
 }
 
 void RealSenseDriverSim::Deinitialize()
 {
-  for (auto &thread : m_threads)
+  for (auto &thread : threads_)
   {
     if (thread.joinable())
     {
@@ -111,9 +111,9 @@ void RealSenseDriverSim::Deinitialize()
     }
   }
 
-  for (auto pub : pubImages)
+  for (auto pub : pubImages_)
   {
-    pub.shutdown();
+    pub.second.shutdown();
   }
 
   DisconnectSimBridges();
@@ -123,7 +123,7 @@ void RealSenseDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transfor
 {
   geometry_msgs::msg::TransformStamped camera_tf;
   camera_tf.header.frame_id = "base_link";
-  camera_tf.child_frame_id = mainframe_id + "_" + frame_id;
+  camera_tf.child_frame_id = frame_id + "_link";
   camera_tf.transform.translation.x = transform.position().x();
   camera_tf.transform.translation.y = transform.position().y();
   camera_tf.transform.translation.z = transform.position().z();
@@ -133,6 +133,54 @@ void RealSenseDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transfor
   camera_tf.transform.rotation.w = transform.orientation().w();
 
   AddStaticTf2(camera_tf);
+}
+
+void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
+{
+  if (pSimBridge == nullptr)
+  {
+    return;
+  }
+
+  msgs::Param request_msg;
+  string serializedBuffer;
+  void *pBuffer = nullptr;
+  int bufferLength = 0;
+
+  request_msg.set_name("request_module_list");
+  request_msg.SerializeToString(&serializedBuffer);
+
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("Faild to get activated module info, length(%d)", bufferLength);
+  }
+  else
+  {
+    msgs::Param m_pbBufParam;
+    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+    }
+
+    if (m_pbBufParam.IsInitialized() &&
+        m_pbBufParam.name() == "activated_modules")
+    {
+      for (auto i = 0; i < m_pbBufParam.children_size(); i++)
+      {
+        auto param = m_pbBufParam.children(i);
+        if (param.name() == "module" && param.has_value())
+        {
+          const auto module = param.value().string_value();
+          module_list_.push_back(module);
+          DBG_SIM_INFO("[CONFIG] activated_module: %s", module.c_str());
+        }
+      }
+    }
+  }
 }
 
 void RealSenseDriverSim::GetCameraSensorMessage(SimBridge* const pSimBridge)
@@ -167,7 +215,7 @@ void RealSenseDriverSim::GetCameraSensorMessage(SimBridge* const pSimBridge)
   }
 }
 
-void RealSenseDriverSim::InitializeCameraInfoMessage(const string frame_id)
+void RealSenseDriverSim::InitializeCameraInfoMessage(const uint bridge_index, const string frame_id)
 {
   sensor_msgs::msg::CameraInfo camera_info_msg;
 
@@ -231,13 +279,12 @@ void RealSenseDriverSim::InitializeCameraInfoMessage(const string frame_id)
   camera_info_msg.p[10] = 1.0;
 
   // Initialize camera_info_manager
-  cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), frame_id));
-  cameraInfoManager.back()->setCameraInfo(camera_info_msg);
+  cameraInfoManager_[bridge_index] = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), frame_id);
+  cameraInfoManager_[bridge_index]->setCameraInfo(camera_info_msg);
 }
 
 void RealSenseDriverSim::UpdateData(const uint bridge_index)
 {
-  const int module_index = bridge_index / 2;
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
@@ -256,7 +303,7 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
     // try reconnect1ion
     if (IsRunThread())
     {
-      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySubs[module_index]);
+      simBridge->Reconnect(SimBridge::Mode::SUB, dataPortMap_[bridge_index], hashKeySubs_[bridge_index]);
     }
 
     return;
@@ -271,8 +318,7 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
 
   m_simTime = rclcpp::Time(pbBuf.time().sec(), pbBuf.time().nsec());
 
-
-  msg_imgs[module_index].header.stamp = m_simTime;
+  msg_imgs_[bridge_index].header.stamp = m_simTime;
 
   const auto encoding_arg = GetImageEncondingType(pbBuf.image().pixel_format());
   const uint32_t cols_arg = pbBuf.image().width();
@@ -280,14 +326,14 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
   const uint32_t step_arg = pbBuf.image().step();
 
   // Copy from src to image_msg
-  sensor_msgs::fillImage(msg_imgs[module_index], encoding_arg, rows_arg, cols_arg, step_arg,
+  sensor_msgs::fillImage(msg_imgs_[bridge_index], encoding_arg, rows_arg, cols_arg, step_arg,
                          reinterpret_cast<const void *>(pbBuf.image().data().data()));
 
-  pubImages[module_index].publish(msg_imgs[module_index]);
+  pubImages_[bridge_index].publish(msg_imgs_[bridge_index]);
 
   // Publish camera info
-  auto camera_info_msg = cameraInfoManager[module_index]->getCameraInfo();
+  auto camera_info_msg = cameraInfoManager_[bridge_index]->getCameraInfo();
   camera_info_msg.header.stamp = m_simTime;
 
-  pubCameraInfos[module_index]->publish(camera_info_msg);
+  pubCameraInfos_[bridge_index]->publish(camera_info_msg);
 }

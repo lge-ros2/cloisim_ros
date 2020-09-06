@@ -36,6 +36,7 @@ private:
 private:
   void SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id);
   void GetWeelInfo(SimBridge* const pSimBridge);
+  void GetTransformNameInfo(SimBridge* const pSimBridge);
 
   void MicomWrite(const void* const pcBuf, const uint32_t unSize);
 
@@ -48,10 +49,13 @@ private:
   void UpdateBattery();
 
 private:
+  uint16_t portTx_;
+  uint16_t portRx_;
   std::string m_hashKeyPub;
   std::string m_hashKeySub;
 
-  // Yaml parameters
+  std::map<std::string, std::string> target_transform_name;
+
   double wheel_base;
   double wheel_radius;
   std::string base_link_name_;

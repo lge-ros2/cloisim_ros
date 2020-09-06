@@ -20,12 +20,10 @@
 using namespace std;
 
 #define DEFAULT_SIM_BRIDGE_IP "127.0.0.1"
-#define DEFAULT_SIM_BRIDGE_MANAGER_PORT 25554
 
 
 SimBridge::SimBridge()
   : simBridgeIP(DEFAULT_SIM_BRIDGE_IP)
-  , simBridgeManagerPort(DEFAULT_SIM_BRIDGE_MANAGER_PORT)
   , pCtx_(nullptr)
   , pPub_(nullptr)
   , pSub_(nullptr)
@@ -37,7 +35,6 @@ SimBridge::SimBridge()
   , lastErrMsg("")
 {
   auto env_sim_bridge_ip = getenv("SIM_BRIDGE_IP");
-  auto env_sim_bridge_manager_port = getenv("SIM_BRIDGE_MANAGER_PORT");
 
   if (env_sim_bridge_ip == nullptr)
   {
@@ -48,19 +45,9 @@ SimBridge::SimBridge()
     SetSimBridgeAddress(string(env_sim_bridge_ip));
   }
 
-  if (env_sim_bridge_manager_port == nullptr)
-  {
-    DBG_SIM_WRN("[SIM_BRIDGE] env for SIM_BRIDGE_MANAGER_PORT is null, will use default.");
-  }
-  else
-  {
-    const auto port = atoi(env_sim_bridge_manager_port);
-    SetBridgeManagerPort(port);
-  }
-
   pCtx_ = zmq_ctx_new();
 
-  DBG_SIM_INFO("[SIM_BRIDGE] bridge_ip = %s, bridge_manager = %d", simBridgeIP.c_str(), simBridgeManagerPort);
+  DBG_SIM_INFO("[SIM_BRIDGE] bridge_ip = %s", simBridgeIP.c_str());
 }
 
 
@@ -281,16 +268,9 @@ bool SimBridge::SetupClient()
   return true;
 }
 
-bool SimBridge::Connect(const unsigned char mode, const string hashKey)
+bool SimBridge::Connect(const unsigned char mode, const uint16_t port, const string hashKey)
 {
   bool result = true;
-
-  uint16_t port = 0;
-  do
-  {
-    this_thread::sleep_for(chrono::milliseconds(retryPortRequest_));
-    port = RequestBridgePortNumber(hashKey);
-  } while (port == 0);
 
   // socket configuration
   result &= Setup(mode);
@@ -427,11 +407,11 @@ bool SimBridge::Disconnect(const unsigned char mode)
   return result;
 }
 
-bool SimBridge::Reconnect(const unsigned char mode, const string hashKey)
+bool SimBridge::Reconnect(const unsigned char mode, const uint16_t port, const string hashKey)
 {
   bool result = true;
   result &= Disconnect(mode);
-  result &= Connect(mode, hashKey);
+  result &= Connect(mode, port, hashKey);
   return result;
 }
 
@@ -500,41 +480,4 @@ bool SimBridge::Send(const void* buffer, const int bufferLength, bool isNonBlock
 	zmq_msg_close(&msg);
 
   return true;
-}
-
-uint16_t SimBridge::RequestBridgePortNumber(const string key)
-{
-  static const ushort sizeOfPortNumber = 7;
-  static char portNum[sizeOfPortNumber];
-
-  auto sockReq = zmq_socket(pCtx_, ZMQ_REQ);
-  const auto portManagerAddress = GetPortManagerAddress();
-
-  DBG_SIM_INFO("bridge addressess: %s", portManagerAddress.c_str());
-
-  if (zmq_connect(sockReq, portManagerAddress.c_str()))
-  {
-    DBG_SIM_ERR("Connect Err for publish: %s", zmq_strerror(zmq_errno()));
-    return 0;
-  }
-
-  int ret;
-
-  // Send request to server
-  ret = zmq_send(sockReq, key.data(), key.size(), 0);
-  DBG_SIM_INFO(" --> Request(%d): %s", ret, key.c_str());
-
-  // receive port nubmer from port manager server
-  memset(portNum, 0x0, sizeof(portNum));
-
-  //  Wait for next request from client
-  ret = zmq_recv(sockReq, portNum, sizeOfPortNumber, 0);
-  DBG_SIM_INFO(" <-- Receive(%d): %s", ret, portNum);
-
-  if ((sockReq == nullptr) || zmq_close(sockReq))
-  {
-    DBG_SIM_ERR("ZMQ socket for request closing failed");
-  }
-
-  return atoi(portNum);
 }

@@ -26,11 +26,11 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
                         .use_intra_process_comms(intra_process_comms))
     , m_pSimBridge(new SimBridge())
 {
-  string model_name;
-  string parts_name;
+  string model_name = get_namespace();
+  string parts_name = get_name();
 
-  get_parameter_or("sim.model", model_name, string("SeochoTower"));
-  get_parameter_or("sim.parts", parts_name, string("ElevatorSystem"));
+  // get_parameter_or("sim.model", model_name, string("SeochoTower"));
+  // get_parameter_or("sim.parts", parts_name, string("ElevatorSystem"));
   get_parameter_or("system_name", m_systemName, string("ElevatorSystem_00"));
   get_parameter("srv_mode", m_boolSrvMode);
 
@@ -40,7 +40,12 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
 CallbackReturn CElevatorSystem::on_configure(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
-  m_pSimBridge->Connect(SimBridge::Mode::CLIENT, m_hashKey);
+
+  uint16_t portControl;
+  get_parameter_or("bridge.Control", portControl, uint16_t(0));
+
+  m_pSimBridge->Connect(SimBridge::Mode::CLIENT, portControl, m_hashKey);
+
   return CallbackReturn::SUCCESS;
 }
 

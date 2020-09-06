@@ -4,11 +4,10 @@
 
 It requires setting environment variable for simulation connection.
 
-But if you not set environment, 127.0.0.1 shall be used for sim bridge ip and 25554 for port of bridge manager in Code.
+But if you not set environment, 127.0.0.1 shall be used for sim bridge ip in Code.
 
 ```shell
 export SIM_BRIDGE_IP='127.0.0.1'
-export SIM_BRIDGE_MANAGER_PORT=25554
 ```
 
 ## Constraints

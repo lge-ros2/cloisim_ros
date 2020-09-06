@@ -20,13 +20,15 @@
 #include <protobuf/time.pb.h>
 #include <unistd.h>
 
-using namespace std::literals;
+using namespace std;
+using namespace literals;
 using namespace UnityRos;
 using namespace gazebo;
 
 UnityRosInit::UnityRosInit()
   : Node("unity_ros_init",
       rclcpp::NodeOptions()
+        .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
         .allow_undeclared_parameters(true)
         .automatically_declare_parameters_from_overrides(true))
   , m_pSimBridge(new SimBridge())
@@ -34,6 +36,8 @@ UnityRosInit::UnityRosInit()
   , throttler_(nullptr)
   , m_bRun(false)
 {
+  get_parameter_or("bridge.Clock", portClock_, uint16_t(0));
+
   // Set Parameters from yaml file
   double publish_rate(10.0);
   std::string model_name;
@@ -65,7 +69,7 @@ void UnityRosInit::Start()
 
   if (m_pSimBridge)
   {
-    m_pSimBridge->Connect(SimBridge::Mode::SUB, m_hashKey);
+    m_pSimBridge->Connect(SimBridge::Mode::SUB, portClock_, m_hashKey);
     m_bRun = true;
     m_thread = std::thread([=]() { RxProc(); });
   }
@@ -99,7 +103,7 @@ void UnityRosInit::RxProc()
       DBG_SIM_ERR("zmq receive error, return size(%d) %s!", bufferLength, zmq_strerror(zmq_errno()));
 
       // try reconnection
-      m_pSimBridge->Reconnect(SimBridge::Mode::SUB, m_hashKey);
+      m_pSimBridge->Reconnect(SimBridge::Mode::SUB, portClock_, m_hashKey);
       continue;
     }
 

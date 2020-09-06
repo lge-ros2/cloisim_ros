@@ -57,13 +57,16 @@ protected:
 
   void DisconnectSimBridges();
 
-  std::string GetRobotName() { return m_robot_name; }
-  std::string GetPartsName() { return m_parts_name; }
+  std::string GetRobotName() { return std::string(get_namespace()).substr(1); }
+  std::string GetPartsName() { return get_name(); }
+  std::string GetMainHashKey() { return GetRobotName() + GetPartsName(); }
 
   void PublishTF();
 
   gazebo::msgs::Pose GetObjectTransform(SimBridge* const simBridge, const std::string target_name = "");
   gazebo::msgs::Pose GetObjectTransform(const int bridge_index, const std::string target_name = "");
+
+  void GetRos2Parameter(SimBridge* const pSimBridge);
 
 private:
   void PublishStaticTF();
@@ -84,10 +87,10 @@ private:
   std::vector<geometry_msgs::msg::TransformStamped> m_tf_list;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
-  std::string m_robot_name;
-  std::string m_parts_name;
-
 protected:
   rclcpp::Time m_simTime;
+
+  std::string topic_name_ ;
+  std::string frame_id_;
 };
 #endif

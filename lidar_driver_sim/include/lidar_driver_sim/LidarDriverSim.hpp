@@ -37,9 +37,8 @@ private:
 
 private:
   // key for connection
+  uint16_t portData_;
   std::string m_hashKeySub;
-
-  std::string frame_id_;
 
   // buffer from simulation
   gazebo::msgs::LaserScanStamped m_pbBuf;

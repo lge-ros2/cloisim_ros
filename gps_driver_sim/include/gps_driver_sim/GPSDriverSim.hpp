@@ -34,6 +34,7 @@ private:
 
 private:
   // key for connection
+  uint16_t portData_;
   std::string m_hashKeySub;
 
   // buffer from simulation

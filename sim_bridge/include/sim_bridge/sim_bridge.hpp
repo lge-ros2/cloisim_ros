@@ -37,18 +37,13 @@ public:
     simBridgeIP = ip_address;
   }
 
-  void SetBridgeManagerPort(const uint16_t port)
-  {
-    simBridgeManagerPort = port;
-  }
-
 public:
   SimBridge();
   ~SimBridge();
 
-  bool Connect(const unsigned char mode, const std::string hashKey = "");
+  bool Connect(const unsigned char mode, const uint16_t port, const std::string hashKey = "");
   bool Disconnect(const unsigned char mode = 0);
-  bool Reconnect(const unsigned char mode, const std::string hashKey = "");
+  bool Reconnect(const unsigned char mode, const uint16_t port, const std::string hashKey = "");
 
   bool Receive(void** buffer, int& bufferLength, bool isNonBlockingMode = false);
   bool Send(const void* buffer, const int bufferLength, bool isNonBlockingMode = false);
@@ -68,7 +63,6 @@ private:
   const int recv_timeout = 2000; // milliseconds
 
   std::string simBridgeIP;
-  uint16_t simBridgeManagerPort;
 
   void* pCtx_;
 
@@ -111,16 +105,9 @@ private:
   bool CloseSocket(void*& target);
 
 private:
-  std::string GetPortManagerAddress()
-  {
-    return GetSimBridgeAddress(simBridgeManagerPort);
-  }
-
   std::string GetSimBridgeAddress(const uint16_t port)
   {
     return std::string((useTCP)? "tcp":"udp") + "://" + simBridgeIP + ":" + std::to_string(port);
   }
-
-  uint16_t RequestBridgePortNumber(const std::string key);
 };
 #endif

@@ -35,11 +35,12 @@ protected:
   virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
 private:
-  void GetCameraSensorMessage();
+  void GetCameraSensorMessage(SimBridge* const pSimBridge);
   void InitializeCameraInfoMessage(const std::string frame_id);
 
 private:
   // key for connection
+  uint16_t portData_;
   std::string m_hashKeySub;
 
   // image buffer from simulator

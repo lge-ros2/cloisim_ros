@@ -17,16 +17,18 @@
 #include <unistd.h>
 #include <math.h>
 #include <tf2/LinearMath/Quaternion.h>
-
-#define MAX_UPPER_ANGLE 3.1415926535
-#define MAX_LOWER_ANGLE -MAX_UPPER_ANGLE
+#include <protobuf/param.pb.h>
 
 using namespace std;
 using namespace chrono_literals;
+using namespace gazebo;
 
 LidarDriverSim::LidarDriverSim()
     : DriverSim("lidar_driver_sim", 2)
 {
+  topic_name_ = "scan";
+  frame_id_ = "base_scan";
+
   Start();
 }
 
@@ -37,15 +39,11 @@ LidarDriverSim::~LidarDriverSim()
 
 void LidarDriverSim::Initialize()
 {
-  string topic_name_;
+  uint16_t portInfo;
+  get_parameter_or("bridge.Data", portData_, uint16_t(0));
+  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
-  get_parameter_or("topic_name", topic_name_, string("scan"));
-  get_parameter_or("frame_id", frame_id_, string("base_scan"));
-
-  DBG_SIM_INFO("[CONFIG] topic_name: %s", topic_name_.c_str());
-  DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id_.c_str());
-
-  m_hashKeySub = GetRobotName() + GetPartsName();
+  m_hashKeySub = GetMainHashKey();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   auto pSimBridgeData = GetSimBridge(0);
@@ -53,12 +51,15 @@ void LidarDriverSim::Initialize()
 
   if (pSimBridgeData != nullptr)
   {
-    pSimBridgeData->Connect(SimBridge::Mode::SUB, m_hashKeySub);
+    pSimBridgeData->Connect(SimBridge::Mode::SUB, portData_, m_hashKeySub + "Data");
   }
 
   if (pSimBridgeInfo != nullptr)
   {
-    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
+    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, m_hashKeySub + "Info");
+
+    GetRos2Parameter(pSimBridgeInfo);
+
     const auto transform = GetObjectTransform(pSimBridgeInfo);
     SetupStaticTf2Message(transform, frame_id_);
   }
@@ -108,7 +109,7 @@ void LidarDriverSim::UpdateData(const uint bridge_index)
     // try reconnect1ion
     if (IsRunThread())
     {
-      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, portData_, m_hashKeySub);
     }
 
     return;

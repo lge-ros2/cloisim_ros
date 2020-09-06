@@ -33,13 +33,18 @@ private:
   virtual void UpdateData(const uint bridge_index) override;
   virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
-  void GetCameraSensorMessage(const std::string camera_name);
-  void InitializeCameraInfoMessage(const std::string camera_name, const std::string frame_id);
+  void GetCameraSensorMessage(SimBridge* const pSimBridge, const std::string camera_name);
+  void InitializeCameraInfoMessage(const std::string frame_id);
+
+  void GetRos2FramesId(SimBridge* const pSimBridge);
 
 private:
-  std::string multicamera_name;
+  std::string multicamera_name_;
 
+  uint16_t portData_;
   std::string m_hashKeySub;
+
+  std::vector<std::string> frame_id_;
 
   // buffer from simulation
   gazebo::msgs::ImagesStamped m_pbBuf;

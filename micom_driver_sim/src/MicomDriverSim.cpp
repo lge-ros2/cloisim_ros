@@ -44,16 +44,16 @@ MicomDriverSim::~MicomDriverSim()
 
 void MicomDriverSim::Initialize()
 {
-  string input_part_name, sensor_part_name;
+  uint16_t portInfo;
+  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
+  get_parameter_or("bridge.Tx", portTx_, uint16_t(0));
+  get_parameter_or("bridge.Rx", portRx_, uint16_t(0));
+  DBG_SIM_INFO("[CONFIG] %d %d %d", portInfo, portTx_, portRx_);
 
-  get_parameter_or("sim.parts_tx", input_part_name, string("MICOM_INPUT"));
-  get_parameter_or("sim.parts_rx", sensor_part_name, string("MICOM_SENSOR"));
-
-  m_hashKeyPub = GetRobotName() + input_part_name;
-  m_hashKeySub = GetRobotName() + sensor_part_name;
+  const auto hashKeyInfo = GetMainHashKey() + "Info";
+  m_hashKeyPub = GetMainHashKey() + "Rx";
+  m_hashKeySub = GetMainHashKey() + "Tx";
   DBG_SIM_INFO("Hash Key sub(%s) pub(%s)", m_hashKeySub.c_str(), m_hashKeyPub.c_str());
-
-  DBG_SIM_INFO("[CONFIG] sim.parts_tx:%s, sim.parts_rx:%s", input_part_name.c_str(), sensor_part_name.c_str());
 
   msg_imu_.header.frame_id = "imu_link";
   msg_odom_.header.frame_id = "odom";
@@ -88,41 +88,38 @@ void MicomDriverSim::Initialize()
   {
     if (use_sub_)
     {
-      pSimBridgeData->Connect(SimBridge::Mode::SUB, m_hashKeySub);
+      pSimBridgeData->Connect(SimBridge::Mode::SUB, portTx_, m_hashKeySub);
     }
 
     if (use_pub_)
     {
-      pSimBridgeData->Connect(SimBridge::Mode::PUB, m_hashKeyPub);
+      pSimBridgeData->Connect(SimBridge::Mode::PUB, portRx_, m_hashKeyPub);
     }
   }
 
   if (pSimBridgeInfo != nullptr)
   {
-    string transform_imu_name;
-    vector<string> transform_wheels_name;
+    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    get_parameter_or("transform_name.imu", transform_imu_name, string("imu"));
-    get_parameter_or("transform_name.wheels", transform_wheels_name, vector<string>({"wheel_left", "wheel_right"}));
-
-    DBG_SIM_INFO("[CONFIG] transform name imu:%s, wheels(0/1):%s/%s",
-                 transform_imu_name.c_str(), transform_wheels_name.at(0).c_str(), transform_wheels_name.at(1).c_str());
-
-    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
     GetWeelInfo(pSimBridgeInfo);
 
+    GetTransformNameInfo(pSimBridgeInfo);
+
+    const auto transform_imu_name = target_transform_name["imu"];
     const auto transform_imu = GetObjectTransform(pSimBridgeInfo, transform_imu_name);
     SetupStaticTf2Message(transform_imu, transform_imu_name);
 
-    const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheels_name.at(0));
-    SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheels_name.at(0));
+    const auto transform_wheel_0_name = target_transform_name["wheels/left"];
+    const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheel_0_name);
+    SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name);
 
     const auto init_left_q_msg = &wheel_left_tf_.transform.rotation;
     const auto wheel_left_quat = tf2::Quaternion(init_left_q_msg->x, init_left_q_msg->y, init_left_q_msg->z, init_left_q_msg->w);
     tf2::Matrix3x3(wheel_left_quat).getRPY(orig_left_wheel_rot_[0], orig_left_wheel_rot_[1], orig_left_wheel_rot_[2]);
 
-    const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheels_name.at(1));
-    SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheels_name.at(1));
+    const auto transform_wheel_1_name = target_transform_name["wheels/right"];
+    const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheel_1_name);
+    SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name);
 
     const auto init_right_q_msg = &wheel_right_tf_.transform.rotation;
     const auto wheel_right_quat = tf2::Quaternion(init_right_q_msg->x, init_right_q_msg->y, init_right_q_msg->z, init_right_q_msg->w);
@@ -230,9 +227,78 @@ void MicomDriverSim::GetWeelInfo(SimBridge* const pSimBridge)
   DBG_SIM_INFO("[CONFIG] wheel.radius:%f m", wheel_radius);
 }
 
+void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
+{
+  if (pSimBridge == nullptr)
+  {
+    return;
+  }
+
+  msgs::Param request_msg;
+  string serializedBuffer;
+  void *pBuffer = nullptr;
+  int bufferLength = 0;
+
+  request_msg.set_name("request_ros2");
+  request_msg.SerializeToString(&serializedBuffer);
+
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("Faild to get transform name info, length(%d)", bufferLength);
+  }
+  else
+  {
+    msgs::Param m_pbBufParam;
+    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+    }
+
+    if (m_pbBufParam.IsInitialized() &&
+        m_pbBufParam.name() == "ros2")
+    {
+      auto baseParam = m_pbBufParam.children(0);
+      if (baseParam.IsInitialized() &&
+          baseParam.name() == "transform_name")
+      {
+        auto param0 = baseParam.children(0);
+        if (param0.name() == "imu" && param0.has_value())
+        {
+          target_transform_name["imu"] = param0.value().string_value();
+        }
+
+        auto param1 = baseParam.children(1);
+        if (param1.name() == "wheels")
+        {
+            auto childParam0 = param1.children(0);
+            if (childParam0.name() == "left" && childParam0.has_value())
+            {
+              target_transform_name["wheels/left"] = childParam0.value().string_value();
+            }
+
+            auto childParam1 = param1.children(0);
+            if (childParam1.name() == "right" && childParam1.has_value())
+            {
+              target_transform_name["wheels/right"] = childParam1.value().string_value();
+            }
+        }
+      }
+
+      DBG_SIM_INFO("[CONFIG] transform name imu:%s, wheels(0/1):%s/%s",
+                   target_transform_name["imu"].c_str(),
+                   target_transform_name["wheels/left"].c_str(),
+                   target_transform_name["wheels/right"].c_str());
+    }
+  }
+}
+
 string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
-  auto vel_lin = msg->linear.x; // m/s
+  auto vel_lin = msg->linear.x;  // m/s
   auto vel_rot = msg->angular.z; // rad/s
 
   // m/s velocity input
@@ -290,8 +356,8 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
     // try reconnection
     if (IsRunThread())
     {
-      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
-      simBridge->Reconnect(SimBridge::Mode::PUB, m_hashKeyPub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, portTx_, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::PUB, portRx_, m_hashKeyPub);
     }
 
     return;

@@ -33,36 +33,31 @@ private:
   virtual void UpdateData(const uint bridge_index) override;
   virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
+  void GetActivatedModules(SimBridge* const pSimBridge);
   void GetCameraSensorMessage(SimBridge* const pSimBridge);
-  void InitializeCameraInfoMessage(const std::string frame_id);
+  void InitializeCameraInfoMessage(const uint bridge_index, const std::string frame_id);
 
 private:
-  static const int max_modules = 4;
-
-  std::string mainframe_id;
-
-  std::vector<std::thread> m_threads;
-
-  // key for connection
-  std::vector<std::string> m_hashKeySubs;
-
-  // buffer from simulation
-  std::vector<gazebo::msgs::ImageStamped> m_pbBuf;
-
-  // message for ROS2 communictaion
-  std::vector<sensor_msgs::msg::Image> msg_imgs;
-
-  // Camera sensor info buffer from simulator
   gazebo::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;
 
+  std::vector<std::string> module_list_;
+  std::vector<std::thread> threads_;
+
+  // key for connection
+  std::map<int, uint16_t> dataPortMap_;
+  std::map<int, std::string> hashKeySubs_;
+
+  // message for ROS2 communictaion
+  std::map<int, sensor_msgs::msg::Image> msg_imgs_;
+
   // Camera info publishers.
-  std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCameraInfos;
+  std::map<int, rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCameraInfos_;
 
   // Camera info managers
-  std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
+  std::map<int, std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager_;
 
   // Image publisher
-  std::vector<image_transport::Publisher> pubImages;
+  std::map<int, image_transport::Publisher> pubImages_;
 };
 
 #endif

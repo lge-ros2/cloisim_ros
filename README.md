@@ -10,6 +10,7 @@ ROS2 simulation device packages to connect the unity3D based multi-robot simulat
 
 ```shell
 ## general
+sudo apt-get install python-websocket
 sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
 
 ## for camera driver sim
@@ -28,11 +29,9 @@ colcon build --packages-up-to simdevice_bringup
 ## Usage
 
 Set environment variable.
-CLOiSim uses port number 25554 as a bridge manager's port in default.
 
 ```shell
 export SIM_BRIDGE_IP='127.0.0.1'
-export SIM_BRIDGE_MANAGER_PORT=25554
 ```
 
 ### driver sim

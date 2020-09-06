@@ -8,10 +8,7 @@
 
 import os
 import launch.actions
-import launch_ros.actions
-from ament_index_python.packages import get_package_share_directory
-from simdevice_bringup.common import get_modified_params_with_ns_and_remapping_list
-from simdevice_bringup.common import find_robot_name
+from simdevice_bringup.common import get_default_remapping_list
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.actions import SetEnvironmentVariable
@@ -21,34 +18,24 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
 
     _robot_name = LaunchConfiguration('robot_name')
-
-    # Get the launch directory
-    _pkg_name = "simdevice_bringup"
-
-    _config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
-    config_params = os.path.join(_config_dir, 'params.camera_driver.yaml')
+    _node_name = LaunchConfiguration('node_name')
+    _parameters = LaunchConfiguration('parameters')
 
     _package_name = 'camera_driver_sim'
-    _node_name = 'camera_driver'
 
-    # modify config param with namespace
-    (_config_params, _remapping_list) = get_modified_params_with_ns_and_remapping_list(
-        config_params, _node_name)
-
-    start_camera_driver_sim_cmd = Node(
+    start_driver_cmd = Node(
         package=_package_name,
         node_executable=_package_name,
         node_name=_node_name,
         node_namespace=_robot_name,
-        remappings=_remapping_list,
-        parameters=[_config_params],
+        remappings=get_default_remapping_list(),
+        parameters=[_parameters],
         output='screen')
 
-
-    declare_launch_argument_rn = DeclareLaunchArgument(
-        'robot_name',
-        default_value=find_robot_name(),
-        description='It is robot name. same as `node namspace`')
+    declare_launch_argument_nn = DeclareLaunchArgument(
+        'node_name',
+        default_value='camera',
+        description='it is node name')
 
     stdout_linebuf_envvar = SetEnvironmentVariable(
         'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
@@ -56,11 +43,11 @@ def generate_launch_description():
     # Create the launch description and populate
     ld = launch.LaunchDescription()
 
-    # Set environment variables
+     # Set environment variables
     ld.add_action(stdout_linebuf_envvar)
 
-    ld.add_action(declare_launch_argument_rn)
+    ld.add_action(declare_launch_argument_nn)
 
-    ld.add_action(start_camera_driver_sim_cmd)
+    ld.add_action(start_driver_cmd)
 
     return ld

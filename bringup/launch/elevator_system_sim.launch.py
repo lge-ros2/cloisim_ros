@@ -21,18 +21,22 @@ from launch import LaunchDescription
 
 def generate_launch_description():
 
-    # Get the launch directory
-    _pkg_name = "simdevice_bringup"
-    config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
+    _node_name = LaunchConfiguration('node_name')
+    _parameters = LaunchConfiguration('parameters')
 
-    config_params = os.path.join(config_dir, 'params.elevator_system.yaml')
+    # # Get the launch directory
+    # _pkg_name = "simdevice_bringup"
+    # config_dir = os.path.join(get_package_share_directory(_pkg_name), 'config')
 
-    _node_executable = 'elevator_system'
+    # config_params = os.path.join(config_dir, 'params.elevator_system.yaml')
+
+    _package_name = 'elevator_system'
+
     node = LifecycleNode(
-        package=_node_executable,
-        node_name=_node_executable,
-        node_executable=_node_executable,
-        parameters=[config_params],
+        package=_package_name,
+        node_name=_node_name,
+        node_executable=_package_name,
+        # parameters=[config_params],
         output='screen')
 
     # When the node reaches the 'inactive' state, make it to the 'activate'
@@ -42,7 +46,7 @@ def generate_launch_description():
             goal_state='inactive',
             entities=[
                 LogInfo(
-                    msg=_node_executable + " reached the 'inactive' state, 'activating'."),
+                    msg=_package_name + " reached the 'inactive' state, 'activating'."),
                 EmitEvent(
                     event=launch_ros.events.lifecycle.ChangeState(
                         lifecycle_node_matcher=launch.events.matches_action(

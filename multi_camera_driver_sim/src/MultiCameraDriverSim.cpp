@@ -34,14 +34,14 @@ MultiCameraDriverSim::~MultiCameraDriverSim()
 
 void MultiCameraDriverSim::Initialize()
 {
-  vector<string> frame_id_;
+  uint16_t portInfo;
+  get_parameter_or("bridge.Data", portData_, uint16_t(0));
+  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
-  get_parameter_or("camera_name", multicamera_name, string("multi_camera"));
-  get_parameter("frame_id", frame_id_);
+  multicamera_name_ = get_name();
 
   tf2::Quaternion fixed_rot;
-
-  m_hashKeySub = GetRobotName() + GetPartsName();
+  m_hashKeySub = GetMainHashKey();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   auto pSimBridgeInfo = GetSimBridge(0);
@@ -49,7 +49,9 @@ void MultiCameraDriverSim::Initialize()
 
   if (pSimBridgeInfo != nullptr)
   {
-    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, m_hashKeySub + "Info");
+    pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, m_hashKeySub + "Info");
+
+    GetRos2FramesId(pSimBridgeInfo);
   }
 
   for (auto frame_id : frame_id_)
@@ -58,20 +60,20 @@ void MultiCameraDriverSim::Initialize()
     SetupStaticTf2Message(transform, frame_id);
 
     // Image publisher
-    auto topic_base_name_ = multicamera_name + "/" + frame_id;
+    const auto topic_base_name_ = multicamera_name_ + "/" + frame_id;
     DBG_SIM_INFO("[CONFIG] topic_base_name:%s", topic_base_name_.c_str());
 
     pubImages.push_back(image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw"));
 
     // Camera info publisher
-    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
+    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::ServicesQoS());
     pubCamerasInfo.push_back(camInfoPub);
 
-    GetCameraSensorMessage(frame_id);
-    InitializeCameraInfoMessage(frame_id, frame_id);
+    GetCameraSensorMessage(pSimBridgeInfo, frame_id);
+    InitializeCameraInfoMessage(frame_id);
   }
 
-  pSimBridgeData->Connect(SimBridge::Mode::SUB, m_hashKeySub);
+  pSimBridgeData->Connect(SimBridge::Mode::SUB, portData_, m_hashKeySub + "Data");
 }
 
 void MultiCameraDriverSim::Deinitialize()
@@ -88,7 +90,7 @@ void MultiCameraDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transf
 {
   geometry_msgs::msg::TransformStamped camera_tf;
   camera_tf.header.frame_id = "base_link";
-  camera_tf.child_frame_id = multicamera_name + "_" + frame_id;
+  camera_tf.child_frame_id = multicamera_name_ + "_" + frame_id;
   camera_tf.transform.translation.x = transform.position().x();
   camera_tf.transform.translation.y = transform.position().y();
   camera_tf.transform.translation.z = transform.position().z();
@@ -100,7 +102,59 @@ void MultiCameraDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transf
   AddStaticTf2(camera_tf);
 }
 
-void MultiCameraDriverSim::GetCameraSensorMessage(const string camera_name)
+void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
+{
+  if (pSimBridge == nullptr)
+  {
+    return;
+  }
+
+  msgs::Param request_msg;
+  string serializedBuffer;
+  void *pBuffer = nullptr;
+  int bufferLength = 0;
+
+  request_msg.set_name("request_ros2");
+  request_msg.SerializeToString(&serializedBuffer);
+
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("Faild to get ROS2 common info, length(%d)", bufferLength);
+  }
+  else
+  {
+    msgs::Param m_pbBufParam;
+    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+    }
+
+    if (m_pbBufParam.IsInitialized() &&
+        m_pbBufParam.name() == "ros2")
+    {
+      auto baseParam = m_pbBufParam.children(0);
+      if (baseParam.name() == "frames_id")
+      {
+        for (auto i = 0; i < baseParam.children_size(); i++)
+        {
+          auto param = baseParam.children(i);
+          if (param.name() == "frame_id" && param.has_value())
+          {
+            const auto frame_id = param.value().string_value();
+            frame_id_.push_back(frame_id);
+            DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id.c_str());
+          }
+        }
+      }
+    }
+  }
+}
+
+void MultiCameraDriverSim::GetCameraSensorMessage(SimBridge* const pSimBridge, const string camera_name)
 {
   msgs::Param request_msg;
   request_msg.set_name("request_camera_info");
@@ -112,12 +166,11 @@ void MultiCameraDriverSim::GetCameraSensorMessage(const string camera_name)
   string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  auto simBridge = GetSimBridge(0);
-  simBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
 
   void *pBuffer = nullptr;
   int bufferLength = 0;
-  const auto succeeded = simBridge->Receive(&pBuffer, bufferLength);
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
 
   if (!succeeded || bufferLength < 0)
   {
@@ -132,7 +185,7 @@ void MultiCameraDriverSim::GetCameraSensorMessage(const string camera_name)
   }
 }
 
-void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name, const string frame_id)
+void MultiCameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
 {
   sensor_msgs::msg::CameraInfo camera_info_msg;
 
@@ -196,7 +249,7 @@ void MultiCameraDriverSim::InitializeCameraInfoMessage(const string camera_name,
   camera_info_msg.p[10] = 1.0;
 
   // Initialize camera_info_manager
-  cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), camera_name));
+  cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), frame_id));
   cameraInfoManager.back()->setCameraInfo(camera_info_msg);
 }
 
@@ -215,7 +268,7 @@ void MultiCameraDriverSim::UpdateData(const uint bridge_index)
     // try reconnect1ion
     if (IsRunThread())
     {
-      simBridge->Reconnect(SimBridge::Mode::SUB, m_hashKeySub);
+      simBridge->Reconnect(SimBridge::Mode::SUB, portData_, m_hashKeySub);
     }
 
     return;
