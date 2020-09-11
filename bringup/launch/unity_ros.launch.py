@@ -34,7 +34,7 @@ def generate_launch_description():
 
     declare_launch_argument_nn = DeclareLaunchArgument(
         'node_name',
-        default_value='camera',
+        default_value='unity_ros',
         description='it is node name')
 
     stdout_envvar = SetEnvironmentVariable(

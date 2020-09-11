@@ -10,6 +10,7 @@ import os
 import sys
 import yaml
 import json
+import time
 from tempfile import NamedTemporaryFile
 from websocket import create_connection
 
@@ -140,24 +141,48 @@ def generate_temp_params_with_ns(_namespace, _node_name, port_maps):
     return result_config_param
 
 
+def connect_to_simulator(_target_model_name):
+
+    delay = 3.0
+
+    while True:
+
+        time.sleep(delay)
+
+        try:
+            ws = create_connection("ws://" + SIM_BIRDGE_IP + ":" + str(SIM_BRIDGE_SERVICE_PORT) + "/control")
+            message = "{'command':'device_list', 'filter':'" + _target_model_name + "'}"
+            ws.send(message)
+            # print("send '%s'" % message)
+            result = ws.recv()
+            print("Received '%s'" % result)
+            ws.close()
+
+            return result;
+
+        except ConnectionRefusedError as err:
+            print("=> Failed to connect to CLOiSim: {}\n".format(err))
+            print("Try to reconnect to CLOiSim: {}".format(err))
+
+
 def get_target_device_list(_target_model_name):
 
-    ws = create_connection("ws://" + SIM_BIRDGE_IP + ":" + str(SIM_BRIDGE_SERVICE_PORT) + "/control")
-    ws.send("{'command':'device_list', 'filter':'" + _target_model_name + "'}")
-    result = ws.recv()
-    # print("Received '%s'" % result)
-    ws.close()
+    delay = 2.0
 
-    device_list = json.loads(result)
+    while True:
 
-    try:
-        target_device_list = device_list["result"][_target_model_name]
-        # print(target_device_list)
+        result = connect_to_simulator(_target_model_name)
 
-        return target_device_list
+        device_list = json.loads(result)
 
-    except Exception as inst:
-        print(type(inst))       # the exception instance
-        print(inst)
-        print("Target robot name is valid: " + driver_sim_robot_name)
-        return dict();
+        try:
+            target_device_list = device_list["result"][_target_model_name]
+            # print(target_device_list)
+            time.sleep(delay)
+            return target_device_list
+
+        except Exception as inst:
+            # print(type(inst))
+            # print(inst)
+            print("Target robot name is invalid: " + _target_model_name + ", it may be not loaded yet.")
+            print("Retry to get device list")
