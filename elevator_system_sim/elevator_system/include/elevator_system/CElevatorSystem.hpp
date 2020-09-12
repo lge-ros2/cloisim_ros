@@ -56,7 +56,7 @@ public:
 
 private:
   SimBridge *m_pSimBridge;
-  std::string m_systemName;
+  std::string systemName_;
   std::string m_hashKey;
 
   rclcpp::Service<CallElevator>::SharedPtr m_pSrvCallElevator;
@@ -122,7 +122,7 @@ private:
   std::string get_current_floor_from_response_message(const msgs::Param &response_msg);
   float get_height_from_response_message(const msgs::Param &response_msg);
 
-  bool m_boolSrvMode;
+  bool srvMode_;
 
   bool send_request(const msgs::Param &request_msg);
   bool receive_response(msgs::Param &response_msg);

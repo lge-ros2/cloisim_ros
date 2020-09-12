@@ -25,11 +25,11 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
                         .automatically_declare_parameters_from_overrides(true)
                         .use_intra_process_comms(intra_process_comms))
     , m_pSimBridge(new SimBridge())
+    , systemName_("ElevatorSystem_")
+    , srvMode_(false)
 {
   string model_name;
-  get_parameter_or("model", model_name, string("seocho_tower"));
-  get_parameter_or("system_name", m_systemName, string("ElevatorSystem_00"));
-  get_parameter("srv_mode", m_boolSrvMode);
+  get_parameter_or("model", model_name, string("SeochoTower"));
 
   m_hashKey = model_name + get_name();
    DBG_SIM_MSG("TAG=[%s]", m_hashKey.c_str());
@@ -50,6 +50,21 @@ CallbackReturn CElevatorSystem::on_configure(const State &)
 CallbackReturn CElevatorSystem::on_activate(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
+
+  msgs::Param newRequest;
+  newRequest.set_name("request_system_name");
+
+  if (send_request(newRequest))
+  {
+    msgs::Param response;
+    if (receive_response(response))
+    {
+      if (response.name().compare("request_system_name") == 0)
+      {
+        systemName_ = response.value().string_value();
+      }
+    }
+  }
 
   auto nodeName = get_name();
 
@@ -121,11 +136,11 @@ void CElevatorSystem::callback_call_elevator(
     const shared_ptr<CallElevator::Request> request,
     const shared_ptr<CallElevator::Response> response)
 {
-  auto request_msg = create_request_message("call_elevator",
+  auto message = create_request_message("call_elevator",
                                             request->current_floor,
                                             request->target_floor);
 
-  if (send_request(request_msg))
+  if (send_request(message))
   {
     msgs::Param response_msg;
     if (receive_response(response_msg))
@@ -140,11 +155,11 @@ void CElevatorSystem::callback_get_called_elevator(
     const shared_ptr<CallElevator::Request> request,
     const shared_ptr<CallElevator::Response> response)
 {
-  auto request_msg = create_request_message("get_called_elevator",
+  auto message = create_request_message("get_called_elevator",
                                             request->current_floor,
                                             request->target_floor);
 
-  if (send_request(request_msg))
+  if (send_request(message))
   {
     msgs::Param response_msg;
     if (receive_response(response_msg))
@@ -160,9 +175,9 @@ void CElevatorSystem::callback_get_elevator_information(
     const shared_ptr<GetElevatorInfo::Request> request,
     const shared_ptr<GetElevatorInfo::Response> response)
 {
-  auto request_msg = create_request_message("get_elevator_information", stoi(request->elevator_index));
+  auto message = create_request_message("get_elevator_information", stoi(request->elevator_index));
 
-  if (send_request(request_msg))
+  if (send_request(message))
   {
     msgs::Param response_msg;
     if (receive_response(response_msg))
@@ -179,12 +194,12 @@ void CElevatorSystem::callback_select_elevator_floor(
     const shared_ptr<SelectElevatorFloor::Request> request,
     const shared_ptr<SelectElevatorFloor::Response> response)
 {
-  auto request_msg = create_request_message("select_elevator_floor",
+  auto message = create_request_message("select_elevator_floor",
                                             request->current_floor,
                                             request->target_floor,
                                             stoi(request->elevator_index));
 
-  if (send_request(request_msg))
+  if (send_request(message))
   {
     msgs::Param response_msg;
     if (receive_response(response_msg))
@@ -199,9 +214,9 @@ void CElevatorSystem::callback_request_door_open(
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
 {
-  auto request_msg = create_request_message("request_door_open", stoi(request->elevator_index));
+  auto message = create_request_message("request_door_open", stoi(request->elevator_index));
 
-  if (send_request(request_msg))
+  if (send_request(message))
   {
     msgs::Param response_msg;
     if (receive_response(response_msg))
@@ -216,9 +231,9 @@ void CElevatorSystem::callback_request_door_close(
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
 {
-  auto request_msg = create_request_message("request_door_close", stoi(request->elevator_index));
+  auto message = create_request_message("request_door_close", stoi(request->elevator_index));
 
-  if (send_request(request_msg))
+  if (send_request(message))
   {
     msgs::Param response_msg;
     if (receive_response(response_msg))
@@ -233,9 +248,9 @@ void CElevatorSystem::callback_is_door_opened(
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
 {
-  auto request_msg = create_request_message("is_door_opened", stoi(request->elevator_index));
+  auto message = create_request_message("is_door_opened", stoi(request->elevator_index));
 
-  if (send_request(request_msg))
+  if (send_request(message))
   {
     msgs::Param response_msg;
     if (receive_response(response_msg))
@@ -250,7 +265,7 @@ void CElevatorSystem::callback_reserve_elevator(
   const shared_ptr<ReturnBool::Request> /*request*/,
   const shared_ptr<ReturnBool::Response> response)
 {
-  response->result = m_boolSrvMode;
+  response->result = srvMode_;
 }
 
 void CElevatorSystem::callback_release_elevator(
@@ -258,7 +273,7 @@ void CElevatorSystem::callback_release_elevator(
   const shared_ptr<ReturnBool::Request> /*request*/,
   const shared_ptr<ReturnBool::Response> response)
 {
-  response->result = m_boolSrvMode;
+  response->result = srvMode_;
 }
 
 /**
@@ -278,7 +293,7 @@ msgs::Param CElevatorSystem::create_request_message(
     int elevator_index)
 {
   msgs::Param newMessage;
-  newMessage.set_name(m_systemName);
+  newMessage.set_name(systemName_);
 
   msgs::Param *pParam;
   msgs::Any *pVal;
