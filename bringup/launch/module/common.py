@@ -147,8 +147,6 @@ def connect_to_simulator(_target_model_name):
 
     while True:
 
-        time.sleep(delay)
-
         try:
             ws = create_connection("ws://" + SIM_BIRDGE_IP + ":" + str(SIM_BRIDGE_SERVICE_PORT) + "/control")
             message = "{'command':'device_list', 'filter':'" + _target_model_name + "'}"
@@ -162,7 +160,8 @@ def connect_to_simulator(_target_model_name):
 
         except ConnectionRefusedError as err:
             print("=> Failed to connect to CLOiSim: {}\n".format(err))
-            print("Try to reconnect to CLOiSim: {}".format(err))
+            print("Try to reconnect to CLOiSim: {} after {} sec".format(err, delay))
+            time.sleep(delay)
 
 
 def get_target_device_list(_target_model_name):
@@ -178,11 +177,11 @@ def get_target_device_list(_target_model_name):
         try:
             target_device_list = device_list["result"][_target_model_name]
             # print(target_device_list)
-            time.sleep(delay)
             return target_device_list
 
         except Exception as inst:
             # print(type(inst))
             # print(inst)
             print("Target robot name is invalid: " + _target_model_name + ", it may be not loaded yet.")
-            print("Retry to get device list")
+            print("Retry to get device list after {} sec".format(delay))
+            time.sleep(delay)
