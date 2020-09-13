@@ -160,7 +160,7 @@ def connect_to_simulator(_target_model_name):
 
         except ConnectionRefusedError as err:
             print("=> Failed to connect to CLOiSim: {}\n".format(err))
-            print("Try to reconnect to CLOiSim: {} after {} sec".format(err, delay))
+            print("Try to reconnect to CLOiSim after {} sec: {}".format(delay, err))
             time.sleep(delay)
 
 

@@ -50,13 +50,13 @@ DriverSim::~DriverSim()
   }
 }
 
-void DriverSim::Start(const bool runDefaultUpdateDataThread)
+void DriverSim::Start(const bool runSingleDataThread)
 {
   m_bRunThread = true;
 
   Initialize();
 
-  if (runDefaultUpdateDataThread)
+  if (runSingleDataThread)
   {
     m_thread = thread([=]() {
       while (IsRunThread()) {
