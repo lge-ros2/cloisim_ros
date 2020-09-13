@@ -436,16 +436,13 @@ bool SimBridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode
     return false;
   }
 
-  bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode)? ZMQ_DONTWAIT:0);
-
-  if (bufferLength == 0)
+  if ((bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
+    DBG_SIM_ERR("failed to receive ZMQ message: %s", zmq_strerror(zmq_errno()));
     return false;
   }
 
-  *buffer = zmq_msg_data(&m_msgRx);
-
-  if (*buffer == nullptr)
+  if ((*buffer = zmq_msg_data(&m_msgRx)) == nullptr)
   {
     return false;
   }
@@ -472,7 +469,7 @@ bool SimBridge::Send(const void* buffer, const int bufferLength, bool isNonBlock
   memcpy((void*)((uint8_t*)zmq_msg_data(&msg) + tagSize), buffer, bufferLength);
 
   /* Send the message to the socket */
-  if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode)? ZMQ_DONTWAIT:0) < 0)
+  if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0) < 0)
   {
     return false;
   }
