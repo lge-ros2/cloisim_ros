@@ -61,3 +61,53 @@ ros2 launch simdevice_bringup **cloisim**.launch.py sim_path:=/opt/CLOiSim/CLOiS
 ```shell
 ros2 launch simdevice_bringup **cloisim_world**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
 ```
+
+
+### Using Docker
+
+Run below command after clone this repository(this branch)
+
+#### build image
+
+```shell
+git clone https://github.com/lge-ros2/sim-device.git -b dashing
+cd sim-device
+docker build -t simdevice .
+```
+
+#### launch packages
+
+```shell
+docker run -it --rm --net=host simdevice {launch script} {arguments}
+```
+
+##### examples
+
+```shell
+docker run -it --rm --net=host simdevice driver_sim.launch.py robot_name:=cloi1
+
+docker run -it --rm --net=host simdevice world_sim.launch.py
+```
+
+###### cloisim_world
+
+it requires to volume mount(-v option) for sim_path and resource
+refer to [here](https://github.com/lge-ros2/cloisim/tree/master/Docker)
+
+```shell
+docker run -it --rm --net=host simdevice cloisim_world.launch.py sim_path:=/opt/CLOiSim-1.7.1 world:=lg_seocho.world
+```
+
+or you can just luanch with launch.sh script
+
+```shell
+docker run -it --rm --net=host simdevice {launch script} {arguments}
+```
+
+##### examples
+
+```shell
+./launch.sh driver_sim.launch.py robot_name:=cloi
+
+./launch.sh world_sim.launch.py
+```
