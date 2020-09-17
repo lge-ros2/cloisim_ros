@@ -66,10 +66,10 @@ void RealSenseDriverSim::Initialize()
     dataPortMap_[simBridgeCount] = portCamData;
     hashKeySubs_[simBridgeCount] = hashKeySub;
 
-    auto pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw");
+    auto pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw", rclcpp::QoS(1).get_rmw_qos_profile());
     pubImages_[simBridgeCount] = pubImage;
 
-    auto pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
+    auto pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::QoS(1));
     pubCameraInfos_[simBridgeCount] = pubCameraInfo;
 
     sensor_msgs::msg::Image msg_img;

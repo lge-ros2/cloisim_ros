@@ -73,9 +73,8 @@ void CameraDriverSim::Initialize()
 
   const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
 
-  pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw");
-
-  pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::SensorDataQoS());
+  pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw", rclcpp::QoS(1).get_rmw_qos_profile());
+  pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::QoS(1));
 }
 
 void CameraDriverSim::Deinitialize()

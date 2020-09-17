@@ -63,10 +63,10 @@ void MultiCameraDriverSim::Initialize()
     const auto topic_base_name_ = multicamera_name_ + "/" + frame_id;
     DBG_SIM_INFO("[CONFIG] topic_base_name:%s", topic_base_name_.c_str());
 
-    pubImages.push_back(image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw"));
+    pubImages.push_back(image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw", rclcpp::QoS(1).get_rmw_qos_profile()));
 
     // Camera info publisher
-    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::ServicesQoS());
+    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::QoS(1));
     pubCamerasInfo.push_back(camInfoPub);
 
     GetCameraSensorMessage(pSimBridgeInfo, frame_id);
