@@ -48,7 +48,7 @@ void MicomDriverSim::Initialize()
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx_, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx_, uint16_t(0));
-  DBG_SIM_INFO("[CONFIG] %d %d %d", portInfo, portTx_, portRx_);
+  // DBG_SIM_INFO("[CONFIG] %d %d %d", portInfo, portTx_, portRx_);
 
   const auto hashKeyInfo = GetMainHashKey() + "Info";
   m_hashKeyPub = GetMainHashKey() + "Rx";
@@ -97,19 +97,26 @@ void MicomDriverSim::Initialize()
     }
   }
 
+  printf("1\n");
   if (pSimBridgeInfo != nullptr)
   {
+    printf("2\n");
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, hashKeyInfo);
+    printf("3\n");
 
     GetWeelInfo(pSimBridgeInfo);
+    printf("4\n");
 
     GetTransformNameInfo(pSimBridgeInfo);
+    printf("5\n");
 
     const auto transform_imu_name = target_transform_name["imu"];
+    printf("%s\n", transform_imu_name.c_str());
     const auto transform_imu = GetObjectTransform(pSimBridgeInfo, transform_imu_name);
     SetupStaticTf2Message(transform_imu, transform_imu_name);
 
     const auto transform_wheel_0_name = target_transform_name["wheels/left"];
+    printf("%s\n", transform_wheel_0_name.c_str());
     const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheel_0_name);
     SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name);
 
@@ -118,6 +125,7 @@ void MicomDriverSim::Initialize()
     tf2::Matrix3x3(wheel_left_quat).getRPY(orig_left_wheel_rot_[0], orig_left_wheel_rot_[1], orig_left_wheel_rot_[2]);
 
     const auto transform_wheel_1_name = target_transform_name["wheels/right"];
+    printf("%s\n", transform_wheel_1_name.c_str());
     const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheel_1_name);
     SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name);
 
@@ -280,7 +288,7 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
               target_transform_name["wheels/left"] = childParam0.value().string_value();
             }
 
-            auto childParam1 = param1.children(0);
+            auto childParam1 = param1.children(1);
             if (childParam1.name() == "right" && childParam1.has_value())
             {
               target_transform_name["wheels/right"] = childParam1.value().string_value();
