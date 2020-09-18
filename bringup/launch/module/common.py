@@ -34,7 +34,7 @@ def get_launcher_file_by_device_type(device_type):
     return None if (launcher_filename is None) else launcher_filename + ".launch.py"
 
 
-def get_robot_name_in_arg():
+def _get_robot_name_in_arg():
 
     _robot_name = ''
 
@@ -74,7 +74,7 @@ def get_robot_name_in_env():
 
 def find_robot_name():
 
-    _robot_name = get_robot_name_in_arg()
+    _robot_name = _get_robot_name_in_arg()
 
     # if robot_name still not exist
     if len(_robot_name.strip()) == 0:
