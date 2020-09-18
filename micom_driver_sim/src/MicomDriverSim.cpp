@@ -97,26 +97,19 @@ void MicomDriverSim::Initialize()
     }
   }
 
-  printf("1\n");
   if (pSimBridgeInfo != nullptr)
   {
-    printf("2\n");
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, hashKeyInfo);
-    printf("3\n");
 
     GetWeelInfo(pSimBridgeInfo);
-    printf("4\n");
 
     GetTransformNameInfo(pSimBridgeInfo);
-    printf("5\n");
 
     const auto transform_imu_name = target_transform_name["imu"];
-    printf("%s\n", transform_imu_name.c_str());
     const auto transform_imu = GetObjectTransform(pSimBridgeInfo, transform_imu_name);
     SetupStaticTf2Message(transform_imu, transform_imu_name);
 
     const auto transform_wheel_0_name = target_transform_name["wheels/left"];
-    printf("%s\n", transform_wheel_0_name.c_str());
     const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheel_0_name);
     SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name);
 
@@ -125,7 +118,6 @@ void MicomDriverSim::Initialize()
     tf2::Matrix3x3(wheel_left_quat).getRPY(orig_left_wheel_rot_[0], orig_left_wheel_rot_[1], orig_left_wheel_rot_[2]);
 
     const auto transform_wheel_1_name = target_transform_name["wheels/right"];
-    printf("%s\n", transform_wheel_1_name.c_str());
     const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheel_1_name);
     SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name);
 
