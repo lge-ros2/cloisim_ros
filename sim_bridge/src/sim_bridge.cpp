@@ -409,6 +409,7 @@ bool SimBridge::Disconnect(const unsigned char mode)
 
 bool SimBridge::Reconnect(const unsigned char mode, const uint16_t port, const string hashKey)
 {
+  DBG_SIM_INFO("Reconnect");
   bool result = true;
   result &= Disconnect(mode);
   result &= Connect(mode, port, hashKey);
