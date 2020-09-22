@@ -1,0 +1,20 @@
+##
+## Copyright (c) 2020 LG Electronics Inc.
+##
+## SPDX-License-Identifier: MIT
+##
+
+# Select the floor where to go
+
+# The index of an elevator
+string elevator_index
+
+# Target floor where the robot wants to go. ex) "1F", "B1F"
+string target_floor
+
+# Current floor where the robot stands. ex) "1F", "B1F"
+string current_floor
+
+---
+
+bool result

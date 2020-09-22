@@ -1,0 +1,11 @@
+syntax = "proto2";
+package gazebo.msgs;
+
+/// \ingroup gazebo_msgs
+/// \interface CameraCmd
+/// \brief Message for camera command
+
+message CameraCmd
+{
+  optional string follow_model   = 1;
+}

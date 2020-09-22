@@ -1,0 +1,18 @@
+##
+## Copyright (c) 2020 LG Electronics Inc.
+##
+## SPDX-License-Identifier: MIT
+##
+
+# This message used for below services
+# - request door open
+# - request door close
+# - is door opened?
+# - is door closed?
+
+# The index of an elevator
+string elevator_index
+
+---
+
+bool result

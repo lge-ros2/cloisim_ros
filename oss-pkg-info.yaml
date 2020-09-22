@@ -1,0 +1,5 @@
+Open Source Package:
+- name: gazebo/msgs
+  version: 9.13.0
+  source: https://bitbucket.org/osrf/gazebo/src/gazebo9_9.13.0
+  license: Apache-2.0

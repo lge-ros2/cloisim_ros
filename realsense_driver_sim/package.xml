@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>realsense_driver_sim</name>
+  <version>1.1.0</version>
+  <description>virtual realsense driver for simulator</description>
+  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
+  <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>sensor_msgs</depend>
+  <depend>camera_info_manager</depend>
+  <depend>image_transport</depend>
+
+  <build_depend>driver_sim</build_depend>
+  <build_depend>sim_bridge</build_depend>
+  <build_depend>rclcpp</build_depend>
+
+  <exec_depend>sim_bridge</exec_depend>
+  <exec_depend>driver_sim</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

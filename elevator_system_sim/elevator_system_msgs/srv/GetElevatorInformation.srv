@@ -1,0 +1,18 @@
+##
+## Copyright (c) 2020 LG Electronics Inc.
+##
+## SPDX-License-Identifier: MIT
+##
+
+# The index of an elevator
+string elevator_index
+
+---
+
+bool result
+
+# Current floor where the elevator stopped ex) "1F", "B1F"
+string current_floor
+
+# Current elevator height
+float32 height

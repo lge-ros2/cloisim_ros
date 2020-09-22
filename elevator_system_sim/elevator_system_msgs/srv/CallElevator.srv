@@ -1,0 +1,22 @@
+##
+## Copyright (c) 2020 LG Electronics Inc.
+##
+## SPDX-License-Identifier: MIT
+##
+
+# This message used for below services
+# - call elevator
+# - get called elevator
+
+# Current floor where the robot stands. ex) "1F", "B1F"
+string current_floor
+
+# Target floor where the robot wants to go. ex) "1F", "B1F"
+string target_floor
+
+---
+
+bool result
+
+# The index of an elevator called
+string elevator_index
