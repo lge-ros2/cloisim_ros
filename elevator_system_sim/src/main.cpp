@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "elevator_system/CElevatorSystem.hpp"
+#include "elevator_system_sim/ElevatorSystemSim.hpp"
 
 using namespace std::literals;
 
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
   rclcpp::sleep_for(5000ms);
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<CElevatorSystem>();
+  auto node = std::make_shared<ElevatorSystemSim>();
   rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
 

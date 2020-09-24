@@ -25,7 +25,7 @@ def generate_launch_description():
     _node_name = LaunchConfiguration('node_name')
     _parameters = LaunchConfiguration('parameters')
 
-    _package_name = 'elevator_system'
+    _package_name = 'elevator_system_sim'
 
     node = LifecycleNode(
         package=_package_name,

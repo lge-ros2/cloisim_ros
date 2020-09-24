@@ -1,5 +1,5 @@
 /**
- *  @file   CElevatorSystem.cpp
+ *  @file   ElevatorSystemSim.cpp
  *  @date   2020-04-22
  *  @author Hyunseok Yang
  *  @brief
@@ -13,13 +13,13 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "elevator_system/CElevatorSystem.hpp"
+#include "elevator_system_sim/ElevatorSystemSim.hpp"
 
 using namespace std;
 using namespace placeholders;
 
-CElevatorSystem::CElevatorSystem(bool intra_process_comms)
-    : LifecycleNode("elevator_system",
+ElevatorSystemSim::ElevatorSystemSim(bool intra_process_comms)
+    : LifecycleNode("elevator_system_sim",
                     rclcpp::NodeOptions()
                         .allow_undeclared_parameters(true)
                         .automatically_declare_parameters_from_overrides(true)
@@ -35,7 +35,7 @@ CElevatorSystem::CElevatorSystem(bool intra_process_comms)
    DBG_SIM_MSG("TAG=[%s]", m_hashKey.c_str());
 }
 
-CallbackReturn CElevatorSystem::on_configure(const State &)
+CallbackReturn ElevatorSystemSim::on_configure(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
 
@@ -47,7 +47,7 @@ CallbackReturn CElevatorSystem::on_configure(const State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn CElevatorSystem::on_activate(const State &)
+CallbackReturn ElevatorSystemSim::on_activate(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
 
@@ -70,68 +70,68 @@ CallbackReturn CElevatorSystem::on_activate(const State &)
 
   m_pSrvCallElevator = this->create_service<CallElevator>(
       nodeName + string("/call_elevator"),
-      bind(&CElevatorSystem::callback_call_elevator, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_call_elevator, this, _1, _2, _3));
 
   m_pSrvGetCalledElevator = this->create_service<CallElevator>(
       nodeName + string("/get_called_elevator"),
-      bind(&CElevatorSystem::callback_get_called_elevator, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_get_called_elevator, this, _1, _2, _3));
 
   m_pSrvGetElevatorInformation = this->create_service<GetElevatorInfo>(
       nodeName + string("/get_elevator_information"),
-      bind(&CElevatorSystem::callback_get_elevator_information, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_get_elevator_information, this, _1, _2, _3));
 
   m_pSrvSelectElevatorFloor = this->create_service<SelectElevatorFloor>(
       nodeName + string("/select_elevator_floor"),
-      bind(&CElevatorSystem::callback_select_elevator_floor, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_select_elevator_floor, this, _1, _2, _3));
 
   m_pSrvRequestDoorOpen = this->create_service<RequestDoor>(
       nodeName + string("/request_door_open"),
-      bind(&CElevatorSystem::callback_request_door_open, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_request_door_open, this, _1, _2, _3));
 
   m_pSrvRequestDoorClose = this->create_service<RequestDoor>(
       nodeName + string("/request_door_close"),
-      bind(&CElevatorSystem::callback_request_door_close, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_request_door_close, this, _1, _2, _3));
 
   m_pSrvIsDoorOpened = this->create_service<RequestDoor>(
       nodeName + string("/is_door_opened"),
-      bind(&CElevatorSystem::callback_is_door_opened, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_is_door_opened, this, _1, _2, _3));
 
   m_pSrvReserveElevator = this->create_service<ReturnBool>(
       nodeName + string("/reserve_elevator"),
-      bind(&CElevatorSystem::callback_reserve_elevator, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_reserve_elevator, this, _1, _2, _3));
 
   m_pSrvReleaseElevator = this->create_service<ReturnBool>(
       nodeName + string("/release_elevator"),
-      bind(&CElevatorSystem::callback_release_elevator, this, _1, _2, _3));
+      bind(&ElevatorSystemSim::callback_release_elevator, this, _1, _2, _3));
 
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn CElevatorSystem::on_deactivate(const State &)
+CallbackReturn ElevatorSystemSim::on_deactivate(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn CElevatorSystem::on_cleanup(const State &)
+CallbackReturn ElevatorSystemSim::on_cleanup(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn CElevatorSystem::on_shutdown(const State &)
+CallbackReturn ElevatorSystemSim::on_shutdown(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn CElevatorSystem::on_error(const State &)
+CallbackReturn ElevatorSystemSim::on_error(const State &)
 {
   RCLCPP_INFO(get_logger(), __FUNCTION__);
   return CallbackReturn::SUCCESS;
 }
 
-void CElevatorSystem::callback_call_elevator(
+void ElevatorSystemSim::callback_call_elevator(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<CallElevator::Request> request,
     const shared_ptr<CallElevator::Response> response)
@@ -150,7 +150,7 @@ void CElevatorSystem::callback_call_elevator(
   }
 }
 
-void CElevatorSystem::callback_get_called_elevator(
+void ElevatorSystemSim::callback_get_called_elevator(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<CallElevator::Request> request,
     const shared_ptr<CallElevator::Response> response)
@@ -170,7 +170,7 @@ void CElevatorSystem::callback_get_called_elevator(
   }
 }
 
-void CElevatorSystem::callback_get_elevator_information(
+void ElevatorSystemSim::callback_get_elevator_information(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<GetElevatorInfo::Request> request,
     const shared_ptr<GetElevatorInfo::Response> response)
@@ -189,7 +189,7 @@ void CElevatorSystem::callback_get_elevator_information(
   }
 }
 
-void CElevatorSystem::callback_select_elevator_floor(
+void ElevatorSystemSim::callback_select_elevator_floor(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<SelectElevatorFloor::Request> request,
     const shared_ptr<SelectElevatorFloor::Response> response)
@@ -209,7 +209,7 @@ void CElevatorSystem::callback_select_elevator_floor(
   }
 }
 
-void CElevatorSystem::callback_request_door_open(
+void ElevatorSystemSim::callback_request_door_open(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
@@ -226,7 +226,7 @@ void CElevatorSystem::callback_request_door_open(
   }
 }
 
-void CElevatorSystem::callback_request_door_close(
+void ElevatorSystemSim::callback_request_door_close(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
@@ -243,7 +243,7 @@ void CElevatorSystem::callback_request_door_close(
   }
 }
 
-void CElevatorSystem::callback_is_door_opened(
+void ElevatorSystemSim::callback_is_door_opened(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
@@ -260,7 +260,7 @@ void CElevatorSystem::callback_is_door_opened(
   }
 }
 
-void CElevatorSystem::callback_reserve_elevator(
+void ElevatorSystemSim::callback_reserve_elevator(
   const shared_ptr<rmw_request_id_t> /*request_header*/,
   const shared_ptr<ReturnBool::Request> /*request*/,
   const shared_ptr<ReturnBool::Response> response)
@@ -268,7 +268,7 @@ void CElevatorSystem::callback_reserve_elevator(
   response->result = srvMode_;
 }
 
-void CElevatorSystem::callback_release_elevator(
+void ElevatorSystemSim::callback_release_elevator(
   const shared_ptr<rmw_request_id_t> /*request_header*/,
   const shared_ptr<ReturnBool::Request> /*request*/,
   const shared_ptr<ReturnBool::Response> response)
@@ -286,7 +286,7 @@ void CElevatorSystem::callback_release_elevator(
  *
  * @return created protobuf message for request
  */
-msgs::Param CElevatorSystem::create_request_message(
+msgs::Param ElevatorSystemSim::create_request_message(
     string service_name,
     string current_floor,
     string target_floor,
@@ -325,7 +325,7 @@ msgs::Param CElevatorSystem::create_request_message(
   return newMessage;
 }
 
-bool CElevatorSystem::get_result_from_response_message(const msgs::Param &response_msg)
+bool ElevatorSystemSim::get_result_from_response_message(const msgs::Param &response_msg)
 {
   auto result_param = response_msg.children(1);
   if (!result_param.IsInitialized() || result_param.name().compare("result") != 0)
@@ -336,7 +336,7 @@ bool CElevatorSystem::get_result_from_response_message(const msgs::Param &respon
   return result_param.value().bool_value();
 }
 
-int CElevatorSystem::get_elevator_index_from_response_message(const msgs::Param &response_msg)
+int ElevatorSystemSim::get_elevator_index_from_response_message(const msgs::Param &response_msg)
 {
   auto result_param = response_msg.children(2);
   if (!result_param.IsInitialized() || result_param.name().compare("elevator_index") != 0)
@@ -347,7 +347,7 @@ int CElevatorSystem::get_elevator_index_from_response_message(const msgs::Param 
   return result_param.value().int_value();
 }
 
-string CElevatorSystem::get_current_floor_from_response_message(const msgs::Param &response_msg)
+string ElevatorSystemSim::get_current_floor_from_response_message(const msgs::Param &response_msg)
 {
   auto result_param = response_msg.children(3);
   if (!result_param.IsInitialized() || result_param.name().compare("current_floor") != 0)
@@ -358,7 +358,7 @@ string CElevatorSystem::get_current_floor_from_response_message(const msgs::Para
   return result_param.value().string_value();
 }
 
-float CElevatorSystem::get_height_from_response_message(const msgs::Param &response_msg)
+float ElevatorSystemSim::get_height_from_response_message(const msgs::Param &response_msg)
 {
   auto result_param = response_msg.children(4);
   if (!result_param.IsInitialized() || result_param.name().compare("height") != 0)
@@ -374,7 +374,7 @@ float CElevatorSystem::get_height_from_response_message(const msgs::Param &respo
  * @param request_msg[IN]   request context
  * @return successful or failed
  */
-bool CElevatorSystem::send_request(const msgs::Param &request_msg)
+bool ElevatorSystemSim::send_request(const msgs::Param &request_msg)
 {
   const lock_guard<mutex> lock(m_mtxSendRequest);
 
@@ -389,7 +389,7 @@ bool CElevatorSystem::send_request(const msgs::Param &request_msg)
  * @param response_msg[OUT]   response context
  * @return successful or failed
  */
-bool CElevatorSystem::receive_response(msgs::Param &response_msg)
+bool ElevatorSystemSim::receive_response(msgs::Param &response_msg)
 {
   const lock_guard<mutex> lock(m_mtxReceiveResponse);
 

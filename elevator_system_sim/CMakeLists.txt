@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(elevator_system)
+project(elevator_system_sim)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -28,7 +28,7 @@ find_package(elevator_system_msgs REQUIRED)
 include_directories(include)
 
 add_executable(${PROJECT_NAME}
-  src/CElevatorSystem.cpp
+  src/ElevatorSystemSim.cpp
   src/main.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}

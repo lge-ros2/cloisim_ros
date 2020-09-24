@@ -1,5 +1,5 @@
 /**
- *  @file   CElevatorSystem.hpp
+ *  @file   ElevatorSystemSim.hpp
  *  @date   2020-04-22
  *  @author Hyunseok Yang
  *  @brief
@@ -42,10 +42,10 @@ using CallbackReturn = node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 #define NON_ELEVATOR_INDEX -1
 
-class CElevatorSystem : public rclcpp_lifecycle::LifecycleNode
+class ElevatorSystemSim : public rclcpp_lifecycle::LifecycleNode
 {
 public:
-  explicit CElevatorSystem(bool intra_process_comms = false);
+  explicit ElevatorSystemSim(bool intra_process_comms = false);
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &);
   CallbackReturn on_activate(const rclcpp_lifecycle::State &);
@@ -128,7 +128,7 @@ private:
   bool receive_response(msgs::Param &response_msg);
 };
 
-inline msgs::Param CElevatorSystem::create_request_message(std::string service_name, int elevator_index)
+inline msgs::Param ElevatorSystemSim::create_request_message(std::string service_name, int elevator_index)
 {
   return create_request_message(service_name, "", "", elevator_index);
 }

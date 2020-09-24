@@ -25,7 +25,7 @@
   <build_depend>multi_camera_driver_sim</build_depend>
   <build_depend>depth_camera_driver_sim</build_depend>
   <build_depend>realsense_driver_sim</build_depend>
-  <build_depend>elevator_system</build_depend>
+  <build_depend>elevator_system_sim</build_depend>
 
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>rclcpp</exec_depend>
@@ -38,7 +38,7 @@
   <exec_depend>multi_camera_driver_sim</exec_depend>
   <exec_depend>depth_camera_driver_sim</exec_depend>
   <exec_depend>realsense_driver_sim</exec_depend>
-  <exec_depend>elevator_system</exec_depend>
+  <exec_depend>elevator_system_sim</exec_depend>
 
   <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_lint_auto</test_depend>
