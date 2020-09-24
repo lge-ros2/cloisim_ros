@@ -20,8 +20,15 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_package(sim_bridge REQUIRED)
 find_package(driver_sim REQUIRED)
+
+set(dependencies
+  rclcpp
+  sensor_msgs
+  geometry_msgs
+  nav_msgs
+  driver_sim
+)
 
 ################################################################################
 # Build
@@ -33,21 +40,14 @@ add_executable(${PROJECT_NAME}
   src/MicomDriverSim.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
-  std_msgs/
-  sensor_msgs
-  geometry_msgs
-  nav_msgs
-  sim_bridge
-  driver_sim)
+  ${dependencies}
+)
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
-
-################################################################################
-# Test
-################################################################################
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()

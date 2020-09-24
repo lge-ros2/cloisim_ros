@@ -108,7 +108,7 @@ SimBridge* DriverSim::GetSimBridge(const uint bridge_index)
 {
   if (bridge_index >= m_simBridgeList.capacity())
   {
-    DBG_SIM_WRN("Wrong bridge index(%d) / total sim bridges(%d)", bridge_index, m_simBridgeList.capacity());
+    DBG_SIM_WRN("Wrong bridge index(%d) / total sim bridges(%lu)", bridge_index, m_simBridgeList.capacity());
     return nullptr;
   }
 

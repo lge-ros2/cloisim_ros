@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 ENV HOSTNAME sim-device
-ENV ROS_DISTRO=dashing
+ENV ROS_DISTRO=foxy
 
 RUN apt update && apt upgrade -q -y && \
 	apt install -q -y locales curl gnupg2 lsb-release && \
@@ -17,8 +17,8 @@ RUN sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
 	apt update && \
-	apt install -y ros-${ROS_DISTRO}-ros-base git python3-colcon-common-extensions && \
-	apt install -y python3-websocket libzmq3-dev libprotobuf-dev protobuf-compiler ros-${ROS_DISTRO}-camera-info-manager && \
+	apt install -y ros-${ROS_DISTRO}-ros-base git python3-colcon-common-extensions g++ && \
+	apt install -y python3-websocket libzmq3-dev libprotobuf-dev protobuf-compiler ros-${ROS_DISTRO}-image-transport-plugins ros-${ROS_DISTRO}-camera-info-manager && \
 	apt autoclean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /opt/lge-ros2/src

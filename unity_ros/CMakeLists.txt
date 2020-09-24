@@ -12,7 +12,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic -fstack-protector -O2)
 endif()
 
-
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
@@ -20,7 +19,12 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
 find_package(driver_sim REQUIRED)
-find_package(sim_bridge REQUIRED)
+
+set(dependencies
+  rclcpp
+  rosgraph_msgs
+  driver_sim
+)
 
 ################################################################################
 # Build
@@ -29,21 +33,18 @@ include_directories(include)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
-  src/unity_ros_init.cpp)
+  src/unity_ros_init.cpp
+)
 
 ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
-  rosgraph_msgs
-  driver_sim
-  sim_bridge)
+  ${dependencies}
+)
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
-
-################################################################################
-# Test
-################################################################################
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()

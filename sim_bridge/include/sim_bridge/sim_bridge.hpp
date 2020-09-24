@@ -16,7 +16,7 @@
 #ifndef _SIM_BRIDGE_H_
 #define _SIM_BRIDGE_H_
 
-#include "sim_bridge/debug_log.h"
+#include "debug_log.h"
 #include <string>
 #include <zmq.h>
 

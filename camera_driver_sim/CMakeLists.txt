@@ -20,62 +20,49 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
-find_package(sim_bridge REQUIRED)
 find_package(driver_sim REQUIRED)
 
-################################################################################
-# Build
-################################################################################
-include_directories(include)
-
-add_library(${PROJECT_NAME} SHARED
-  src/CameraDriverSim.cpp
-)
-
-ament_target_dependencies(${PROJECT_NAME}
+set(dependencies
   rclcpp
   sensor_msgs
   camera_info_manager
   image_transport
-  sim_bridge
-  driver_sim)
-
-
-add_executable(${PROJECT_NAME}-bin
-  src/main.cpp
+  driver_sim
 )
 
-target_link_libraries(${PROJECT_NAME}-bin ${PROJECT_NAME})
+################################################################################
+# Build
+################################################################################
+add_library(${PROJECT_NAME} SHARED
+  src/main.cpp
+  src/CameraDriverSim.cpp
+)
 
-ament_target_dependencies(${PROJECT_NAME}-bin
-  rclcpp
-  sim_bridge
-  driver_sim)
+target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+ament_target_dependencies(${PROJECT_NAME}
+  ${dependencies}
+)
 
 ################################################################################
-# Install (Execution)
+# Install
 ################################################################################
-install(TARGETS ${PROJECT_NAME}-bin DESTINATION lib/${PROJECT_NAME})
-set_target_properties(${PROJECT_NAME}-bin PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+install(TARGETS ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+  INCLUDES DESTINATION include
+)
 
-################################################################################
-# Install (Library)
-################################################################################
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME} ${dependencies})
-
-install(
-  DIRECTORY include/
+install(DIRECTORY include/
   DESTINATION include
 )
 
-install(
-  TARGETS ${PROJECT_NAME}
-  EXPORT export_${PROJECT_NAME}
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include
-)
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(${dependencies})
 
 ament_package()

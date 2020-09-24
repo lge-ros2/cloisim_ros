@@ -16,11 +16,16 @@ endif()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(driver_sim REQUIRED)
-find_package(sim_bridge REQUIRED)
 find_package(elevator_system_msgs REQUIRED)
+
+set(dependencies
+  rclcpp_lifecycle
+  rosgraph_msgs
+  elevator_system_msgs
+  driver_sim
+)
 
 ################################################################################
 # Build
@@ -32,20 +37,14 @@ add_executable(${PROJECT_NAME}
   src/main.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
-  rclcpp_lifecycle
-  rosgraph_msgs
-  elevator_system_msgs
-  driver_sim
-  sim_bridge)
+  ${dependencies}
+)
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
-
-################################################################################
-# Test
-################################################################################
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()

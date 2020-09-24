@@ -14,41 +14,41 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 
+set(dependencies
+  zmq
+  protobuf
+)
+
 ################################################################################
 # Build
 ################################################################################
-include_directories(include)
-
-set(dependencies
-  zmq
-  protobuf)
-
 add_library(${PROJECT_NAME} SHARED
-  src/sim_bridge.cpp)
+  src/sim_bridge.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  ${dependencies})
+  ${dependencies}
+)
 
 ################################################################################
 # Install
 ################################################################################
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-# ament_export_dependencies(${dependencies})
-ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME} ${dependencies})
+install(TARGETS ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include
+)
 
-install(
-  DIRECTORY include/
+install(DIRECTORY include/
   DESTINATION include
 )
 
-install(
-  TARGETS ${PROJECT_NAME}
-  EXPORT export_${PROJECT_NAME}
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  # RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME} ${dependencies})
 
 ament_package()

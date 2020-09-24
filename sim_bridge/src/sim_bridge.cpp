@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include <sim_bridge/sim_bridge.hpp>
+#include "sim_bridge/sim_bridge.hpp"
 #include <cstring>
 #include <thread>
 
@@ -433,7 +433,7 @@ bool SimBridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode
 {
   if (&m_msgRx == nullptr || pSockRx_ == nullptr)
   {
-    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer m_msgRx(%p) or pSockRx_(%p)", &m_msgRx, pSockRx_);
+    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer m_msgRx(%p) or pSockRx_(%p)", (void*)&m_msgRx, pSockRx_);
     return false;
   }
 
@@ -461,7 +461,7 @@ bool SimBridge::Send(const void* buffer, const int bufferLength, bool isNonBlock
   zmq_msg_t msg;
   if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0)
   {
-    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer msg(%p) or pSockTx_(%p)", &msg, pSockTx_);
+    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer msg(%p) or pSockTx_(%p)", (void*)&msg, pSockTx_);
     return false;
   }
 

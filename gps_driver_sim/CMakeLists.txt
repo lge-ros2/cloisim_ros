@@ -22,6 +22,13 @@ find_package(geometry_msgs REQUIRED)
 find_package(sim_bridge REQUIRED)
 find_package(driver_sim REQUIRED)
 
+set(dependencies
+  rclcpp
+  sensor_msgs
+  geometry_msgs
+  driver_sim
+)
+
 ################################################################################
 # Build
 ################################################################################
@@ -32,19 +39,14 @@ add_executable(${PROJECT_NAME}
   src/GPSDriverSim.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
-  sensor_msgs
-  geometry_msgs
-  sim_bridge
-  driver_sim)
+  ${dependencies}
+)
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
-
-################################################################################
-# Test
-################################################################################
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()

@@ -15,8 +15,8 @@
 #define _MultiCameraDriverSim_H_
 
 #include <driver_sim/driver_sim.hpp>
-#include <image_transport/image_transport.h>
-#include <camera_info_manager/camera_info_manager.h>
+#include <image_transport/image_transport.hpp>
+#include <camera_info_manager/camera_info_manager.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <protobuf/images_stamped.pb.h>
 #include <protobuf/camerasensor.pb.h>

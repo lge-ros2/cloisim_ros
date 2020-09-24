@@ -15,7 +15,7 @@
 #ifndef _DEBUG_LOG_H_
 #define _DEBUG_LOG_H_
 
-#include "sim_bridge/term_color.h"
+#include "term_color.h"
 
 #pragma GCC system_header
 

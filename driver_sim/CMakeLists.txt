@@ -16,47 +16,53 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(sim_bridge REQUIRED)
+
+file(GLOB protobuf_msg_srcs
+  ./include/protobuf/*.pb.cc
+)
+
+set(dependencies
+  rclcpp
+  tf2_geometry_msgs
+  tf2_ros
+  sim_bridge
+)
 
 ################################################################################
 # Build
 ################################################################################
-include_directories(include)
-
-FILE(GLOB PROTOBUF_MSG_SRCS
-  ./include/protobuf/*.pb.cc)
-
 add_library(${PROJECT_NAME} SHARED
   src/driver_sim.cpp
-  ${PROTOBUF_MSG_SRCS})
+  ${protobuf_msg_srcs}
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
 ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
-  geometry_msgs
-  tf2_ros
-  sim_bridge)
+  ${dependencies}
+)
 
 ################################################################################
 # Install
 ################################################################################
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_libraries(${PROJECT_NAME} ${dependencies})
-ament_export_include_directories(include)
+install(TARGETS ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include
+)
 
-install(
-  DIRECTORY include/
+install(DIRECTORY include/
   DESTINATION include
 )
 
-install(
-  TARGETS ${PROJECT_NAME}
-  EXPORT export_${PROJECT_NAME}
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
+ament_export_dependencies(${dependencies})
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
 
 ament_package()
