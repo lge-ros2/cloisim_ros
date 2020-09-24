@@ -9,20 +9,13 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>builtin_interfaces</depend>
-
-  <build_depend>driver_sim</build_depend>
-  <build_depend>sim_bridge</build_depend>
-  <build_depend>rosgraph_msgs</build_depend>
-
-  <exec_depend>launch_ros</exec_depend>
-  <exec_depend>driver_sim</exec_depend>
-  <exec_depend>sim_bridge</exec_depend>
+  <depend>rclcpp</depend>
+  <depend>driver_sim</depend>
+  <depend>rosgraph_msgs</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-  <test_depend>rosgraph_msgs</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

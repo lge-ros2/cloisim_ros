@@ -15,30 +15,16 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>launch_ros</build_depend>
-  <build_depend>sim_bridge</build_depend>
-  <build_depend>unity_ros</build_depend>
-  <build_depend>lidar_driver_sim</build_depend>
-  <build_depend>micom_driver_sim</build_depend>
-  <build_depend>gps_driver_sim</build_depend>
-  <build_depend>camera_driver_sim</build_depend>
-  <build_depend>multi_camera_driver_sim</build_depend>
-  <build_depend>depth_camera_driver_sim</build_depend>
-  <build_depend>realsense_driver_sim</build_depend>
-  <build_depend>elevator_system_sim</build_depend>
-
   <exec_depend>launch_ros</exec_depend>
-  <exec_depend>rclcpp</exec_depend>
-  <exec_depend>rmw</exec_depend>
-  <exec_depend>unity_ros</exec_depend>
-  <exec_depend>mcu_driver_sim</exec_depend>
+  <exec_depend>micom_driver_sim</exec_depend>
   <exec_depend>lidar_driver_sim</exec_depend>
-  <exec_depend>gps_driver_sim</exec_depend>
   <exec_depend>camera_driver_sim</exec_depend>
-  <exec_depend>multi_camera_driver_sim</exec_depend>
   <exec_depend>depth_camera_driver_sim</exec_depend>
+  <exec_depend>multi_camera_driver_sim</exec_depend>
   <exec_depend>realsense_driver_sim</exec_depend>
+  <exec_depend>gps_driver_sim</exec_depend>
   <exec_depend>elevator_system_sim</exec_depend>
+  <exec_depend>unity_ros</exec_depend>
 
   <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_lint_auto</test_depend>

@@ -10,19 +10,10 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
-  <depend>camera_info_manager</depend>
-  <depend>image_transport</depend>
-
-  <build_depend>sim_bridge</build_depend>
-  <build_depend>driver_sim</build_depend>
-  <build_depend>camera_driver_sim</build_depend>
-  <build_depend>rclcpp</build_depend>
-
-  <exec_depend>sim_bridge</exec_depend>
-  <exec_depend>driver_sim</exec_depend>
-  <exec_depend>camera_driver_sim</exec_depend>
-  <exec_depend>rclcpp</exec_depend>
+  <depend>driver_sim</depend>
+  <depend>camera_driver_sim</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
