@@ -1,4 +1,4 @@
-# sim-device (dashing version)
+# sim-device (foxy version)
 
 ROS2 simulation device packages to connect the unity3D based multi-robot simulator(latest version).
 
@@ -14,7 +14,7 @@ sudo apt-get install python-websocket
 sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
 
 ## for camera driver sim
-sudo sudo apt-get install ros-dashing-camera-info-manager
+sudo sudo apt-get install ros-foxy-image-transport-plugins ros-foxy-camera-info-manager
 ```
 
 ## Build
@@ -22,7 +22,7 @@ sudo sudo apt-get install ros-dashing-camera-info-manager
 Please setup ROS2 environment first!
 
 ```shell
-source /opt/ros2/dashing/setup.bash
+source /opt/ros2/foxy/setup.bash
 colcon build --packages-up-to simdevice_bringup
 ```
 
@@ -36,7 +36,7 @@ export SIM_BRIDGE_IP='127.0.0.1'
 
 ### driver sim
 
-check here [details](https://github.com/lge-ros2/sim-device/tree/dashing/bringup)
+check here [details](https://github.com/lge-ros2/sim-device/tree/foxy/bringup)
 
 ```shell
 ros2 launch simdevice_bringup **driver_sim**.launch.py robot_name:=cloi1
@@ -77,7 +77,7 @@ Run below command after clone this repository(this branch).
 #### Build image
 
 ```shell
-git clone https://github.com/lge-ros2/sim-device.git -b dashing
+git clone https://github.com/lge-ros2/sim-device.git -b foxy
 cd sim-device
 docker build -t simdevice .
 ```
@@ -92,7 +92,7 @@ docker run -it --rm --net=host simdevice {launch script} {arguments}
 
 ###### launchers
 
-[here](https://github.com/lge-ros2/sim-device/tree/dashing/bringup/launch) to check launchers
+[here](https://github.com/lge-ros2/sim-device/tree/foxy/bringup/launch) to check launchers
 
 ```shell
 docker run -it --rm --net=host simdevice driver_sim.launch.py robot_name:=cloi1
@@ -113,3 +113,4 @@ docker run -it --rm --net=host simdevice cloisim_world.launch.py sim_path:=/opt/
 
 - Please refer to each branch for ROS2 distro-version you want
   - [dashing](https://github.com/lge-ros2/sim-device/tree/dashing)
+  - [foxy](https://github.com/lge-ros2/sim-device/tree/foxy)
