@@ -47,7 +47,7 @@ SimBridge::SimBridge()
 
   pCtx_ = zmq_ctx_new();
 
-  DBG_SIM_INFO("[SIM_BRIDGE] bridge_ip = %s", simBridgeIP.c_str());
+  // DBG_SIM_INFO("[SIM_BRIDGE] bridge_ip = %s", simBridgeIP.c_str());
 }
 
 

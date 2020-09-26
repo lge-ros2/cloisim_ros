@@ -30,7 +30,7 @@ RealSenseDriverSim::RealSenseDriverSim()
 
 RealSenseDriverSim::~RealSenseDriverSim()
 {
-  DBG_SIM_INFO("Delete");
+  // DBG_SIM_INFO("Delete");
   Stop();
 }
 
@@ -60,8 +60,7 @@ void RealSenseDriverSim::Initialize()
 
     const auto hashKeySub = GetMainHashKey() + module;
 
-    DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
-    DBG_SIM_INFO("[CONFIG] hash Key sub: %s", hashKeySub.c_str());
+    DBG_SIM_INFO("[CONFIG] topic_name:%s, hash Key sub: %s", topic_base_name_.c_str(), hashKeySub.c_str());
 
     auto pSimBridgeCamInfo = GetSimBridge(++simBridgeCount);
     auto pSimBridgeCamData = GetSimBridge(++simBridgeCount);
@@ -117,7 +116,7 @@ void RealSenseDriverSim::Deinitialize()
     if (thread.joinable())
     {
       thread.join();
-      DBG_SIM_INFO("Thread finished");
+      // DBG_SIM_INFO("Thread finished");
     }
   }
 
@@ -136,6 +135,7 @@ void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
     return;
   }
 
+  string moduleListStr;
   msgs::Param request_msg;
   string serializedBuffer;
   void *pBuffer = nullptr;
@@ -170,11 +170,13 @@ void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
         {
           const auto module = param.value().string_value();
           module_list_.push_back(module);
-          DBG_SIM_INFO("[CONFIG] activated_module: %s", module.c_str());
+          moduleListStr.append(module + ", ");
         }
       }
     }
   }
+
+  DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
 void RealSenseDriverSim::UpdateData(const uint bridge_index)
