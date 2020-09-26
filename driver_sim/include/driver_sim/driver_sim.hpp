@@ -27,7 +27,7 @@
 class DriverSim : public rclcpp::Node
 {
 public:
-  explicit DriverSim(const std::string node_name, const int number_of_simbridge = 1);
+  explicit DriverSim(const std::string name, const int number_of_simbridge = 1);
   ~DriverSim();
 
 protected:
@@ -51,7 +51,7 @@ protected:
 
   bool IsRunThread() { return m_bRunThread; }
 
-  rclcpp::Node* GetNode() { return m_node_handle.get(); }
+  rclcpp::Node::SharedPtr GetNode() { return m_node_handle; }
 
   SimBridge* GetSimBridge(const uint bridge_index = 0);
 
@@ -90,7 +90,7 @@ private:
 protected:
   rclcpp::Time m_simTime;
 
-  std::string topic_name_ ;
+  std::string topic_name_;
   std::string frame_id_;
 };
 #endif

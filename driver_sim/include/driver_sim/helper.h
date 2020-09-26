@@ -16,6 +16,8 @@
 #ifndef _DRIVER_SIM_HELPER_H_
 #define _DRIVER_SIM_HELPER_H_
 #include <sensor_msgs/image_encodings.hpp>
+#include <protobuf/camerasensor.pb.h>
+#include <protobuf/param.pb.h>
 
 static std::string GetImageEncondingType(const uint32_t pixel_format)
 {
@@ -59,6 +61,113 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
   }
 
   return encoding;
+}
+
+static void SetCameraInfoInManager(
+  std::shared_ptr<camera_info_manager::CameraInfoManager> infoManager,
+  const gazebo::msgs::CameraSensor &msg,
+  const std::string frame_id)
+{
+  if (infoManager == nullptr)
+  {
+    DBG_SIM_ERR("infoManager is null");
+    return;
+  }
+
+  sensor_msgs::msg::CameraInfo camera_info_msg;
+
+  auto width = msg.image_size().x();
+  auto height = msg.image_size().y();
+
+  // C parameters
+  auto cx_ = (width + 1.0) / 2.0;
+  auto cy_ = (height + 1.0) / 2.0;
+
+  double hfov_ = msg.horizontal_fov();
+
+  auto computed_focal_length = width / (2.0 * tan(hfov_ / 2.0));
+
+  // CameraInfo
+  camera_info_msg.header.frame_id = frame_id;
+  camera_info_msg.height = (uint32_t)height;
+  camera_info_msg.width = (uint32_t)width;
+  camera_info_msg.distortion_model = "plumb_bob";
+  camera_info_msg.d.resize(5);
+
+  const auto hack_baseline = 0.0f;
+
+  // D = {k1, k2, t1, t2, k3}, as specified in:
+  // - sensor_msgs/CameraInfo: http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html
+  // - OpenCV: http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
+  camera_info_msg.d[0] = msg.distortion().k1();
+  camera_info_msg.d[1] = msg.distortion().k2();
+  camera_info_msg.d[2] = msg.distortion().p1();
+  camera_info_msg.d[3] = msg.distortion().p2();
+  camera_info_msg.d[4] = msg.distortion().k3();
+
+  // Original camera matrix
+  camera_info_msg.k.fill(0.0);
+  camera_info_msg.k[0] = computed_focal_length;
+  camera_info_msg.k[2] = cx_;
+  camera_info_msg.k[4] = computed_focal_length;
+  camera_info_msg.k[5] = cy_;
+
+  // rectification
+  camera_info_msg.r.fill(0.0);
+  camera_info_msg.r[0] = 1.0;
+  camera_info_msg.r[4] = 1.0;
+  camera_info_msg.r[8] = 1.0;
+
+  // camera_ projection matrix (same as camera_ matrix due
+  // to lack of distortion/rectification) (is this generated?)
+  camera_info_msg.p.fill(0.0);
+  camera_info_msg.p[0] = computed_focal_length;
+  camera_info_msg.p[2] = cx_;
+  camera_info_msg.p[3] = -computed_focal_length * hack_baseline;
+  camera_info_msg.p[5] = computed_focal_length;
+  camera_info_msg.p[6] = cy_;
+  camera_info_msg.p[10] = 1.0;
+
+  // set camera_info_manager
+  infoManager->setCameraName(frame_id);
+  infoManager->setCameraInfo(camera_info_msg);
+}
+
+static gazebo::msgs::CameraSensor GetCameraSensorMessage(
+  SimBridge* const pSimBridge,
+  const std::string camera_name = "")
+{
+  gazebo::msgs::Param request_msg;
+  request_msg.set_name("request_camera_info");
+
+  auto pVal = request_msg.mutable_value();
+  pVal->set_type(gazebo::msgs::Any::STRING);
+  pVal->set_string_value(camera_name);
+
+  std::string serializedBuffer;
+  request_msg.SerializeToString(&serializedBuffer);
+
+  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+
+  void *pBuffer = nullptr;
+  int bufferLength = 0;
+  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+
+  gazebo::msgs::CameraSensor cameraSensorInfo;
+
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("Faild to get camera info, length(%d)", bufferLength);
+  }
+  else
+  {
+    if (cameraSensorInfo.ParseFromArray(pBuffer, bufferLength) == false)
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+    }
+  }
+
+  return cameraSensorInfo;
 }
 
 #endif

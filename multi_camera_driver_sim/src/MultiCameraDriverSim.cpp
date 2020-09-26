@@ -54,6 +54,7 @@ void MultiCameraDriverSim::Initialize()
     GetRos2FramesId(pSimBridgeInfo);
   }
 
+  image_transport::ImageTransport it(GetNode());
   for (auto frame_id : frame_id_)
   {
     const auto transform = GetObjectTransform(pSimBridgeInfo, frame_id);
@@ -63,14 +64,15 @@ void MultiCameraDriverSim::Initialize()
     const auto topic_base_name_ = multicamera_name_ + "/" + frame_id;
     DBG_SIM_INFO("[CONFIG] topic_base_name:%s", topic_base_name_.c_str());
 
-    pubImages.push_back(image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw", rclcpp::QoS(1).get_rmw_qos_profile()));
+    pubImages.push_back(it.advertise(topic_base_name_ + "/image_raw", 1));
 
     // Camera info publisher
-    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::QoS(1));
+    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
     pubCamerasInfo.push_back(camInfoPub);
 
-    GetCameraSensorMessage(pSimBridgeInfo, frame_id);
-    InitializeCameraInfoMessage(frame_id);
+    cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
+    const auto camSensorMsg = GetCameraSensorMessage(pSimBridgeInfo, frame_id);
+    SetCameraInfoInManager(cameraInfoManager.back(), camSensorMsg, frame_id);
   }
 
   pSimBridgeData->Connect(SimBridge::Mode::SUB, portData_, m_hashKeySub + "Data");
@@ -152,105 +154,6 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
       }
     }
   }
-}
-
-void MultiCameraDriverSim::GetCameraSensorMessage(SimBridge* const pSimBridge, const string camera_name)
-{
-  msgs::Param request_msg;
-  request_msg.set_name("request_camera_info");
-
-  auto pVal = request_msg.mutable_value();
-  pVal->set_type(msgs::Any::STRING);
-  pVal->set_string_value(camera_name);
-
-  string serializedBuffer;
-  request_msg.SerializeToString(&serializedBuffer);
-
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
-
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
-  {
-    DBG_SIM_ERR("Faild to get camera info, length(%d)", bufferLength);
-  }
-  else
-  {
-    if (m_pbTmpBufCameraSensorInfo.ParseFromArray(pBuffer, bufferLength) == false)
-    {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
-    }
-  }
-}
-
-void MultiCameraDriverSim::InitializeCameraInfoMessage(const string frame_id)
-{
-  sensor_msgs::msg::CameraInfo camera_info_msg;
-
-  int width_ = m_pbTmpBufCameraSensorInfo.image_size().x();
-  int height_ = m_pbTmpBufCameraSensorInfo.image_size().y();
-
-  // C parameters
-  auto cx_ = (static_cast<double>(width_) + 1.0) / 2.0;
-  auto cy_ = (static_cast<double>(height_) + 1.0) / 2.0;
-
-  double hfov_ = m_pbTmpBufCameraSensorInfo.horizontal_fov();
-
-  auto computed_focal_length = (static_cast<double>(width_)) / (2.0 * tan(hfov_ / 2.0));
-
-  // CameraInfo
-  camera_info_msg.header.frame_id = frame_id;
-  camera_info_msg.height = height_;
-  camera_info_msg.width = width_;
-  camera_info_msg.distortion_model = "plumb_bob";
-  camera_info_msg.d.resize(5);
-
-  const auto hack_baseline = 0.0f;
-
-  // Get distortion from camera
-  auto distortion_k1 = m_pbTmpBufCameraSensorInfo.distortion().k1();
-  auto distortion_k2 = m_pbTmpBufCameraSensorInfo.distortion().k2();
-  auto distortion_k3 = m_pbTmpBufCameraSensorInfo.distortion().k3();
-  auto distortion_t1 = m_pbTmpBufCameraSensorInfo.distortion().p1();
-  auto distortion_t2 = m_pbTmpBufCameraSensorInfo.distortion().p2();
-
-  // D = {k1, k2, t1, t2, k3}, as specified in:
-  // - sensor_msgs/CameraInfo: http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html
-  // - OpenCV: http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
-  camera_info_msg.d[0] = distortion_k1;
-  camera_info_msg.d[1] = distortion_k2;
-  camera_info_msg.d[2] = distortion_t1;
-  camera_info_msg.d[3] = distortion_t2;
-  camera_info_msg.d[4] = distortion_k3;
-
-  // Original camera matrix
-  camera_info_msg.k.fill(0.0);
-  camera_info_msg.k[0] = computed_focal_length;
-  camera_info_msg.k[2] = cx_;
-  camera_info_msg.k[4] = computed_focal_length;
-  camera_info_msg.k[5] = cy_;
-
-  // rectification
-  camera_info_msg.r.fill(0.0);
-  camera_info_msg.r[0] = 1.0;
-  camera_info_msg.r[4] = 1.0;
-  camera_info_msg.r[8] = 1.0;
-
-  // camera_ projection matrix (same as camera_ matrix due
-  // to lack of distortion/rectification) (is this generated?)
-  camera_info_msg.p.fill(0.0);
-  camera_info_msg.p[0] = computed_focal_length;
-  camera_info_msg.p[2] = cx_;
-  camera_info_msg.p[3] = -computed_focal_length * hack_baseline;
-  camera_info_msg.p[5] = computed_focal_length;
-  camera_info_msg.p[6] = cy_;
-  camera_info_msg.p[10] = 1.0;
-
-  // Initialize camera_info_manager
-  cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode(), frame_id));
-  cameraInfoManager.back()->setCameraInfo(camera_info_msg);
 }
 
 void MultiCameraDriverSim::UpdateData(const uint bridge_index)
