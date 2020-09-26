@@ -146,22 +146,6 @@ void MicomDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void MicomDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id)
-{
-  geometry_msgs::msg::TransformStamped camera_tf;
-  camera_tf.header.frame_id = base_link_name_;
-  camera_tf.child_frame_id = frame_id + "_link";
-  camera_tf.transform.translation.x = transform.position().x();
-  camera_tf.transform.translation.y = transform.position().y();
-  camera_tf.transform.translation.z = transform.position().z();
-  camera_tf.transform.rotation.x = transform.orientation().x();
-  camera_tf.transform.rotation.y = transform.orientation().y();
-  camera_tf.transform.rotation.z = transform.orientation().z();
-  camera_tf.transform.rotation.w = transform.orientation().w();
-
-  AddStaticTf2(camera_tf);
-}
-
 void MicomDriverSim::SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id)
 {
   src_tf.header.frame_id = base_link_name_;

@@ -34,10 +34,11 @@ protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
   virtual void UpdateData(const uint bridge_index = 0) = 0; // Function called at loop thread
-  virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) = 0;
 
   void Start(const bool runSingleDataThread = true);
   void Stop();
+
+  void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string child_frame_id, const std::string parent_frame_id = "base_link");
 
   void AddTf2(const geometry_msgs::msg::TransformStamped _tf)
   {
