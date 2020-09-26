@@ -50,7 +50,7 @@ def generate_launch_description():
 
     # Create environment variables
     stdout_linebuf_envvar = SetEnvironmentVariable(
-        'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
     # Create the launch description and populate
     ld = LaunchDescription()

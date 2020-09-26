@@ -34,8 +34,6 @@ private:
   virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
   void GetActivatedModules(SimBridge* const pSimBridge);
-  void GetCameraSensorMessage(SimBridge* const pSimBridge);
-  void InitializeCameraInfoMessage(const uint bridge_index, const std::string frame_id);
 
 private:
   gazebo::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;

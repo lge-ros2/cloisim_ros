@@ -33,9 +33,6 @@ private:
   virtual void UpdateData(const uint bridge_index) override;
   virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
-  void GetCameraSensorMessage(SimBridge* const pSimBridge, const std::string camera_name);
-  void InitializeCameraInfoMessage(const std::string frame_id);
-
   void GetRos2FramesId(SimBridge* const pSimBridge);
 
 private:
@@ -51,9 +48,6 @@ private:
 
   // message for ROS2 communictaion
   sensor_msgs::msg::Image msg_img;
-
-  // Camera sensor info buffer from simulator
-  gazebo::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;
 
   // Camera info publishers.
   std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCamerasInfo;

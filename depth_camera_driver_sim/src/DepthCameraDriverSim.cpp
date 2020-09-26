@@ -23,7 +23,7 @@ DepthCameraDriverSim::DepthCameraDriverSim()
 
 DepthCameraDriverSim::~DepthCameraDriverSim()
 {
-  DBG_SIM_INFO("Delete");
+  // DBG_SIM_INFO("Delete");
 }
 
 void DepthCameraDriverSim::Initialize()

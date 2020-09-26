@@ -104,14 +104,14 @@ def _create_params_file_from_dict(params):
         return param_file_path
 
 
-def generate_temp_params(_node_name, model_name, port_maps):
+def generate_temp_params(_name, model_name, port_maps):
 
     # capsule config with namespace
     config_dict = dict()
-    config_dict[_node_name] = dict()
-    config_dict[_node_name]['ros__parameters'] = dict()
-    config_dict[_node_name]['ros__parameters']['model'] = model_name
-    config_dict[_node_name]['ros__parameters']['bridge'] = port_maps
+    config_dict[_name] = dict()
+    config_dict[_name]['ros__parameters'] = dict()
+    config_dict[_name]['ros__parameters']['model'] = model_name
+    config_dict[_name]['ros__parameters']['bridge'] = port_maps
 
     # print(config_dict)
 
@@ -122,14 +122,14 @@ def generate_temp_params(_node_name, model_name, port_maps):
 
     return result_config_param
 
-def generate_temp_params_with_ns(_namespace, _node_name, port_maps):
+def generate_temp_params_with_ns(_namespace, _name, port_maps):
 
     # capsule config with namespace
     config_dict = dict()
     config_dict[_namespace] = dict()
-    config_dict[_namespace][_node_name] = dict()
-    config_dict[_namespace][_node_name]['ros__parameters'] = dict()
-    config_dict[_namespace][_node_name]['ros__parameters']['bridge'] = port_maps
+    config_dict[_namespace][_name] = dict()
+    config_dict[_namespace][_name]['ros__parameters'] = dict()
+    config_dict[_namespace][_name]['ros__parameters']['bridge'] = port_maps
 
     # print(config_dict)
 

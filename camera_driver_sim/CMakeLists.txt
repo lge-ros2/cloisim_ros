@@ -33,36 +33,46 @@ set(dependencies
 ################################################################################
 # Build
 ################################################################################
-add_library(${PROJECT_NAME} SHARED
-  src/main.cpp
+add_library(${PROJECT_NAME}-lib SHARED
   src/CameraDriverSim.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(${PROJECT_NAME}-lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
-ament_target_dependencies(${PROJECT_NAME}
+ament_target_dependencies(${PROJECT_NAME}-lib
   ${dependencies}
+)
+
+add_executable(${PROJECT_NAME}
+  src/main.cpp
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  ${PROJECT_NAME}-lib
 )
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME}-lib
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
   INCLUDES DESTINATION include
+)
+
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY include/
   DESTINATION include
 )
 
+ament_export_libraries(${PROJECT_NAME}-lib)
 ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(${dependencies})
 
 ament_package()

@@ -20,8 +20,8 @@
 using namespace std;
 using namespace gazebo;
 
-DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
-    : Node(node_name,
+DriverSim::DriverSim(const string name, const int number_of_simbridge)
+    : Node(name,
            rclcpp::NodeOptions()
                .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
                .allow_undeclared_parameters(true)
@@ -42,8 +42,7 @@ DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
 
 DriverSim::~DriverSim()
 {
-  DBG_SIM_INFO("Delete");
-
+  // DBG_SIM_INFO("Delete");
   for (auto pSimBridge : m_simBridgeList)
   {
     delete pSimBridge;
@@ -81,7 +80,7 @@ void DriverSim::Stop()
   if (m_thread.joinable())
   {
     m_thread.join();
-    DBG_SIM_INFO("Thread finished");
+    // DBG_SIM_INFO("Thread finished");
   }
 
   Deinitialize();

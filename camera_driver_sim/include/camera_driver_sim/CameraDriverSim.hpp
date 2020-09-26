@@ -25,7 +25,7 @@
 class CameraDriverSim : public DriverSim
 {
 public:
-  explicit CameraDriverSim(const std::string node_name = "camera_driver_sim");
+  explicit CameraDriverSim(const std::string name = "camera_driver_sim");
   virtual ~CameraDriverSim();
 
 protected:
@@ -33,10 +33,6 @@ protected:
   virtual void Deinitialize() override;
   virtual void UpdateData(const uint bridge_index = 0) override;
   virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
-
-private:
-  void GetCameraSensorMessage(SimBridge* const pSimBridge);
-  void InitializeCameraInfoMessage(const std::string frame_id);
 
 private:
   // key for connection
@@ -51,9 +47,6 @@ private:
 
   // Image publisher
   image_transport::Publisher pubImage;
-
-  // Camera sensor info buffer from simulator
-  gazebo::msgs::CameraSensor m_pbBufCameraSensorInfo;
 
   // Camera info publisher
   rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubCameraInfo{nullptr};
