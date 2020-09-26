@@ -20,25 +20,25 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
 
-    _node_name = LaunchConfiguration('node_name')
+    _name = LaunchConfiguration('name')
     _parameters = LaunchConfiguration('parameters')
 
     _package_name = 'unity_ros'
 
     start_unity_ros_init_cmd = Node(
         package=_package_name,
-        node_executable=_package_name,
-        node_name=_node_name,
+        executable=_package_name,
+        name=_name,
         parameters=[_parameters],
         output='screen')
 
     declare_launch_argument_nn = DeclareLaunchArgument(
-        'node_name',
+        'name',
         default_value='unity_ros',
         description='it is node name')
 
     stdout_envvar = SetEnvironmentVariable(
-        'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
     # Create the launch description and populate
     ld = LaunchDescription()

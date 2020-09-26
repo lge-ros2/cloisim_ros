@@ -35,18 +35,18 @@ def generate_launch_description():
     for (device_type, nodes) in elevator_list.items():
         print(device_type)
 
-        for (node_name, port_maps) in nodes.items():
-            print("\t", node_name)
+        for (name, port_maps) in nodes.items():
+            print("\t", name)
 
             launcher_filename = get_launcher_file_by_device_type(device_type)
             print("\t > ", launcher_filename)
 
-            _config_params = generate_temp_params(node_name, model_name, port_maps)
+            _config_params = generate_temp_params(name, model_name, port_maps)
 
             included_launch = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [launch_dir, '/', launcher_filename]),
-                    launch_arguments={'model_name': model_name, 'node_name': node_name, 'parameters': _config_params}.items())
+                    launch_arguments={'model_name': model_name, 'name': name, 'parameters': _config_params}.items())
 
             ld.add_action(included_launch)
 
@@ -58,23 +58,23 @@ def generate_launch_description():
     for (device_type, nodes) in world_list.items():
         print(device_type)
 
-        for (node_name, port_maps) in nodes.items():
-            print("\t", node_name)
+        for (name, port_maps) in nodes.items():
+            print("\t", name)
 
             launcher_filename = get_launcher_file_by_device_type(device_type)
             print("\t > ", launcher_filename)
 
-            _config_params = generate_temp_params(node_name, model_name, port_maps)
+            _config_params = generate_temp_params(name, model_name, port_maps)
 
             included_launch = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([launch_dir, '/', launcher_filename]),
-                launch_arguments={'node_name': node_name, 'parameters': _config_params}.items())
+                launch_arguments={'name': name, 'parameters': _config_params}.items())
 
             ld.add_action(included_launch)
 
     # Create environment variables
     stdout_linebuf_envvar = SetEnvironmentVariable(
-        'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
     # Set environment variables
     ld.add_action(stdout_linebuf_envvar)

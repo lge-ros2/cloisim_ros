@@ -18,27 +18,27 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
 
     _robot_name = LaunchConfiguration('robot_name')
-    _node_name = LaunchConfiguration('node_name')
+    _name = LaunchConfiguration('name')
     _parameters = LaunchConfiguration('parameters')
 
     _package_name = 'depth_camera_driver_sim'
 
     start_driver_cmd = Node(
         package=_package_name,
-        node_executable=_package_name,
-        node_name=_node_name,
-        node_namespace=_robot_name,
+        executable=_package_name,
+        name=_name,
+        namespace=_robot_name,
         remappings=get_default_remapping_list(),
         parameters=[_parameters],
         output='screen')
 
     declare_launch_argument_nn = DeclareLaunchArgument(
-        'node_name',
+        'name',
         default_value='depth_camera',
         description='it is node name')
 
     stdout_linebuf_envvar = SetEnvironmentVariable(
-        'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
     # Create the launch description and populate
     ld = launch.LaunchDescription()

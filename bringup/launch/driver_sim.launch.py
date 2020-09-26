@@ -43,27 +43,27 @@ def generate_launch_description():
         description='It is robot name. same as `node namspace`')
 
     stdout_linebuf_envvar = SetEnvironmentVariable(
-        'RCUTILS_CONSOLE_STDOUT_LINE_BUFFERED', '1')
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
     _robot_namespace = driver_sim_robot_name
 
     for (device_type, nodes) in target_device_list.items():
         print(device_type)
 
-        for (node_name, port_maps) in nodes.items():
-            print("\t", node_name)
+        for (parts_name, port_maps) in nodes.items():
+            print("\t", parts_name)
 
             launcher_filename = get_launcher_file_by_device_type(device_type)
             print("\t > ", launcher_filename)
 
             if (launcher_filename is not None):
 
-                _config_params = generate_temp_params_with_ns(_robot_namespace, node_name, port_maps)
+                _config_params = generate_temp_params_with_ns(_robot_namespace, parts_name, port_maps)
 
                 included_launch = IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(
                         [launch_dir, '/', launcher_filename]),
-                        launch_arguments={'robot_name': robot_name, 'node_name': node_name, 'parameters': _config_params}.items())
+                        launch_arguments={'robot_name': robot_name, 'name': parts_name, 'parameters': _config_params}.items())
 
                 ld.add_action(included_launch)
 
