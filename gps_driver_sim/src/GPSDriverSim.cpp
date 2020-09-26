@@ -82,22 +82,6 @@ void GPSDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void GPSDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const string frame_id)
-{
-  geometry_msgs::msg::TransformStamped gps_tf;
-  gps_tf.header.frame_id = "base_link";
-  gps_tf.child_frame_id = frame_id;
-  gps_tf.transform.translation.x = transform.position().x();
-  gps_tf.transform.translation.y = transform.position().y();
-  gps_tf.transform.translation.z = transform.position().z();
-  gps_tf.transform.rotation.x = transform.orientation().x();
-  gps_tf.transform.rotation.y = transform.orientation().y();
-  gps_tf.transform.rotation.z = transform.orientation().z();
-  gps_tf.transform.rotation.w = transform.orientation().w();
-
-  AddStaticTf2(gps_tf);
-}
-
 void GPSDriverSim::UpdateData(const uint bridge_index)
 {
   auto simBridge = GetSimBridge(bridge_index);

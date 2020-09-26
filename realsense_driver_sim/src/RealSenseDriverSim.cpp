@@ -30,7 +30,7 @@ RealSenseDriverSim::RealSenseDriverSim()
 
 RealSenseDriverSim::~RealSenseDriverSim()
 {
-  DBG_SIM_INFO("Delete");
+  // DBG_SIM_INFO("Delete");
   Stop();
 }
 
@@ -60,8 +60,7 @@ void RealSenseDriverSim::Initialize()
 
     const auto hashKeySub = GetMainHashKey() + module;
 
-    DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
-    DBG_SIM_INFO("[CONFIG] hash Key sub: %s", hashKeySub.c_str());
+    DBG_SIM_INFO("[CONFIG] topic_name:%s, hash Key sub: %s", topic_base_name_.c_str(), hashKeySub.c_str());
 
     auto pSimBridgeCamInfo = GetSimBridge(++simBridgeCount);
     auto pSimBridgeCamData = GetSimBridge(++simBridgeCount);
@@ -70,10 +69,19 @@ void RealSenseDriverSim::Initialize()
 
     pubImages_[simBridgeCount] = it.advertise(topic_base_name_ + "/image_raw", 1);
 
+    // TODO: to supress the error log
+    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'format' has already been declared
+    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'png_level' has already been declared
+    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'jpeg_quality' has already been declared
+    undeclare_parameter("format");
+    undeclare_parameter("png_level");
+    undeclare_parameter("jpeg_quality");
+
     pubCameraInfos_[simBridgeCount] = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);;
 
     sensor_msgs::msg::Image msg_img;
     msg_img.header.frame_id = module;
+
     msg_imgs_[simBridgeCount] = msg_img;
 
     if (pSimBridgeCamData != nullptr)
@@ -108,7 +116,7 @@ void RealSenseDriverSim::Deinitialize()
     if (thread.joinable())
     {
       thread.join();
-      DBG_SIM_INFO("Thread finished");
+      // DBG_SIM_INFO("Thread finished");
     }
   }
 
@@ -120,22 +128,6 @@ void RealSenseDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void RealSenseDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id)
-{
-  geometry_msgs::msg::TransformStamped camera_tf;
-  camera_tf.header.frame_id = "base_link";
-  camera_tf.child_frame_id = frame_id + "_link";
-  camera_tf.transform.translation.x = transform.position().x();
-  camera_tf.transform.translation.y = transform.position().y();
-  camera_tf.transform.translation.z = transform.position().z();
-  camera_tf.transform.rotation.x = transform.orientation().x();
-  camera_tf.transform.rotation.y = transform.orientation().y();
-  camera_tf.transform.rotation.z = transform.orientation().z();
-  camera_tf.transform.rotation.w = transform.orientation().w();
-
-  AddStaticTf2(camera_tf);
-}
-
 void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
 {
   if (pSimBridge == nullptr)
@@ -143,6 +135,7 @@ void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
     return;
   }
 
+  string moduleListStr;
   msgs::Param request_msg;
   string serializedBuffer;
   void *pBuffer = nullptr;
@@ -177,11 +170,13 @@ void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
         {
           const auto module = param.value().string_value();
           module_list_.push_back(module);
-          DBG_SIM_INFO("[CONFIG] activated_module: %s", module.c_str());
+          moduleListStr.append(module + ", ");
         }
       }
     }
   }
+
+  DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
 void RealSenseDriverSim::UpdateData(const uint bridge_index)

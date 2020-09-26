@@ -31,7 +31,6 @@ private:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
   virtual void UpdateData(const uint bridge_index) override;
-  virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
   void GetRos2FramesId(SimBridge* const pSimBridge);
 

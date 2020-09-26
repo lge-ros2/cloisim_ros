@@ -31,7 +31,6 @@ private:
   virtual void Initialize() override;
   virtual void Deinitialize() override;
   virtual void UpdateData(const uint bridge_index = 0) override;
-  virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) override;
 
 private:
   void SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id);

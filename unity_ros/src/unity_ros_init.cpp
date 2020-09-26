@@ -125,8 +125,7 @@ void UnityRosInit::RxProc()
                      rclcpp::Time(realTime.sec(), realTime.nsec()));
     }
   }
-
-  DBG_SIM_INFO("thread finished");
+  // DBG_SIM_INFO("thread finished");
 }
 
 void UnityRosInit::PublishSimTime(const rclcpp::Time simTime, const rclcpp::Time realTime)
