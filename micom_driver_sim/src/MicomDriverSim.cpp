@@ -18,7 +18,7 @@
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <protobuf/param.pb.h>
 
-#define LOGGING_PERIOD 1000
+// #define LOGGING_PERIOD 1000
 
 using namespace std;
 using namespace chrono_literals;
@@ -479,13 +479,13 @@ void MicomDriverSim::UpdateOdom()
 
   CalculateOdometry(duration, wheel_anglular_vel_left, wheel_anglular_vel_right, yaw);
 
-  static int cnt = 0;
-  if (cnt++ % LOGGING_PERIOD == 0)
-  {
-    DBG_SIM_MSG("Wheel odom x[%f] y[%f] theta[%f] vel_lin[%f] vel_ang[%f]",
-                odom_pose_[0], odom_pose_[1], odom_pose_[2],
-                odom_vel_[0], odom_pose_[2]);
-  }
+  // static int cnt = 0;
+  // if (cnt++ % LOGGING_PERIOD == 0)
+  // {
+  //   DBG_SIM_MSG("Wheel odom x[%f] y[%f] theta[%f] vel_lin[%f] vel_ang[%f]",
+  //               odom_pose_[0], odom_pose_[1], odom_pose_[2],
+  //               odom_vel_[0], odom_pose_[2]);
+  // }
 
   msg_odom_.header.stamp = m_simTime;
   msg_odom_.pose.pose.position.x = odom_pose_[0];
