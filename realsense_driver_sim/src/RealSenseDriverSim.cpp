@@ -60,7 +60,7 @@ void RealSenseDriverSim::Initialize()
 
     const auto hashKeySub = GetMainHashKey() + module;
 
-    DBG_SIM_INFO("[CONFIG] topic_name:%s, hash Key sub: %s", topic_base_name_.c_str(), hashKeySub.c_str());
+    DBG_SIM_INFO("topic_name:%s, hash Key sub: %s", topic_base_name_.c_str(), hashKeySub.c_str());
 
     auto pSimBridgeCamInfo = GetSimBridge(++simBridgeCount);
     auto pSimBridgeCamData = GetSimBridge(++simBridgeCount);

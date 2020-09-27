@@ -62,7 +62,7 @@ void MultiCameraDriverSim::Initialize()
 
     // Image publisher
     const auto topic_base_name_ = multicamera_name_ + "/" + frame_id;
-    DBG_SIM_INFO("[CONFIG] topic_base_name:%s", topic_base_name_.c_str());
+    DBG_SIM_INFO("topic_base_name:%s", topic_base_name_.c_str());
 
     pubImages.push_back(it.advertise(topic_base_name_ + "/image_raw", 1));
 
@@ -132,7 +132,7 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
           {
             const auto frame_id = param.value().string_value();
             frame_id_.push_back(frame_id);
-            DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id.c_str());
+            DBG_SIM_INFO("frame_id: %s", frame_id.c_str());
           }
         }
       }

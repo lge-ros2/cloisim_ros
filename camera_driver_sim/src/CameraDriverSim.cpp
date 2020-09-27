@@ -44,7 +44,7 @@ void CameraDriverSim::Initialize()
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
   m_hashKeySub = GetMainHashKey();
-  DBG_SIM_INFO("[CONFIG] hash Key sub: %s", m_hashKeySub.c_str());
+  DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   auto pSimBridgeData = GetSimBridge(0);
   auto pSimBridgeInfo = GetSimBridge(1);

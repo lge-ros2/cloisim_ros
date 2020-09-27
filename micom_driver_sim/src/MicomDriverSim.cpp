@@ -48,7 +48,7 @@ void MicomDriverSim::Initialize()
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx_, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx_, uint16_t(0));
-  // DBG_SIM_INFO("[CONFIG] %d %d %d", portInfo, portTx_, portRx_);
+  // DBG_SIM_INFO("%d %d %d", portInfo, portTx_, portRx_);
 
   const auto hashKeyInfo = GetMainHashKey() + "Info";
   m_hashKeyPub = GetMainHashKey() + "Rx";
@@ -207,8 +207,8 @@ void MicomDriverSim::GetWeelInfo(SimBridge* const pSimBridge)
     }
   }
 
-  DBG_SIM_INFO("[CONFIG] wheel.base:%f m", wheel_base);
-  DBG_SIM_INFO("[CONFIG] wheel.radius:%f m", wheel_radius);
+  DBG_SIM_INFO("wheel.base:%f m", wheel_base);
+  DBG_SIM_INFO("wheel.radius:%f m", wheel_radius);
 }
 
 void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
@@ -272,7 +272,7 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
         }
       }
 
-      DBG_SIM_INFO("[CONFIG] transform name imu:%s, wheels(0/1):%s/%s",
+      DBG_SIM_INFO("transform name imu:%s, wheels(0/1):%s/%s",
                    target_transform_name["imu"].c_str(),
                    target_transform_name["wheels/left"].c_str(),
                    target_transform_name["wheels/right"].c_str());

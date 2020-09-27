@@ -240,6 +240,6 @@ void DriverSim::GetRos2Parameter(SimBridge* const pSimBridge)
       }
     }
 
-    DBG_SIM_INFO("[CONFIG] topic_name: %s, frame_id: %s", topic_name_.c_str(), frame_id_.c_str());
+    DBG_SIM_INFO("topic_name: %s, frame_id: %s", topic_name_.c_str(), frame_id_.c_str());
   }
 }

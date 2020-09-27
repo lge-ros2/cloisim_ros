@@ -43,7 +43,7 @@ UnityRosInit::UnityRosInit()
 
   double publish_rate(10.0);
   get_parameter_or("publish_rate", publish_rate, 10.0);
-  DBG_SIM_INFO("[CONFIG] publish_rate:%f", publish_rate);
+  DBG_SIM_INFO("publish_rate:%f", publish_rate);
 
   throttler_ = new Throttler(publish_rate);
 
