@@ -127,9 +127,9 @@ void MicomDriverSim::Initialize()
   }
 
   // ROS2 Publisher
-  pubBatteryState_ = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
-  pubOdometry_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SensorDataQoS());
-  pubImu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
+  pubBatteryState_ = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rcl_publisher_get_default_options().qos);
+  pubOdometry_ = create_publisher<nav_msgs::msg::Odometry>("odom", rcl_publisher_get_default_options().qos);
+  pubImu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rcl_publisher_get_default_options().qos);
 
   auto callback_sub = [this](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
     const auto msgBuf = MakeControlMessage(msg);
@@ -137,7 +137,7 @@ void MicomDriverSim::Initialize()
   };
 
   // ROS2 Subscriber
-  subMicom_ = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
+  subMicom_ = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", callback_sub, rcl_publisher_get_default_options().qos);
 }
 
 

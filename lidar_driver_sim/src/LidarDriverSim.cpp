@@ -65,7 +65,7 @@ void LidarDriverSim::Initialize()
   }
 
   // ROS2 Publisher
-  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
+  pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rcl_publisher_get_default_options().qos);
 }
 
 void LidarDriverSim::Deinitialize()
