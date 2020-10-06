@@ -21,8 +21,8 @@ using namespace std;
 using namespace chrono_literals;
 using namespace gazebo;
 
-MultiCameraDriverSim::MultiCameraDriverSim()
-    : DriverSim("multi_camera_driver_sim", 2)
+MultiCameraDriverSim::MultiCameraDriverSim(const string node_name)
+    : DriverSim(node_name, 2)
 {
   Start();
 }
@@ -58,7 +58,7 @@ void MultiCameraDriverSim::Initialize()
   for (auto frame_id : frame_id_)
   {
     const auto transform = GetObjectTransform(pSimBridgeInfo, frame_id);
-    SetupStaticTf2Message(transform, multicamera_name_ + "_" + frame_id);
+    SetupStaticTf2(transform, multicamera_name_ + "_" + frame_id);
 
     // Image publisher
     const auto topic_base_name_ = multicamera_name_ + "/" + frame_id;

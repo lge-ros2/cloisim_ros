@@ -24,7 +24,7 @@
 class RealSenseDriverSim : public DriverSim
 {
 public:
-  RealSenseDriverSim();
+  explicit RealSenseDriverSim(const std::string node_name = "realsense_driver_sim");
   virtual ~RealSenseDriverSim();
 
 private:

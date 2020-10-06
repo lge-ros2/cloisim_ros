@@ -23,7 +23,7 @@
 class GPSDriverSim : public DriverSim
 {
 public:
-  GPSDriverSim();
+  explicit GPSDriverSim(const std::string node_name = "gps_driver_sim");
   ~GPSDriverSim();
 
 private:

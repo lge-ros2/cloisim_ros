@@ -22,8 +22,8 @@ using namespace std;
 using namespace chrono_literals;
 using namespace gazebo;
 
-RealSenseDriverSim::RealSenseDriverSim()
-    : DriverSim("realsense_driver_sim", 9)
+RealSenseDriverSim::RealSenseDriverSim(const string node_name)
+    : DriverSim(node_name, 9)
 {
   Start(false);
 }
@@ -46,6 +46,9 @@ void RealSenseDriverSim::Initialize()
   {
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, GetMainHashKey() + "Info");
     GetActivatedModules(pSimBridgeInfo);
+
+    const auto transform = GetObjectTransform(pSimBridgeInfo);
+    SetupStaticTf2(transform, GetPartsName() + "_link");
   }
 
   image_transport::ImageTransport it(GetNode());
@@ -93,7 +96,9 @@ void RealSenseDriverSim::Initialize()
     {
       pSimBridgeCamInfo->Connect(SimBridge::Mode::CLIENT, portCamInfo, hashKeySub + "Info");
       const auto transform = GetObjectTransform(pSimBridgeCamInfo, module);
-      SetupStaticTf2Message(transform, module);
+      const auto header_frame_id = GetPartsName() + "_link";
+      const auto child_frame_id = module + "_" + header_frame_id;
+      SetupStaticTf2(transform, child_frame_id, header_frame_id);
 
       cameraInfoManager_[simBridgeCount] = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
       const auto camSensorMsg = GetCameraSensorMessage(pSimBridgeCamInfo);

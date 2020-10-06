@@ -16,8 +16,8 @@
 using namespace std;
 using namespace chrono_literals;
 
-DepthCameraDriverSim::DepthCameraDriverSim()
-    : CameraDriverSim("depth_camera_driver_sim")
+DepthCameraDriverSim::DepthCameraDriverSim(const string node_name)
+    : CameraDriverSim(node_name)
 {
 }
 
