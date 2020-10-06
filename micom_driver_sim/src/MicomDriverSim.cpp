@@ -59,27 +59,9 @@ void MicomDriverSim::Initialize()
   msg_odom_.header.frame_id = "odom";
   msg_odom_.child_frame_id = "base_footprint";
 
-  geometry_msgs::msg::Quaternion quatIdentity;
-  quatIdentity.x = 0.0;
-  quatIdentity.y = 0.0;
-  quatIdentity.z = 0.0;
-  quatIdentity.w = 1.0;
+  SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
-  odom_tf_.header.frame_id = msg_odom_.header.frame_id;
-  odom_tf_.child_frame_id = msg_odom_.child_frame_id;
-  odom_tf_.transform.translation.x = 0;
-  odom_tf_.transform.translation.y = 0;
-  odom_tf_.transform.translation.z = 0;
-  odom_tf_.transform.rotation = quatIdentity;
-
-  geometry_msgs::msg::TransformStamped base_tf;
-  base_tf.header.frame_id = "base_footprint";
-  base_tf.child_frame_id = base_link_name_;
-  base_tf.transform.translation.x = 0;
-  base_tf.transform.translation.y = 0;
-  base_tf.transform.translation.z = 0;
-  base_tf.transform.rotation = quatIdentity;
-  AddStaticTf2(base_tf);
+  SetupStaticTf2(base_link_name_, "base_footprint");
 
   auto pSimBridgeData = GetSimBridge(0);
   auto pSimBridgeInfo = GetSimBridge(1);
@@ -107,11 +89,11 @@ void MicomDriverSim::Initialize()
 
     const auto transform_imu_name = target_transform_name["imu"];
     const auto transform_imu = GetObjectTransform(pSimBridgeInfo, transform_imu_name);
-    SetupStaticTf2Message(transform_imu, transform_imu_name);
+    SetupStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name_);
 
     const auto transform_wheel_0_name = target_transform_name["wheels/left"];
     const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheel_0_name);
-    SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name);
+    SetTf2(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name + "_link", base_link_name_);
 
     const auto init_left_q_msg = &wheel_left_tf_.transform.rotation;
     const auto wheel_left_quat = tf2::Quaternion(init_left_q_msg->x, init_left_q_msg->y, init_left_q_msg->z, init_left_q_msg->w);
@@ -119,7 +101,7 @@ void MicomDriverSim::Initialize()
 
     const auto transform_wheel_1_name = target_transform_name["wheels/right"];
     const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheel_1_name);
-    SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name);
+    SetTf2(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name + "_link", base_link_name_);
 
     const auto init_right_q_msg = &wheel_right_tf_.transform.rotation;
     const auto wheel_right_quat = tf2::Quaternion(init_right_q_msg->x, init_right_q_msg->y, init_right_q_msg->z, init_right_q_msg->w);
@@ -144,35 +126,6 @@ void MicomDriverSim::Initialize()
 void MicomDriverSim::Deinitialize()
 {
   DisconnectSimBridges();
-}
-
-void MicomDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id)
-{
-  geometry_msgs::msg::TransformStamped camera_tf;
-  camera_tf.header.frame_id = base_link_name_;
-  camera_tf.child_frame_id = frame_id + "_link";
-  camera_tf.transform.translation.x = transform.position().x();
-  camera_tf.transform.translation.y = transform.position().y();
-  camera_tf.transform.translation.z = transform.position().z();
-  camera_tf.transform.rotation.x = transform.orientation().x();
-  camera_tf.transform.rotation.y = transform.orientation().y();
-  camera_tf.transform.rotation.z = transform.orientation().z();
-  camera_tf.transform.rotation.w = transform.orientation().w();
-
-  AddStaticTf2(camera_tf);
-}
-
-void MicomDriverSim::SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id)
-{
-  src_tf.header.frame_id = base_link_name_;
-  src_tf.child_frame_id = frame_id + "_link";
-  src_tf.transform.translation.x = transform.position().x();
-  src_tf.transform.translation.y = transform.position().y();
-  src_tf.transform.translation.z = transform.position().z();
-  src_tf.transform.rotation.x = transform.orientation().x();
-  src_tf.transform.rotation.y = transform.orientation().y();
-  src_tf.transform.rotation.z = transform.orientation().z();
-  src_tf.transform.rotation.w = transform.orientation().w();
 }
 
 void MicomDriverSim::GetWeelInfo(SimBridge* const pSimBridge)

@@ -34,7 +34,11 @@ protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
   virtual void UpdateData(const uint bridge_index = 0) = 0; // Function called at loop thread
-  virtual void SetupStaticTf2Message(const gazebo::msgs::Pose transform, const std::string frame_id) = 0;
+
+  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
+  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const gazebo::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
+  void SetupStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
+  void SetupStaticTf2(const gazebo::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
 
   void Start(const bool runSingleDataThread = true);
   void Stop();
@@ -69,6 +73,7 @@ protected:
   void GetRos2Parameter(SimBridge* const pSimBridge);
 
 private:
+  static gazebo::msgs::Pose IdentityPose();
   void PublishStaticTF();
 
 private:

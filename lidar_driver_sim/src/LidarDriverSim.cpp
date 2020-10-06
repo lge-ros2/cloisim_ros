@@ -61,7 +61,7 @@ void LidarDriverSim::Initialize()
     GetRos2Parameter(pSimBridgeInfo);
 
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    SetupStaticTf2Message(transform, frame_id_);
+    SetupStaticTf2(transform, frame_id_);
   }
 
   // ROS2 Publisher
@@ -71,22 +71,6 @@ void LidarDriverSim::Initialize()
 void LidarDriverSim::Deinitialize()
 {
   DisconnectSimBridges();
-}
-
-void LidarDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const string frame_id)
-{
-  geometry_msgs::msg::TransformStamped scan_tf;
-  scan_tf.header.frame_id = "base_link";
-  scan_tf.child_frame_id = frame_id;
-  scan_tf.transform.translation.x = transform.position().x();
-  scan_tf.transform.translation.y = transform.position().y();
-  scan_tf.transform.translation.z = transform.position().z();
-  scan_tf.transform.rotation.x = transform.orientation().x();
-  scan_tf.transform.rotation.y = transform.orientation().y();
-  scan_tf.transform.rotation.z = transform.orientation().z();
-  scan_tf.transform.rotation.w = transform.orientation().w();
-
-  AddStaticTf2(scan_tf);
 }
 
 void LidarDriverSim::UpdateData(const uint bridge_index)

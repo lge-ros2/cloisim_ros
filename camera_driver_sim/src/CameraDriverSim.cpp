@@ -62,7 +62,7 @@ void CameraDriverSim::Initialize()
     GetRos2Parameter(pSimBridgeInfo);
 
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    SetupStaticTf2Message(transform, frame_id_);
+    SetupStaticTf2(transform, frame_id_ + "_link");
 
     GetCameraSensorMessage(pSimBridgeInfo);
 
@@ -81,22 +81,6 @@ void CameraDriverSim::Deinitialize()
 {
   pubImage.shutdown();
   DisconnectSimBridges();
-}
-
-void CameraDriverSim::SetupStaticTf2Message(const gazebo::msgs::Pose transform, const string frame_id)
-{
-  geometry_msgs::msg::TransformStamped camera_tf;
-  camera_tf.header.frame_id = "base_link";
-  camera_tf.child_frame_id = frame_id;
-  camera_tf.transform.translation.x = transform.position().x();
-  camera_tf.transform.translation.y = transform.position().y();
-  camera_tf.transform.translation.z = transform.position().z();
-  camera_tf.transform.rotation.x = transform.orientation().x();
-  camera_tf.transform.rotation.y = transform.orientation().y();
-  camera_tf.transform.rotation.z = transform.orientation().z();
-  camera_tf.transform.rotation.w = transform.orientation().w();
-
-  AddStaticTf2(camera_tf);
 }
 
 void CameraDriverSim::GetCameraSensorMessage(SimBridge* const pSimBridge)
