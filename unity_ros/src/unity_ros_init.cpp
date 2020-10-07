@@ -49,8 +49,7 @@ UnityRosInit::UnityRosInit()
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
-  clock_pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock",
-                                                           rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+  clock_pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::QoS(10));
 
   Start();
 }

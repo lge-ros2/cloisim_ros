@@ -47,7 +47,6 @@ void RealSenseDriverSim::Initialize()
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, GetMainHashKey() + "Info");
     GetActivatedModules(pSimBridgeInfo);
 
-    // GetActivatedModules(pSimBridgeInfo);
     const auto transform = GetObjectTransform(pSimBridgeInfo);
     SetupStaticTf2(transform, GetPartsName() + "_link");
   }
