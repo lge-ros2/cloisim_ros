@@ -74,7 +74,7 @@ void GPSDriverSim::Initialize()
   }
 
   // ROS2 Publisher
-  pubNav = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rcl_publisher_get_default_options().qos);
+  pubNav = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::QoS(10));
 }
 
 void GPSDriverSim::Deinitialize()
