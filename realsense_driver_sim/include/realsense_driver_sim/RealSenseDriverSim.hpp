@@ -32,9 +32,15 @@ private:
   virtual void Deinitialize() override;
   virtual void UpdateData(const uint bridge_index) override;
 
+  void GetParameters(SimBridge* const pSimBridge);
   void GetActivatedModules(SimBridge* const pSimBridge);
   void GetCameraSensorMessage(SimBridge* const pSimBridge);
   void InitializeCameraInfoMessage(const uint bridge_index, const std::string frame_id);
+
+private:
+  double depth_range_min_;
+  double depth_range_max_;
+  int depth_scale_;
 
 private:
   gazebo::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;
