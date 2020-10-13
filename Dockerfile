@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ENV HOSTNAME sim-device
 ENV ROS_DISTRO=foxy
@@ -26,6 +26,7 @@ RUN mkdir -p /opt/lge-ros2/src
 WORKDIR /opt/lge-ros2/src
 
 RUN git clone https://github.com/lge-ros2/sim-device.git -b ${ROS_DISTRO}
+RUN git clone https://github.com/lge-ros2/cloi_common_interfaces.git -b ${ROS_DISTRO}
 
 WORKDIR /opt/lge-ros2
 
