@@ -55,7 +55,7 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
       break;
 
     case 11:
-      encoding = sensor_msgs::image_encodings::TYPE_16UC1;
+      encoding = sensor_msgs::image_encodings::TYPE_16SC1;
       break;
 
     case 13:
