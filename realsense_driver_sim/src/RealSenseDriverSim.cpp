@@ -310,6 +310,29 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
       tempImageData[i] = (uint8_t)(realDepthRange);
     }
   }
+  else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16SC1) == 0)
+  {
+    // convert to little-endian
+    for (uint i = 0; i < msg_img->data.size(); i += 2)
+    {
+      const auto temp = tempImageData[i + 1];
+      tempImageData[i + 1] = tempImageData[i];
+      tempImageData[i] = temp;
+    }
+  }
+  else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0)
+  {
+    // convert to little-endian
+    for (uint i = 0; i < msg_img->data.size(); i += 4)
+    {
+      const auto temp3 = tempImageData[i + 3];
+      const auto temp2 = tempImageData[i + 2];
+      tempImageData[i + 3] = tempImageData[i];
+      tempImageData[i + 2] = tempImageData[i + 1];
+      tempImageData[i + 1] = temp2;
+      tempImageData[i] = temp3;
+    }
+  }
 
   pubImages_[bridge_index].publish(*msg_img);
 
