@@ -45,6 +45,7 @@ void RealSenseDriverSim::Initialize()
   int simBridgeCount = 0;
   auto pSimBridgeInfo = GetSimBridge(simBridgeCount);
 
+  string header_frame_id = "_camera_link";
   if (pSimBridgeInfo != nullptr)
   {
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, GetMainHashKey() + "Info");
@@ -52,7 +53,8 @@ void RealSenseDriverSim::Initialize()
     GetActivatedModules(pSimBridgeInfo);
 
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    SetupStaticTf2(transform, GetPartsName() + "_link");
+    header_frame_id = GetPartsName() + header_frame_id;
+    SetupStaticTf2(transform, header_frame_id);
   }
 
   for (auto module : module_list_)
@@ -61,11 +63,11 @@ void RealSenseDriverSim::Initialize()
     get_parameter_or("bridge." + module + "Data", portCamData, uint16_t(0));
     get_parameter_or("bridge." + module + "Info", portCamInfo, uint16_t(0));
 
-    const auto topic_base_name_ = GetPartsName() + "/" + module;
+    const auto base_topic_name = GetPartsName() + "/camera/" + module;
 
     const auto hashKeySub = GetMainHashKey() + module;
 
-    DBG_SIM_INFO("[CONFIG] topic_name:%s", topic_base_name_.c_str());
+    DBG_SIM_INFO("[CONFIG] base_topic_name:%s", base_topic_name.c_str());
     DBG_SIM_INFO("[CONFIG] hash Key sub: %s", hashKeySub.c_str());
 
     auto pSimBridgeCamInfo = GetSimBridge(++simBridgeCount);
@@ -73,10 +75,12 @@ void RealSenseDriverSim::Initialize()
     dataPortMap_[simBridgeCount] = portCamData;
     hashKeySubs_[simBridgeCount] = hashKeySub;
 
-    auto pubImage = image_transport::create_publisher(GetNode(), topic_base_name_ + "/image_raw", rclcpp::QoS(1).get_rmw_qos_profile());
+    const auto topic_name = (module.find("depth") == string::npos)? "image_raw":"image_rect_raw";
+
+    auto pubImage = image_transport::create_publisher(GetNode(), base_topic_name + "/" + topic_name, rclcpp::QoS(1).get_rmw_qos_profile());
     pubImages_[simBridgeCount] = pubImage;
 
-    auto pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", rclcpp::QoS(1));
+    auto pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(base_topic_name + "/camera_info", rclcpp::QoS(1));
     pubCameraInfos_[simBridgeCount] = pubCameraInfo;
 
     sensor_msgs::msg::Image msg_img;
@@ -92,8 +96,7 @@ void RealSenseDriverSim::Initialize()
     {
       pSimBridgeCamInfo->Connect(SimBridge::Mode::CLIENT, portCamInfo, hashKeySub + "Info");
       const auto transform = GetObjectTransform(pSimBridgeCamInfo, module);
-      const auto header_frame_id = GetPartsName() + "_link";
-      const auto child_frame_id = module + "_" + header_frame_id;
+      const auto child_frame_id = GetPartsName() + "_camera_" + module + "_frame";
       SetupStaticTf2(transform, child_frame_id, header_frame_id);
 
       GetCameraSensorMessage(pSimBridgeCamInfo);
@@ -385,27 +388,21 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
   sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                          reinterpret_cast<const void *>(pbBuf.image().data().data()));
 
-  // Post processing for only depth sensor(Z16)
+  // Post processing
+  auto tempImageData = msg_img->data.data();
+
   if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0)
   {
-    // auto index = (msg_img->step * msg_img->height/2) + msg_img->step/2;
-    // DBG_SIM_INFO("%s %d %d", sensor_msgs::image_encodings::TYPE_16UC1, index, pbBuf.image().data().size());
-    auto tempData = msg_img->data.data();
-
+    // for only depth sensor(Z16)
     for (uint i = 0; i < msg_img->data.size(); i += 2)
     {
-      const uint16_t depthDataInUInt16 = (uint16_t)tempData[i] << 8 | (uint16_t)tempData[i + 1];
+      const auto depthDataInUInt16 = (uint16_t)tempImageData[i] << 8 | (uint16_t)tempImageData[i + 1];
       const auto scaledDepthData = (double)depthDataInUInt16 / (double)UINT16_MAX;
       const auto realDepthRange = (uint16_t)(scaledDepthData * depth_range_max_ * (double)depth_scale_);
 
       // convert to little-endian
-      tempData[i + 1] = (uint8_t)(realDepthRange >> 8);
-      tempData[i] = (uint8_t)(realDepthRange);
-
-      // if (i == index)
-      // {
-      //   DBG_SIM_INFO("%f => %d", scaledDepthData, realDepthRange);
-      // }
+      tempImageData[i + 1] = (uint8_t)(realDepthRange >> 8);
+      tempImageData[i] = (uint8_t)(realDepthRange);
     }
   }
 
