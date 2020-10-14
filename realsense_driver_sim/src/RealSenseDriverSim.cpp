@@ -45,6 +45,7 @@ void RealSenseDriverSim::Initialize()
   int simBridgeCount = 0;
   auto pSimBridgeInfo = GetSimBridge(simBridgeCount);
 
+  string header_frame_id = "_camera_link";
   if (pSimBridgeInfo != nullptr)
   {
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, GetMainHashKey() + "Info");
@@ -52,7 +53,8 @@ void RealSenseDriverSim::Initialize()
     GetActivatedModules(pSimBridgeInfo);
 
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    SetupStaticTf2(transform, GetPartsName() + "_link");
+    header_frame_id = GetPartsName() + header_frame_id;
+    SetupStaticTf2(transform, header_frame_id);
   }
 
   image_transport::ImageTransport it(GetNode());
@@ -74,7 +76,8 @@ void RealSenseDriverSim::Initialize()
     dataPortMap_[simBridgeCount] = portCamData;
     hashKeySubs_[simBridgeCount] = hashKeySub;
 
-    pubImages_[simBridgeCount] = it.advertise(topic_base_name_ + "/image_raw", 1);
+    const auto topic_name = (module.find("depth") == string::npos)? "image_raw":"image_rect_raw";
+    pubImages_[simBridgeCount] = it.advertise(topic_base_name_ + "/" + topic_name, 1);
 
     // TODO: to supress the error log
     // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'format' has already been declared
@@ -84,7 +87,7 @@ void RealSenseDriverSim::Initialize()
     undeclare_parameter("png_level");
     undeclare_parameter("jpeg_quality");
 
-    pubCameraInfos_[simBridgeCount] = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);;
+    pubCameraInfos_[simBridgeCount] = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
 
     sensor_msgs::msg::Image msg_img;
     msg_img.header.frame_id = module;
@@ -100,8 +103,7 @@ void RealSenseDriverSim::Initialize()
     {
       pSimBridgeCamInfo->Connect(SimBridge::Mode::CLIENT, portCamInfo, hashKeySub + "Info");
       const auto transform = GetObjectTransform(pSimBridgeCamInfo, module);
-      const auto header_frame_id = GetPartsName() + "_link";
-      const auto child_frame_id = module + "_" + header_frame_id;
+      const auto child_frame_id = GetPartsName() + "_camera_" + module + "_frame";
       SetupStaticTf2(transform, child_frame_id, header_frame_id);
 
       cameraInfoManager_[simBridgeCount] = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
@@ -291,27 +293,21 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
   sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                          reinterpret_cast<const void *>(pbBuf.image().data().data()));
 
-  // Post processing for only depth sensor(Z16)
+  // Post processing
+  auto tempImageData = msg_img->data.data();
+
   if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0)
   {
-    // auto index = (msg_img->step * msg_img->height/2) + msg_img->step/2;
-    // DBG_SIM_INFO("%s %d %d", sensor_msgs::image_encodings::TYPE_16UC1, index, pbBuf.image().data().size());
-    auto tempData = msg_img->data.data();
-
+    // for only depth sensor(Z16)
     for (uint i = 0; i < msg_img->data.size(); i += 2)
     {
-      const uint16_t depthDataInUInt16 = (uint16_t)tempData[i] << 8 | (uint16_t)tempData[i + 1];
+      const auto depthDataInUInt16 = (uint16_t)tempImageData[i] << 8 | (uint16_t)tempImageData[i + 1];
       const auto scaledDepthData = (double)depthDataInUInt16 / (double)UINT16_MAX;
       const auto realDepthRange = (uint16_t)(scaledDepthData * depth_range_max_ * (double)depth_scale_);
 
       // convert to little-endian
-      tempData[i + 1] = (uint8_t)(realDepthRange >> 8);
-      tempData[i] = (uint8_t)(realDepthRange);
-
-      // if (i == index)
-      // {
-      //   DBG_SIM_INFO("%f => %d", scaledDepthData, realDepthRange);
-      // }
+      tempImageData[i + 1] = (uint8_t)(realDepthRange >> 8);
+      tempImageData[i] = (uint8_t)(realDepthRange);
     }
   }
 
