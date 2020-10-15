@@ -48,6 +48,8 @@ public:
   bool Receive(void** buffer, int& bufferLength, bool isNonBlockingMode = false);
   bool Send(const void* buffer, const int bufferLength, bool isNonBlockingMode = false);
 
+  std::string RequestReply(std::string request_data);
+
   void SetRetryRequestPeriod(const int value)
   {
     retryPortRequest_ = value;

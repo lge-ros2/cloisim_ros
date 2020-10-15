@@ -155,23 +155,18 @@ static gazebo::msgs::CameraSensor GetCameraSensorMessage(
   std::string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
-
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
   gazebo::msgs::CameraSensor cameraSensorInfo;
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get camera info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get camera info, length(%ld)", reply.size());
   }
   else
   {
-    if (cameraSensorInfo.ParseFromArray(pBuffer, bufferLength) == false)
+    if (cameraSensorInfo.ParseFromString(reply) == false)
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 

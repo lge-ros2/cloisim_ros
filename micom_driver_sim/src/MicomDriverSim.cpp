@@ -137,42 +137,39 @@ void MicomDriverSim::GetWeelInfo(SimBridge* const pSimBridge)
 
   msgs::Param request_msg;
   string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
   request_msg.set_name("request_wheel_info");
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get wheel info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get wheel info, length(%ld)", reply.size());
   }
   else
   {
     msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (m_pbBufParam.ParseFromString(reply))
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      if (m_pbBufParam.IsInitialized() &&
+          m_pbBufParam.name() == "wheelInfo")
+      {
+        auto baseParam = m_pbBufParam.children(0);
+        if (baseParam.name() == "base" && baseParam.has_value())
+        {
+          wheel_base = baseParam.value().double_value();
+        }
+
+        auto sizeParam = m_pbBufParam.children(1);
+        if (sizeParam.name() == "radius" && sizeParam.has_value())
+        {
+          wheel_radius = sizeParam.value().double_value();
+        }
+      }
     }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "wheelInfo")
+    else
     {
-      auto baseParam = m_pbBufParam.children(0);
-      if (baseParam.name() == "base" && baseParam.has_value())
-      {
-        wheel_base = baseParam.value().double_value();
-      }
-
-      auto sizeParam = m_pbBufParam.children(1);
-      if (sizeParam.name() == "radius" && sizeParam.has_value())
-      {
-        wheel_radius = sizeParam.value().double_value();
-      }
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 
@@ -189,26 +186,22 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
 
   msgs::Param request_msg;
   string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
 
   request_msg.set_name("request_ros2");
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get transform name info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get transform name info, length(%ld)", reply.size());
   }
   else
   {
     msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (m_pbBufParam.ParseFromString(reply) == false)
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
 
     if (m_pbBufParam.IsInitialized() &&

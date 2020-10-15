@@ -479,3 +479,28 @@ bool SimBridge::Send(const void* buffer, const int bufferLength, bool isNonBlock
 
   return true;
 }
+
+std::string SimBridge::RequestReply(std::string request_data)
+{
+  string reply_data;
+
+  if (request_data.size() > 0)
+  {
+    Send(request_data.data(), request_data.size());
+
+    void *pBuffer = nullptr;
+    int bufferLength = 0;
+    const auto succeeded = Receive(&pBuffer, bufferLength);
+
+    if (succeeded)
+    {
+      reply_data.assign(static_cast<char *>(pBuffer), bufferLength);
+    }
+    else
+    {
+      DBG_SIM_ERR("Faild to get replay buffer, length(%d)", bufferLength);
+    }
+  }
+
+  return reply_data;
+}

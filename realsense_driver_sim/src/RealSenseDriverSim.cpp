@@ -146,51 +146,48 @@ void RealSenseDriverSim::GetParameters(SimBridge* const pSimBridge)
 
   msgs::Param request_msg;
   string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
   request_msg.set_name("request_realsense_parameters");
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get activated module info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply.size());
   }
   else
   {
     msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (m_pbBufParam.ParseFromString(reply))
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
-    }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "parameters")
-    {
-      for (auto i = 0; i < m_pbBufParam.children_size(); i++)
+      if (m_pbBufParam.IsInitialized() &&
+          m_pbBufParam.name() == "parameters")
       {
-        auto param = m_pbBufParam.children(i);
-        if (param.name() == "depth_range_min" && param.has_value())
+        for (auto i = 0; i < m_pbBufParam.children_size(); i++)
         {
-          depth_range_min_ = param.value().double_value();
-        }
-        else if (param.name() == "depth_range_max" && param.has_value())
-        {
-          depth_range_max_ = param.value().double_value();
-        }
-        else if (param.name() == "depth_scale" && param.has_value())
-        {
-          depth_scale_ = param.value().int_value();
-        }
-        else
-        {
-          DBG_SIM_WRN("Wrong params %s", param.name().c_str());
+          auto param = m_pbBufParam.children(i);
+          if (param.name() == "depth_range_min" && param.has_value())
+          {
+            depth_range_min_ = param.value().double_value();
+          }
+          else if (param.name() == "depth_range_max" && param.has_value())
+          {
+            depth_range_max_ = param.value().double_value();
+          }
+          else if (param.name() == "depth_scale" && param.has_value())
+          {
+            depth_scale_ = param.value().int_value();
+          }
+          else
+          {
+            DBG_SIM_WRN("Wrong params %s", param.name().c_str());
+          }
         }
       }
+    }
+    else
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
 
     DBG_SIM_INFO("depth_range_min: %f, depth_range_max: %f, depth_scale: %d", depth_range_min_, depth_range_max_, depth_scale_);
@@ -205,43 +202,41 @@ void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
   }
 
   string moduleListStr;
+
   msgs::Param request_msg;
   string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
   request_msg.set_name("request_module_list");
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get activated module info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply.size());
   }
   else
   {
     msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (m_pbBufParam.ParseFromString(reply))
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
-    }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "activated_modules")
-    {
-      for (auto i = 0; i < m_pbBufParam.children_size(); i++)
+      if (m_pbBufParam.IsInitialized() &&
+          m_pbBufParam.name() == "activated_modules")
       {
-        auto param = m_pbBufParam.children(i);
-        if (param.name() == "module" && param.has_value())
+        for (auto i = 0; i < m_pbBufParam.children_size(); i++)
         {
-          const auto module = param.value().string_value();
-          module_list_.push_back(module);
-          moduleListStr.append(module + ", ");
+          auto param = m_pbBufParam.children(i);
+          if (param.name() == "module" && param.has_value())
+          {
+            const auto module = param.value().string_value();
+            module_list_.push_back(module);
+            moduleListStr.append(module + ", ");
+          }
         }
       }
+    }
+    else
+    {
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 
@@ -253,14 +248,14 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  auto simBridge = GetSimBridge(bridge_index);
-  if (simBridge == nullptr)
+  auto pSimBridge = GetSimBridge(bridge_index);
+  if (pSimBridge == nullptr)
   {
     DBG_SIM_ERR("sim bridge is null!!");
     return;
   }
 
-  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
+  const bool succeeded = pSimBridge->Receive(&pBuffer, bufferLength, false);
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
@@ -268,7 +263,7 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
     // try reconnect1ion
     if (IsRunThread())
     {
-      simBridge->Reconnect(SimBridge::Mode::SUB, dataPortMap_[bridge_index], hashKeySubs_[bridge_index]);
+      pSimBridge->Reconnect(SimBridge::Mode::SUB, dataPortMap_[bridge_index], hashKeySubs_[bridge_index]);
     }
 
     return;

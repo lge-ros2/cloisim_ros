@@ -96,33 +96,15 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
   }
 
   msgs::Param request_msg;
-  string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
   request_msg.set_name("request_ros2");
-  request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  msgs::Param reply_msg = RequestReplyMessage(pSimBridge, request_msg);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply_msg.IsInitialized())
   {
-    DBG_SIM_ERR("Faild to get ROS2 common info, length(%d)", bufferLength);
-  }
-  else
-  {
-    msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (reply_msg.name() == "ros2")
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
-    }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "ros2")
-    {
-      auto baseParam = m_pbBufParam.children(0);
+      auto baseParam = reply_msg.children(0);
       if (baseParam.name() == "frames_id")
       {
         for (auto i = 0; i < baseParam.children_size(); i++)

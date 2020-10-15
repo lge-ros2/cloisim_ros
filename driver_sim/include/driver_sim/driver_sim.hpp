@@ -69,13 +69,16 @@ protected:
 
   void PublishTF();
 
-  gazebo::msgs::Pose GetObjectTransform(SimBridge* const simBridge, const std::string target_name = "");
+  gazebo::msgs::Pose GetObjectTransform(SimBridge* const pSimBridge, const std::string target_name = "");
   gazebo::msgs::Pose GetObjectTransform(const int bridge_index, const std::string target_name = "");
 
   void GetRos2Parameter(SimBridge* const pSimBridge);
 
-private:
+public:
+  static gazebo::msgs::Param RequestReplyMessage(SimBridge* const pSimBridge, const gazebo::msgs::Param request_message);
   static gazebo::msgs::Pose IdentityPose();
+
+private:
   void PublishStaticTF();
 
 private:

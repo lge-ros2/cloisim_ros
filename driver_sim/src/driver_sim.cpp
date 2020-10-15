@@ -161,32 +161,30 @@ msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const stri
   pVal->set_type(msgs::Any::STRING);
   pVal->set_string_value(target_name);
 
-  string serializedBuffer;
-  request_msg.SerializeToString(&serializedBuffer);
+  string request;
+  request_msg.SerializeToString(&request);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(request);
 
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get object transform, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get object transform, length(%ld)", reply.size());
   }
   else
   {
-    msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    msgs::Param reply_msg;
+    if (reply_msg.ParseFromString(reply))
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      if (reply_msg.IsInitialized() &&
+          reply_msg.name() == "transform" &&
+          reply_msg.has_value())
+      {
+        transform.CopyFrom(reply_msg.value().pose3d_value());
+      }
     }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "transform" &&
-        m_pbBufParam.has_value())
+    else
     {
-      transform.CopyFrom(m_pbBufParam.value().pose3d_value());
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 
@@ -281,6 +279,30 @@ void DriverSim::SetupStaticTf2(const msgs::Pose transform, const string child_fr
   static_tf.transform.rotation.w = transform.orientation().w();
 
   AddStaticTf2(static_tf);
+}
+
+gazebo::msgs::Param DriverSim::RequestReplyMessage(SimBridge* const pSimBridge, const gazebo::msgs::Param request_message)
+{
+  msgs::Param reply_message;
+
+  string serialized_request_data;
+  request_message.SerializeToString(&serialized_request_data);
+
+  const auto serialized_reply_data = pSimBridge->RequestReply(serialized_request_data);
+
+  if (serialized_reply_data.size() <= 0)
+  {
+    DBG_SIM_ERR("Faild to get reply data, length(%ld)", serialized_reply_data.size());
+  }
+  else
+  {
+    if (reply_message.ParseFromString(serialized_reply_data) == false)
+    {
+      DBG_SIM_ERR("Faild to parse serialized buffer, pBuffer(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
+    }
+  }
+
+  return reply_message;
 }
 
 gazebo::msgs::Pose DriverSim::IdentityPose()

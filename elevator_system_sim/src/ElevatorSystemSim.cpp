@@ -54,15 +54,19 @@ CallbackReturn ElevatorSystemSim::on_activate(const State &)
   msgs::Param newRequest;
   newRequest.set_name("request_system_name");
 
-  if (send_request(newRequest))
+  std::string serializedBuffer;
+  newRequest.SerializeToString(&serializedBuffer);
+
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response;
+  response.ParseFromString(reply_data);
+
+  if (response.IsInitialized())
   {
-    msgs::Param response;
-    if (receive_response(response))
+    if (response.name().compare("request_system_name") == 0)
     {
-      if (response.name().compare("request_system_name") == 0)
-      {
-        systemName_ = response.value().string_value();
-      }
+      systemName_ = response.value().string_value();
     }
   }
 
@@ -140,13 +144,17 @@ void ElevatorSystemSim::callback_call_elevator(
                                             request->current_floor,
                                             request->target_floor);
 
-  if (send_request(message))
+  string serializedBuffer;
+  message.SerializeToString(&serializedBuffer);
+
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response_msg;
+  response_msg.ParseFromString(reply_data);
+
+  if (response_msg.IsInitialized())
   {
-    msgs::Param response_msg;
-    if (receive_response(response_msg))
-    {
       response->result = get_result_from_response_message(response_msg);
-    }
   }
 }
 
@@ -159,14 +167,18 @@ void ElevatorSystemSim::callback_get_called_elevator(
                                             request->current_floor,
                                             request->target_floor);
 
-  if (send_request(message))
+  string serializedBuffer;
+  message.SerializeToString(&serializedBuffer);
+
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response_msg;
+  response_msg.ParseFromString(reply_data);
+
+  if (response_msg.IsInitialized())
   {
-    msgs::Param response_msg;
-    if (receive_response(response_msg))
-    {
-      response->result = get_result_from_response_message(response_msg);
-      response->elevator_index = to_string(get_elevator_index_from_response_message(response_msg));
-    }
+    response->result = get_result_from_response_message(response_msg);
+    response->elevator_index = to_string(get_elevator_index_from_response_message(response_msg));
   }
 }
 
@@ -177,15 +189,19 @@ void ElevatorSystemSim::callback_get_elevator_information(
 {
   auto message = create_request_message("get_elevator_information", stoi(request->elevator_index));
 
-  if (send_request(message))
+  string serializedBuffer;
+  message.SerializeToString(&serializedBuffer);
+
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response_msg;
+  response_msg.ParseFromString(reply_data);
+
+  if (response_msg.IsInitialized())
   {
-    msgs::Param response_msg;
-    if (receive_response(response_msg))
-    {
-      response->result = get_result_from_response_message(response_msg);
-      response->current_floor = get_current_floor_from_response_message(response_msg);
-      response->height = get_height_from_response_message(response_msg);
-    }
+    response->result = get_result_from_response_message(response_msg);
+    response->current_floor = get_current_floor_from_response_message(response_msg);
+    response->height = get_height_from_response_message(response_msg);
   }
 }
 
@@ -198,14 +214,17 @@ void ElevatorSystemSim::callback_select_elevator_floor(
                                             request->current_floor,
                                             request->target_floor,
                                             stoi(request->elevator_index));
+  string serializedBuffer;
+  message.SerializeToString(&serializedBuffer);
 
-  if (send_request(message))
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response_msg;
+  response_msg.ParseFromString(reply_data);
+
+  if (response_msg.IsInitialized())
   {
-    msgs::Param response_msg;
-    if (receive_response(response_msg))
-    {
-      response->result = get_result_from_response_message(response_msg);
-    }
+    response->result = get_result_from_response_message(response_msg);
   }
 }
 
@@ -216,13 +235,17 @@ void ElevatorSystemSim::callback_request_door_open(
 {
   auto message = create_request_message("request_door_open", stoi(request->elevator_index));
 
-  if (send_request(message))
+  string serializedBuffer;
+  message.SerializeToString(&serializedBuffer);
+
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response_msg;
+  response_msg.ParseFromString(reply_data);
+
+  if (response_msg.IsInitialized())
   {
-    msgs::Param response_msg;
-    if (receive_response(response_msg))
-    {
-      response->result = get_result_from_response_message(response_msg);
-    }
+    response->result = get_result_from_response_message(response_msg);
   }
 }
 
@@ -233,13 +256,17 @@ void ElevatorSystemSim::callback_request_door_close(
 {
   auto message = create_request_message("request_door_close", stoi(request->elevator_index));
 
-  if (send_request(message))
+  string serializedBuffer;
+  message.SerializeToString(&serializedBuffer);
+
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response_msg;
+  response_msg.ParseFromString(reply_data);
+
+  if (response_msg.IsInitialized())
   {
-    msgs::Param response_msg;
-    if (receive_response(response_msg))
-    {
-      response->result = get_result_from_response_message(response_msg);
-    }
+    response->result = get_result_from_response_message(response_msg);
   }
 }
 
@@ -250,13 +277,17 @@ void ElevatorSystemSim::callback_is_door_opened(
 {
   auto message = create_request_message("is_door_opened", stoi(request->elevator_index));
 
-  if (send_request(message))
+  string serializedBuffer;
+  message.SerializeToString(&serializedBuffer);
+
+  const auto reply_data = m_pSimBridge->RequestReply(serializedBuffer);
+
+  msgs::Param response_msg;
+  response_msg.ParseFromString(reply_data);
+
+  if (response_msg.IsInitialized())
   {
-    msgs::Param response_msg;
-    if (receive_response(response_msg))
-    {
-      response->result = get_result_from_response_message(response_msg);
-    }
+    response->result = get_result_from_response_message(response_msg);
   }
 }
 
@@ -368,42 +399,3 @@ float ElevatorSystemSim::get_height_from_response_message(const msgs::Param &res
 
   return (float)result_param.value().double_value();
 }
-
-/**
- * @brief Send request
- * @param request_msg[IN]   request context
- * @return successful or failed
- */
-bool ElevatorSystemSim::send_request(const msgs::Param &request_msg)
-{
-  const lock_guard<mutex> lock(m_mtxSendRequest);
-
-  string serializedBuffer;
-  request_msg.SerializeToString(&serializedBuffer);
-
-  return m_pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
-}
-
-/**
- * @brief Receive response
- * @param response_msg[OUT]   response context
- * @return successful or failed
- */
-bool ElevatorSystemSim::receive_response(msgs::Param &response_msg)
-{
-  const lock_guard<mutex> lock(m_mtxReceiveResponse);
-
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
-  const auto succeeded = m_pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (succeeded)
-  {
-    return response_msg.ParseFromArray(pBuffer, bufferLength);
-  }
-
-  return false;
-}
-
-
