@@ -20,8 +20,8 @@
 using namespace std;
 using namespace gazebo;
 
-DriverSim::DriverSim(const string name, const int number_of_simbridge)
-    : Node(name,
+DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
+    : Node(node_name,
            rclcpp::NodeOptions()
                .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
                .allow_undeclared_parameters(true)
@@ -161,32 +161,30 @@ msgs::Pose DriverSim::GetObjectTransform(SimBridge* const pSimBridge, const stri
   pVal->set_type(msgs::Any::STRING);
   pVal->set_string_value(target_name);
 
-  string serializedBuffer;
-  request_msg.SerializeToString(&serializedBuffer);
+  string request;
+  request_msg.SerializeToString(&request);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(request);
 
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get object transform, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get object transform, length(%ld)", reply.size());
   }
   else
   {
-    msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    msgs::Param reply_msg;
+    if (reply_msg.ParseFromString(reply))
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      if (reply_msg.IsInitialized() &&
+          reply_msg.name() == "transform" &&
+          reply_msg.has_value())
+      {
+        transform.CopyFrom(reply_msg.value().pose3d_value());
+      }
     }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "transform" &&
-        m_pbBufParam.has_value())
+    else
     {
-      transform.CopyFrom(m_pbBufParam.value().pose3d_value());
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 
@@ -240,6 +238,82 @@ void DriverSim::GetRos2Parameter(SimBridge* const pSimBridge)
       }
     }
 
-    DBG_SIM_INFO("[CONFIG] topic_name: %s, frame_id: %s", topic_name_.c_str(), frame_id_.c_str());
+    DBG_SIM_INFO("topic_name: %s, frame_id: %s", topic_name_.c_str(), frame_id_.c_str());
   }
+}
+
+void DriverSim::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const string child_frame_id, const string header_frame_id)
+{
+  SetTf2(target_msg, IdentityPose(), child_frame_id, header_frame_id);
+}
+
+void DriverSim::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const msgs::Pose transform, const string child_frame_id, const string header_frame_id)
+{
+  target_msg.header.frame_id = header_frame_id;
+  target_msg.child_frame_id = child_frame_id;
+  target_msg.transform.translation.x = transform.position().x();
+  target_msg.transform.translation.y = transform.position().y();
+  target_msg.transform.translation.z = transform.position().z();
+  target_msg.transform.rotation.x = transform.orientation().x();
+  target_msg.transform.rotation.y = transform.orientation().y();
+  target_msg.transform.rotation.z = transform.orientation().z();
+  target_msg.transform.rotation.w = transform.orientation().w();
+}
+
+void DriverSim::SetupStaticTf2(const string child_frame_id, const string header_frame_id)
+{
+  SetupStaticTf2(IdentityPose(), child_frame_id, header_frame_id);
+}
+
+void DriverSim::SetupStaticTf2(const msgs::Pose transform, const string child_frame_id, const string header_frame_id)
+{
+  geometry_msgs::msg::TransformStamped static_tf;
+  static_tf.header.frame_id = header_frame_id;
+  static_tf.child_frame_id = child_frame_id;
+  static_tf.transform.translation.x = transform.position().x();
+  static_tf.transform.translation.y = transform.position().y();
+  static_tf.transform.translation.z = transform.position().z();
+  static_tf.transform.rotation.x = transform.orientation().x();
+  static_tf.transform.rotation.y = transform.orientation().y();
+  static_tf.transform.rotation.z = transform.orientation().z();
+  static_tf.transform.rotation.w = transform.orientation().w();
+
+  AddStaticTf2(static_tf);
+}
+
+gazebo::msgs::Param DriverSim::RequestReplyMessage(SimBridge* const pSimBridge, const gazebo::msgs::Param request_message)
+{
+  msgs::Param reply_message;
+
+  string serialized_request_data;
+  request_message.SerializeToString(&serialized_request_data);
+
+  const auto serialized_reply_data = pSimBridge->RequestReply(serialized_request_data);
+
+  if (serialized_reply_data.size() <= 0)
+  {
+    DBG_SIM_ERR("Faild to get reply data, length(%ld)", serialized_reply_data.size());
+  }
+  else
+  {
+    if (reply_message.ParseFromString(serialized_reply_data) == false)
+    {
+      DBG_SIM_ERR("Faild to parse serialized buffer, pBuffer(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
+    }
+  }
+
+  return reply_message;
+}
+
+gazebo::msgs::Pose DriverSim::IdentityPose()
+{
+  msgs::Pose identityTransform;
+  identityTransform.mutable_position()->set_x(0.0);
+  identityTransform.mutable_position()->set_y(0.0);
+  identityTransform.mutable_position()->set_z(0.0);
+  identityTransform.mutable_orientation()->set_x(0.0);
+  identityTransform.mutable_orientation()->set_y(0.0);
+  identityTransform.mutable_orientation()->set_z(0.0);
+  identityTransform.mutable_orientation()->set_w(1.0);
+  return identityTransform;
 }

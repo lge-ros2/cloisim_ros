@@ -24,7 +24,7 @@
 class MicomDriverSim : public DriverSim
 {
 public:
-  MicomDriverSim();
+  explicit MicomDriverSim(const std::string node_name = "micom_driver_sim");
   virtual ~MicomDriverSim();
 
 private:
@@ -33,7 +33,6 @@ private:
   virtual void UpdateData(const uint bridge_index = 0) override;
 
 private:
-  void SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id);
   void GetWeelInfo(SimBridge* const pSimBridge);
   void GetTransformNameInfo(SimBridge* const pSimBridge);
 

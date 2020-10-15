@@ -69,9 +69,6 @@ private:
   rclcpp::Service<ReturnBool>::SharedPtr m_pSrvReserveElevator;
   rclcpp::Service<ReturnBool>::SharedPtr m_pSrvReleaseElevator;
 
-  std::mutex m_mtxSendRequest;
-  std::mutex m_mtxReceiveResponse;
-
 private:
 
   void callback_call_elevator(const std::shared_ptr<rmw_request_id_t> request_header,
@@ -110,7 +107,10 @@ private:
                                const std::shared_ptr<ReturnBool::Request> request,
                                const std::shared_ptr<ReturnBool::Response> response);
 
-  msgs::Param create_request_message(std::string service_name, int elevator_index);
+  msgs::Param create_request_message(std::string service_name, int elevator_index)
+  {
+    return create_request_message(service_name, "", "", elevator_index);
+  }
 
   msgs::Param create_request_message(std::string service_name,
                                      std::string current_floor,
@@ -123,14 +123,6 @@ private:
   float get_height_from_response_message(const msgs::Param &response_msg);
 
   bool srvMode_;
-
-  bool send_request(const msgs::Param &request_msg);
-  bool receive_response(msgs::Param &response_msg);
 };
-
-inline msgs::Param ElevatorSystemSim::create_request_message(std::string service_name, int elevator_index)
-{
-  return create_request_message(service_name, "", "", elevator_index);
-}
 
 #endif

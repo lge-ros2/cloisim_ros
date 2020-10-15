@@ -8,7 +8,7 @@ You may need to redefine in a derived class three virtual class.
 class DriverSim : public rclcpp::Node
 {
 public:
-  explicit DriverSim(const std::string name, const int number_of_simbridge = 1);
+  explicit DriverSim(const std::string node_name, const int number_of_simbridge = 1);
 
 protected:
   virtual void Initialize() = 0;

@@ -21,17 +21,21 @@
 
 static std::string GetImageEncondingType(const uint32_t pixel_format)
 {
-  // 	UNKNOWN_PIXEL_FORMAT = 0, L_INT8, L_INT16,
-  // 	RGB_INT8 = 3, RGBA_INT8, BGRA_INT8, RGB_INT16, RGB_INT32,
-  // 	BGR_INT8 = 8, BGR_INT16, BGR_INT32,
-  // 	R_FLOAT16 = 11, RGB_FLOAT16 = 12, R_FLOAT32 = 13, RGB_FLOAT32,
-  // 	BAYER_RGGB8, BAYER_RGGR8, BAYER_GBRG8, BAYER_GRBG8,
-  // 	PIXEL_FORMAT_COUNT
+  // UNKNOWN_PIXEL_FORMAT = 0, L_INT8, L_INT16,
+  // RGB_INT8 = 3, RGBA_INT8, BGRA_INT8, RGB_INT16, RGB_INT32,
+  // BGR_INT8 = 8, BGR_INT16, BGR_INT32,
+  // R_FLOAT16 = 11, RGB_FLOAT16 = 12, R_FLOAT32 = 13, RGB_FLOAT32 = 14,
+  // BAYER_RGGB8 = 15, BAYER_RGGR8, BAYER_GBRG8, BAYER_GRBG8,
+  // PIXEL_FORMAT_COUNT
   std::string encoding;
   switch (pixel_format)
   {
     case 1:
       encoding = sensor_msgs::image_encodings::MONO8;
+      break;
+
+    case 2:
+      encoding = sensor_msgs::image_encodings::TYPE_16UC1;
       break;
 
     case 3:
@@ -50,12 +54,16 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
       encoding = sensor_msgs::image_encodings::BGR16;
       break;
 
+    case 11:
+      encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+      break;
+
     case 13:
       encoding = sensor_msgs::image_encodings::TYPE_32FC1;
       break;
 
     default:
-      DBG_SIM_WRN("Unsupported pixel type format !!");
+      DBG_SIM_WRN("Unsupported pixel type format(%d) !! ", pixel_format);
       encoding = sensor_msgs::image_encodings::RGB8;
       break;
   }
@@ -147,23 +155,18 @@ static gazebo::msgs::CameraSensor GetCameraSensorMessage(
   std::string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
-
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
   gazebo::msgs::CameraSensor cameraSensorInfo;
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get camera info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get camera info, length(%ld)", reply.size());
   }
   else
   {
-    if (cameraSensorInfo.ParseFromArray(pBuffer, bufferLength) == false)
+    if (cameraSensorInfo.ParseFromString(reply) == false)
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 

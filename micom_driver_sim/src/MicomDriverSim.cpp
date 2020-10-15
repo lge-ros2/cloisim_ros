@@ -18,14 +18,14 @@
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <protobuf/param.pb.h>
 
-#define LOGGING_PERIOD 1000
+// #define LOGGING_PERIOD 1000
 
 using namespace std;
 using namespace chrono_literals;
 using namespace gazebo;
 
-MicomDriverSim::MicomDriverSim()
-    : DriverSim("micom_driver_sim", 2),
+MicomDriverSim::MicomDriverSim(const string node_name)
+    : DriverSim(node_name, 2),
       m_hashKeyPub(""),
       m_hashKeySub(""),
       wheel_base(0.0),
@@ -48,7 +48,7 @@ void MicomDriverSim::Initialize()
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx_, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx_, uint16_t(0));
-  // DBG_SIM_INFO("[CONFIG] %d %d %d", portInfo, portTx_, portRx_);
+  // DBG_SIM_INFO("%d %d %d", portInfo, portTx_, portRx_);
 
   const auto hashKeyInfo = GetMainHashKey() + "Info";
   m_hashKeyPub = GetMainHashKey() + "Rx";
@@ -59,27 +59,9 @@ void MicomDriverSim::Initialize()
   msg_odom_.header.frame_id = "odom";
   msg_odom_.child_frame_id = "base_footprint";
 
-  geometry_msgs::msg::Quaternion quatIdentity;
-  quatIdentity.x = 0.0;
-  quatIdentity.y = 0.0;
-  quatIdentity.z = 0.0;
-  quatIdentity.w = 1.0;
+  SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
-  odom_tf_.header.frame_id = msg_odom_.header.frame_id;
-  odom_tf_.child_frame_id = msg_odom_.child_frame_id;
-  odom_tf_.transform.translation.x = 0;
-  odom_tf_.transform.translation.y = 0;
-  odom_tf_.transform.translation.z = 0;
-  odom_tf_.transform.rotation = quatIdentity;
-
-  geometry_msgs::msg::TransformStamped base_tf;
-  base_tf.header.frame_id = "base_footprint";
-  base_tf.child_frame_id = base_link_name_;
-  base_tf.transform.translation.x = 0;
-  base_tf.transform.translation.y = 0;
-  base_tf.transform.translation.z = 0;
-  base_tf.transform.rotation = quatIdentity;
-  AddStaticTf2(base_tf);
+  SetupStaticTf2(base_link_name_, "base_footprint");
 
   auto pSimBridgeData = GetSimBridge(0);
   auto pSimBridgeInfo = GetSimBridge(1);
@@ -107,11 +89,11 @@ void MicomDriverSim::Initialize()
 
     const auto transform_imu_name = target_transform_name["imu"];
     const auto transform_imu = GetObjectTransform(pSimBridgeInfo, transform_imu_name);
-    SetupStaticTf2Message(transform_imu, transform_imu_name);
+    SetupStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name_);
 
     const auto transform_wheel_0_name = target_transform_name["wheels/left"];
     const auto transform_wheel_0 = GetObjectTransform(pSimBridgeInfo, transform_wheel_0_name);
-    SetupTf2Message(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name);
+    SetTf2(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name + "_link", base_link_name_);
 
     const auto init_left_q_msg = &wheel_left_tf_.transform.rotation;
     const auto wheel_left_quat = tf2::Quaternion(init_left_q_msg->x, init_left_q_msg->y, init_left_q_msg->z, init_left_q_msg->w);
@@ -119,7 +101,7 @@ void MicomDriverSim::Initialize()
 
     const auto transform_wheel_1_name = target_transform_name["wheels/right"];
     const auto transform_wheel_1 = GetObjectTransform(pSimBridgeInfo, transform_wheel_1_name);
-    SetupTf2Message(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name);
+    SetTf2(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name + "_link", base_link_name_);
 
     const auto init_right_q_msg = &wheel_right_tf_.transform.rotation;
     const auto wheel_right_quat = tf2::Quaternion(init_right_q_msg->x, init_right_q_msg->y, init_right_q_msg->z, init_right_q_msg->w);
@@ -146,19 +128,6 @@ void MicomDriverSim::Deinitialize()
   DisconnectSimBridges();
 }
 
-void MicomDriverSim::SetupTf2Message(geometry_msgs::msg::TransformStamped& src_tf, const gazebo::msgs::Pose transform, const std::string frame_id)
-{
-  src_tf.header.frame_id = base_link_name_;
-  src_tf.child_frame_id = frame_id + "_link";
-  src_tf.transform.translation.x = transform.position().x();
-  src_tf.transform.translation.y = transform.position().y();
-  src_tf.transform.translation.z = transform.position().z();
-  src_tf.transform.rotation.x = transform.orientation().x();
-  src_tf.transform.rotation.y = transform.orientation().y();
-  src_tf.transform.rotation.z = transform.orientation().z();
-  src_tf.transform.rotation.w = transform.orientation().w();
-}
-
 void MicomDriverSim::GetWeelInfo(SimBridge* const pSimBridge)
 {
   if (pSimBridge == nullptr)
@@ -168,47 +137,44 @@ void MicomDriverSim::GetWeelInfo(SimBridge* const pSimBridge)
 
   msgs::Param request_msg;
   string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
   request_msg.set_name("request_wheel_info");
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get wheel info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get wheel info, length(%ld)", reply.size());
   }
   else
   {
     msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (m_pbBufParam.ParseFromString(reply))
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      if (m_pbBufParam.IsInitialized() &&
+          m_pbBufParam.name() == "wheelInfo")
+      {
+        auto baseParam = m_pbBufParam.children(0);
+        if (baseParam.name() == "base" && baseParam.has_value())
+        {
+          wheel_base = baseParam.value().double_value();
+        }
+
+        auto sizeParam = m_pbBufParam.children(1);
+        if (sizeParam.name() == "radius" && sizeParam.has_value())
+        {
+          wheel_radius = sizeParam.value().double_value();
+        }
+      }
     }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "wheelInfo")
+    else
     {
-      auto baseParam = m_pbBufParam.children(0);
-      if (baseParam.name() == "base" && baseParam.has_value())
-      {
-        wheel_base = baseParam.value().double_value();
-      }
-
-      auto sizeParam = m_pbBufParam.children(1);
-      if (sizeParam.name() == "radius" && sizeParam.has_value())
-      {
-        wheel_radius = sizeParam.value().double_value();
-      }
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 
-  DBG_SIM_INFO("[CONFIG] wheel.base:%f m", wheel_base);
-  DBG_SIM_INFO("[CONFIG] wheel.radius:%f m", wheel_radius);
+  DBG_SIM_INFO("wheel.base:%f m", wheel_base);
+  DBG_SIM_INFO("wheel.radius:%f m", wheel_radius);
 }
 
 void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
@@ -220,26 +186,22 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
 
   msgs::Param request_msg;
   string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
 
   request_msg.set_name("request_ros2");
   request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  const auto reply = pSimBridge->RequestReply(serializedBuffer);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get transform name info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get transform name info, length(%ld)", reply.size());
   }
   else
   {
     msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (m_pbBufParam.ParseFromString(reply) == false)
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
+      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
 
     if (m_pbBufParam.IsInitialized() &&
@@ -272,7 +234,7 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
         }
       }
 
-      DBG_SIM_INFO("[CONFIG] transform name imu:%s, wheels(0/1):%s/%s",
+      DBG_SIM_INFO("transform name imu:%s, wheels(0/1):%s/%s",
                    target_transform_name["imu"].c_str(),
                    target_transform_name["wheels/left"].c_str(),
                    target_transform_name["wheels/right"].c_str());
@@ -479,13 +441,13 @@ void MicomDriverSim::UpdateOdom()
 
   CalculateOdometry(duration, wheel_anglular_vel_left, wheel_anglular_vel_right, yaw);
 
-  static int cnt = 0;
-  if (cnt++ % LOGGING_PERIOD == 0)
-  {
-    DBG_SIM_MSG("Wheel odom x[%f] y[%f] theta[%f] vel_lin[%f] vel_ang[%f]",
-                odom_pose_[0], odom_pose_[1], odom_pose_[2],
-                odom_vel_[0], odom_pose_[2]);
-  }
+  // static int cnt = 0;
+  // if (cnt++ % LOGGING_PERIOD == 0)
+  // {
+  //   DBG_SIM_MSG("Wheel odom x[%f] y[%f] theta[%f] vel_lin[%f] vel_ang[%f]",
+  //               odom_pose_[0], odom_pose_[1], odom_pose_[2],
+  //               odom_vel_[0], odom_pose_[2]);
+  // }
 
   msg_odom_.header.stamp = m_simTime;
   msg_odom_.pose.pose.position.x = odom_pose_[0];

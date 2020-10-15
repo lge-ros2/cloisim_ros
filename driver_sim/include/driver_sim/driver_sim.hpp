@@ -27,13 +27,18 @@
 class DriverSim : public rclcpp::Node
 {
 public:
-  explicit DriverSim(const std::string name, const int number_of_simbridge = 1);
+  explicit DriverSim(const std::string node_name, const int number_of_simbridge = 1);
   ~DriverSim();
 
 protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
   virtual void UpdateData(const uint bridge_index = 0) = 0; // Function called at loop thread
+
+  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
+  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const gazebo::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
+  void SetupStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
+  void SetupStaticTf2(const gazebo::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
 
   void Start(const bool runSingleDataThread = true);
   void Stop();
@@ -64,10 +69,14 @@ protected:
 
   void PublishTF();
 
-  gazebo::msgs::Pose GetObjectTransform(SimBridge* const simBridge, const std::string target_name = "");
+  gazebo::msgs::Pose GetObjectTransform(SimBridge* const pSimBridge, const std::string target_name = "");
   gazebo::msgs::Pose GetObjectTransform(const int bridge_index, const std::string target_name = "");
 
   void GetRos2Parameter(SimBridge* const pSimBridge);
+
+public:
+  static gazebo::msgs::Param RequestReplyMessage(SimBridge* const pSimBridge, const gazebo::msgs::Param request_message);
+  static gazebo::msgs::Pose IdentityPose();
 
 private:
   void PublishStaticTF();

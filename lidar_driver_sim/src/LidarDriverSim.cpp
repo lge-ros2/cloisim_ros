@@ -23,8 +23,8 @@ using namespace std;
 using namespace chrono_literals;
 using namespace gazebo;
 
-LidarDriverSim::LidarDriverSim()
-    : DriverSim("lidar_driver_sim", 2)
+LidarDriverSim::LidarDriverSim(const string node_name)
+    : DriverSim(node_name, 2)
 {
   topic_name_ = "scan";
   frame_id_ = "base_scan";
@@ -61,7 +61,7 @@ void LidarDriverSim::Initialize()
     GetRos2Parameter(pSimBridgeInfo);
 
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    SetupStaticTf2Message(transform, frame_id_);
+    SetupStaticTf2(transform, frame_id_);
   }
 
   // ROS2 Publisher

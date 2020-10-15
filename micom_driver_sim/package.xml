@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>micom_driver_sim</name>
-  <version>1.2.0</version>
+  <version>1.5.0</version>
   <description>micom driver package for simulator</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>

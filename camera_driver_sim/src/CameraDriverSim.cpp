@@ -22,8 +22,8 @@ using namespace std;
 using namespace chrono_literals;
 using namespace gazebo;
 
-CameraDriverSim::CameraDriverSim(const string name)
-    : DriverSim(name, 2)
+CameraDriverSim::CameraDriverSim(const string node_name)
+    : DriverSim(node_name, 2)
 {
   topic_name_ = "camera";
   frame_id_ = "camera_link";
@@ -44,7 +44,7 @@ void CameraDriverSim::Initialize()
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
   m_hashKeySub = GetMainHashKey();
-  DBG_SIM_INFO("[CONFIG] hash Key sub: %s", m_hashKeySub.c_str());
+  DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
   auto pSimBridgeData = GetSimBridge(0);
   auto pSimBridgeInfo = GetSimBridge(1);
@@ -62,7 +62,7 @@ void CameraDriverSim::Initialize()
     GetRos2Parameter(pSimBridgeInfo);
 
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    SetupStaticTf2Message(transform, frame_id_);
+    SetupStaticTf2(transform, frame_id_ + "_link");
 
     cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(pSimBridgeInfo);

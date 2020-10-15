@@ -21,8 +21,8 @@ using namespace std;
 using namespace chrono_literals;
 using namespace gazebo;
 
-MultiCameraDriverSim::MultiCameraDriverSim()
-    : DriverSim("multi_camera_driver_sim", 2)
+MultiCameraDriverSim::MultiCameraDriverSim(const string node_name)
+    : DriverSim(node_name, 2)
 {
   Start();
 }
@@ -58,11 +58,11 @@ void MultiCameraDriverSim::Initialize()
   for (auto frame_id : frame_id_)
   {
     const auto transform = GetObjectTransform(pSimBridgeInfo, frame_id);
-    SetupStaticTf2Message(transform, multicamera_name_ + "_" + frame_id);
+    SetupStaticTf2(transform, multicamera_name_ + "_" + frame_id);
 
     // Image publisher
     const auto topic_base_name_ = multicamera_name_ + "/" + frame_id;
-    DBG_SIM_INFO("[CONFIG] topic_base_name:%s", topic_base_name_.c_str());
+    DBG_SIM_INFO("topic_base_name:%s", topic_base_name_.c_str());
 
     pubImages.push_back(it.advertise(topic_base_name_ + "/image_raw", 1));
 
@@ -96,33 +96,15 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
   }
 
   msgs::Param request_msg;
-  string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
   request_msg.set_name("request_ros2");
-  request_msg.SerializeToString(&serializedBuffer);
 
-  pSimBridge->Send(serializedBuffer.data(), serializedBuffer.size());
+  msgs::Param reply_msg = RequestReplyMessage(pSimBridge, request_msg);
 
-  const auto succeeded = pSimBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply_msg.IsInitialized())
   {
-    DBG_SIM_ERR("Faild to get ROS2 common info, length(%d)", bufferLength);
-  }
-  else
-  {
-    msgs::Param m_pbBufParam;
-    if (m_pbBufParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (reply_msg.name() == "ros2")
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
-    }
-
-    if (m_pbBufParam.IsInitialized() &&
-        m_pbBufParam.name() == "ros2")
-    {
-      auto baseParam = m_pbBufParam.children(0);
+      auto baseParam = reply_msg.children(0);
       if (baseParam.name() == "frames_id")
       {
         for (auto i = 0; i < baseParam.children_size(); i++)
@@ -132,7 +114,7 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
           {
             const auto frame_id = param.value().string_value();
             frame_id_.push_back(frame_id);
-            DBG_SIM_INFO("[CONFIG] frame_id: %s", frame_id.c_str());
+            DBG_SIM_INFO("frame_id: %s", frame_id.c_str());
           }
         }
       }

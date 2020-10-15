@@ -24,7 +24,7 @@
 class RealSenseDriverSim : public DriverSim
 {
 public:
-  RealSenseDriverSim();
+  explicit RealSenseDriverSim(const std::string node_name = "realsense_driver_sim");
   virtual ~RealSenseDriverSim();
 
 private:
@@ -32,7 +32,13 @@ private:
   virtual void Deinitialize() override;
   virtual void UpdateData(const uint bridge_index) override;
 
+  void GetParameters(SimBridge* const pSimBridge);
   void GetActivatedModules(SimBridge* const pSimBridge);
+
+private:
+  double depth_range_min_;
+  double depth_range_max_;
+  int depth_scale_;
 
 private:
   gazebo::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;

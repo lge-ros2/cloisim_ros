@@ -20,7 +20,7 @@
 class DepthCameraDriverSim : public CameraDriverSim
 {
 public:
-  DepthCameraDriverSim();
+  explicit DepthCameraDriverSim(const std::string node_name = "depth_camera_driver_sim");
   virtual ~DepthCameraDriverSim();
 
 private:

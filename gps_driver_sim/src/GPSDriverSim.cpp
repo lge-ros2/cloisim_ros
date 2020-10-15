@@ -18,8 +18,8 @@
 
 using namespace std;
 
-GPSDriverSim::GPSDriverSim()
-    : DriverSim("gps_driver_sim", 2)
+GPSDriverSim::GPSDriverSim(const string node_name)
+    : DriverSim(node_name, 2)
 {
   topic_name_ = "navsatfix";
   frame_id_ = "gps";
@@ -70,7 +70,7 @@ void GPSDriverSim::Initialize()
     GetRos2Parameter(pSimBridgeInfo);
 
     const auto transform = GetObjectTransform(pSimBridgeInfo);
-    SetupStaticTf2Message(transform, frame_id_);
+    SetupStaticTf2(transform, frame_id_ + "_link");
   }
 
   // ROS2 Publisher

@@ -24,7 +24,7 @@
 class MultiCameraDriverSim : public DriverSim
 {
 public:
-  MultiCameraDriverSim();
+  explicit MultiCameraDriverSim(const std::string node_name = "multi_camera_driver_sim");
   virtual ~MultiCameraDriverSim();
 
 private:

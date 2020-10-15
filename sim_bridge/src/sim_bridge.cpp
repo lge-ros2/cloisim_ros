@@ -38,7 +38,7 @@ SimBridge::SimBridge()
 
   if (env_sim_bridge_ip == nullptr)
   {
-    DBG_SIM_WRN("[SIM_BRIDGE] env for SIM_BRIDGE_IP is null, will use default.");
+    // DBG_SIM_WRN("env for SIM_BRIDGE_IP is null, will use default.");
   }
   else
   {
@@ -317,7 +317,7 @@ bool SimBridge::ConnectSubscriber(const uint16_t port, const string hashKey)
   }
 
   const string bridgeAddress = GetSimBridgeAddress(port);
-  DBG_SIM_MSG("Sub bridgeAddress=[%s]", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
 
   if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0)
   {
@@ -333,7 +333,7 @@ bool SimBridge::ConnectPublisher(const uint16_t port, const string hashKey)
   m_nHashTagTx = hash<string>{}(hashKey);
 
   const string bridgeAddress = GetSimBridgeAddress(port);
-  DBG_SIM_MSG("Pub bridge address=[%s]", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
 
   if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0)
   {
@@ -349,7 +349,7 @@ bool SimBridge::ConnectService(const uint16_t port, const string hashKey)
   m_nHashTagTx = hash<string>{}(hashKey);
 
   const string bridgeAddress = GetSimBridgeAddress(port);
-  DBG_SIM_MSG("Service bridge address=[%s]", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
 
   if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0)
   {
@@ -365,7 +365,7 @@ bool SimBridge::ConnectClient(const uint16_t port, const string hashKey)
   m_nHashTagTx = hash<string>{}(hashKey);
 
   const string bridgeAddress = GetSimBridgeAddress(port);
-  DBG_SIM_MSG("Client for service bridge address=[%s]", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
   if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectClient Err:" + string(zmq_strerror(zmq_errno()));
@@ -478,4 +478,29 @@ bool SimBridge::Send(const void* buffer, const int bufferLength, bool isNonBlock
 	zmq_msg_close(&msg);
 
   return true;
+}
+
+std::string SimBridge::RequestReply(std::string request_data)
+{
+  string reply_data;
+
+  if (request_data.size() > 0)
+  {
+    Send(request_data.data(), request_data.size());
+
+    void *pBuffer = nullptr;
+    int bufferLength = 0;
+    const auto succeeded = Receive(&pBuffer, bufferLength);
+
+    if (succeeded)
+    {
+      reply_data.assign(static_cast<char *>(pBuffer), bufferLength);
+    }
+    else
+    {
+      DBG_SIM_ERR("Faild to get replay buffer, length(%d)", bufferLength);
+    }
+  }
+
+  return reply_data;
 }

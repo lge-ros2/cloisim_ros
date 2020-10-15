@@ -23,7 +23,7 @@
 class LidarDriverSim : public DriverSim
 {
 public:
-  LidarDriverSim();
+  explicit LidarDriverSim(const std::string node_name = "lidar_driver_sim");
   ~LidarDriverSim();
 
 private:

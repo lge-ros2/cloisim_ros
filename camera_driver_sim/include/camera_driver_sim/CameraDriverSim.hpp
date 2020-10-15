@@ -25,7 +25,7 @@
 class CameraDriverSim : public DriverSim
 {
 public:
-  explicit CameraDriverSim(const std::string name = "camera_driver_sim");
+  explicit CameraDriverSim(const std::string node_name = "camera_driver_sim");
   virtual ~CameraDriverSim();
 
 protected:
