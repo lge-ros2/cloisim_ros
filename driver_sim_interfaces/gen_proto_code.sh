@@ -1,17 +1,14 @@
 #!/bin/bash
 
-ROOT_PATH=$1
-
-if [ -z ${ROOT_PATH} ]; then
-  ROOT_PATH="./include"
-fi
-
-SIM_PROXY_PATH=${ROOT_PATH}"/../"
 PROTOC="protoc"
-MSGS_PATH=${SIM_PROXY_PATH}"/msgs"
-TARGET=${ROOT_PATH}"/protobuf/"
+
+ROOT_PATH=$1
+MSGS_PATH=${ROOT_PATH}"/msgs"
+TARGET=${ROOT_PATH}"/include/protobuf/"
+TARGET_SOURCE=${ROOT_PATH}"/src/protobuf"
 
 mkdir -p $TARGET
+mkdir -p $TARGET_SOURCE
 
 MSG="any param param_v color "
 MSG+="time vector2d vector3d quaternion pose "
@@ -24,3 +21,5 @@ do
   echo "Generate $i.proto"
   eval "$PROTOC -I $MSGS_PATH --cpp_out=$TARGET $MSGS_PATH/$i.proto"
 done
+
+mv $TARGET/*.pb.cc $TARGET_SOURCE

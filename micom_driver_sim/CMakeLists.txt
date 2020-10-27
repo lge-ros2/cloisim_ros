@@ -41,7 +41,7 @@ add_executable(${PROJECT_NAME}
 
 ament_target_dependencies(${PROJECT_NAME}
   ${dependencies}
-)
+  )
 
 ################################################################################
 # Install
