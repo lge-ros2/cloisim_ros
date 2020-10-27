@@ -32,4 +32,5 @@ tags
 
 
 # to ignore generated code
-driver_sim/include/protobuf/*
+*/include/protobuf/*
+*/src/protobuf/*

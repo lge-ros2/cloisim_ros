@@ -21,6 +21,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(sim_bridge REQUIRED)
+find_package(driver_sim_interfaces REQUIRED)
 find_package(driver_sim REQUIRED)
 
 ################################################################################
@@ -39,6 +40,7 @@ ament_target_dependencies(${PROJECT_NAME}
   camera_info_manager
   image_transport
   sim_bridge
+  driver_sim_interfaces
   driver_sim)
 
 ################################################################################

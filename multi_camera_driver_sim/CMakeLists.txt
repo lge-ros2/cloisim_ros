@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
+find_package(driver_sim_interfaces REQUIRED)
 find_package(driver_sim REQUIRED)
 find_package(sim_bridge REQUIRED)
 
@@ -38,6 +39,7 @@ ament_target_dependencies(${PROJECT_NAME}
   sensor_msgs
   camera_info_manager
   image_transport
+  driver_sim_interfaces
   driver_sim
   sim_bridge)
 

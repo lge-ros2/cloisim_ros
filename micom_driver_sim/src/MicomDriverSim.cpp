@@ -453,7 +453,7 @@ void MicomDriverSim::UpdateOdom()
   {
     DBG_SIM_MSG("Wheel odom x[%f] y[%f] theta[%f] vel_lin[%f] vel_ang[%f]",
                 odom_pose_[0], odom_pose_[1], odom_pose_[2],
-                odom_vel_[0], odom_pose_[2]);
+                odom_vel_[0], odom_vel_[2]);
   }
 
   msg_odom_.header.stamp = m_simTime;

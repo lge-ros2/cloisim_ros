@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sim_bridge REQUIRED)
+find_package(driver_sim_interfaces REQUIRED)
 find_package(driver_sim REQUIRED)
 
 ################################################################################
@@ -36,6 +37,7 @@ ament_target_dependencies(${PROJECT_NAME}
   sensor_msgs
   geometry_msgs
   sim_bridge
+  driver_sim_interfaces
   driver_sim)
 
 ################################################################################
