@@ -19,7 +19,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(sim_bridge REQUIRED)
 find_package(driver_sim REQUIRED)
 
 set(dependencies

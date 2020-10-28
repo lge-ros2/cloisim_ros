@@ -16,7 +16,6 @@
 #include "lidar_driver_sim/LidarDriverSim.hpp"
 #include <unistd.h>
 #include <math.h>
-#include <tf2/LinearMath/Quaternion.h>
 #include <protobuf/param.pb.h>
 
 using namespace std;

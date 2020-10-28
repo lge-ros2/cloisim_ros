@@ -18,12 +18,14 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
-find_package(driver_sim REQUIRED)
+find_package(driver_sim_interfaces REQUIRED)
+find_package(sim_bridge REQUIRED)
 
 set(dependencies
   rclcpp
   rosgraph_msgs
-  driver_sim
+  sim_bridge
+  driver_sim_interfaces
 )
 
 ################################################################################
@@ -33,8 +35,7 @@ include_directories(include)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
-  src/unity_ros_init.cpp
-)
+  src/unity_ros_init.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
   ${dependencies}

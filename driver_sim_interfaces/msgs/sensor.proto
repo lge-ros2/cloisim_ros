@@ -2,7 +2,7 @@ syntax = "proto2";
 package gazebo.msgs;
 
 /// \ingroup gazebo_msgs
-/// \interface Sensor 
+/// \interface Sensor
 /// \brief Information about a sensor element
 
 import "pose.proto";
