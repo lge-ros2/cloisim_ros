@@ -21,24 +21,24 @@ find_package(tf2_ros REQUIRED)
 find_package(sim_bridge REQUIRED)
 find_package(driver_sim_interfaces REQUIRED)
 
+set(dependencies
+  sim_bridge
+  driver_sim_interfaces
+)
+
 ################################################################################
 # Build
 ################################################################################
 include_directories(include)
 
-FILE(GLOB PROTOBUF_MSG_SRCS
-  ./include/protobuf/*.pb.cc)
-
 add_library(${PROJECT_NAME} SHARED
-  src/driver_sim.cpp
-  ${PROTOBUF_MSG_SRCS})
+  src/driver_sim.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   geometry_msgs
   tf2_ros
-  sim_bridge
-  driver_sim_interfaces)
+  ${dependencies})
 
 ################################################################################
 # Install
