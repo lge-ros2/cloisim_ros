@@ -62,7 +62,7 @@ private:
   bool use_sub_;
 
   // Micom msgs
-  gazebo::msgs::Micom m_pbBufMicom_;
+  gazebo::msgs::Micom pbBufMicom_;
 
   std::array<double, 3> odom_pose_;
   std::array<double, 3> odom_vel_;

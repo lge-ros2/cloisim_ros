@@ -316,19 +316,19 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
     return;
   }
 
-  if (!m_pbBufMicom_.ParseFromArray(pBuffer, bufferLength))
+  if (!pbBufMicom_.ParseFromArray(pBuffer, bufferLength))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
     return;
   }
 
-  m_simTime = rclcpp::Time(m_pbBufMicom_.time().sec(), m_pbBufMicom_.time().nsec());
+  m_simTime = rclcpp::Time(pbBufMicom_.time().sec(), pbBufMicom_.time().nsec());
 
   //DBG_SIM_WRN("Simulation time %u %u size(%d)",
-  //  m_pbBufMicom_.time().sec(), m_pbBufMicom_.time().nsec(), bufferLength);
+  //  pbBufMicom_.time().sec(), pbBufMicom_.time().nsec(), bufferLength);
 
   // reset odom info when sim time is reset
-  if (m_pbBufMicom_.time().sec() == 0 && m_pbBufMicom_.time().nsec() < 50000000)
+  if (pbBufMicom_.time().sec() == 0 && pbBufMicom_.time().nsec() < 50000000)
   {
     DBG_SIM_WRN("Simulation time has been reset!!!");
     odom_pose_.fill(0.0);
@@ -342,8 +342,8 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
     {
       DBG_SIM_INFO("recv [%06d][%d][%d][%f]",
           cnt,
-          m_pbBufMicom_.odom().speed_left(), m_pbBufMicom_.odom().speed_right(),
-          m_pbBufMicom_.imu().angular_velocity().z());
+          pbBufMicom_.odom().speed_left(), pbBufMicom_.odom().speed_right(),
+          pbBufMicom_.imu().angular_velocity().z());
     }
 #endif
 
@@ -423,20 +423,20 @@ bool MicomDriverSim::CalculateOdometry(
 
 void MicomDriverSim::UpdateOdom()
 {
-  if (!m_pbBufMicom_.has_odom() || !m_pbBufMicom_.has_imu())
+  if (!pbBufMicom_.has_odom() || !pbBufMicom_.has_imu())
   {
     return;
   }
 
   // DBG_SIM_MSG("nSpeedLeft: %d, nSpeedRight: %d, imu.x: %f, imu.y: %f, imu.z: %f, imu.w: %f",
-  //         nSpeedLeft, nSpeedRight, m_pbBufMicom_.imu().orientation().x(), m_pbBufMicom_.imu().orientation().y(),
-  //         m_pbBufMicom_.imu().orientation().z(), m_pbBufMicom_.imu().orientation().w());
+  //         nSpeedLeft, nSpeedRight, pbBufMicom_.imu().orientation().x(), pbBufMicom_.imu().orientation().y(),
+  //         pbBufMicom_.imu().orientation().z(), pbBufMicom_.imu().orientation().w());
 
   // update angular velocity rad/s
-  const double wheel_anglular_vel_left = m_pbBufMicom_.odom().angular_velocity_left();
-  const double wheel_anglular_vel_right = m_pbBufMicom_.odom().angular_velocity_right();
+  const double wheel_anglular_vel_left = pbBufMicom_.odom().angular_velocity().left();
+  const double wheel_anglular_vel_right = pbBufMicom_.odom().angular_velocity().right();
 
-  const auto orientation = m_pbBufMicom_.imu().orientation();
+  const auto orientation = pbBufMicom_.imu().orientation();
   const tf2::Quaternion imu_quat(orientation.x(), orientation.y(), orientation.z(), orientation.w());
   const tf2::Matrix3x3 imu_mat(imu_quat);
   double roll, pitch, yaw;
@@ -506,10 +506,10 @@ void MicomDriverSim::UpdateImu()
 {
   msg_imu_.header.stamp = m_simTime;
 
-  msg_imu_.orientation.x = m_pbBufMicom_.imu().orientation().x();
-  msg_imu_.orientation.y = m_pbBufMicom_.imu().orientation().y();
-  msg_imu_.orientation.z = m_pbBufMicom_.imu().orientation().z();
-  msg_imu_.orientation.w = m_pbBufMicom_.imu().orientation().w();
+  msg_imu_.orientation.x = pbBufMicom_.imu().orientation().x();
+  msg_imu_.orientation.y = pbBufMicom_.imu().orientation().y();
+  msg_imu_.orientation.z = pbBufMicom_.imu().orientation().z();
+  msg_imu_.orientation.w = pbBufMicom_.imu().orientation().w();
 
    // Fill covariances
   msg_imu_.orientation_covariance[0] = 0.0;
@@ -522,9 +522,9 @@ void MicomDriverSim::UpdateImu()
   msg_imu_.orientation_covariance[7] = 0.0;
   msg_imu_.orientation_covariance[8] = 0.0;
 
-  msg_imu_.angular_velocity.x = m_pbBufMicom_.imu().angular_velocity().x();
-  msg_imu_.angular_velocity.y = m_pbBufMicom_.imu().angular_velocity().y();
-  msg_imu_.angular_velocity.z = m_pbBufMicom_.imu().angular_velocity().z();
+  msg_imu_.angular_velocity.x = pbBufMicom_.imu().angular_velocity().x();
+  msg_imu_.angular_velocity.y = pbBufMicom_.imu().angular_velocity().y();
+  msg_imu_.angular_velocity.z = pbBufMicom_.imu().angular_velocity().z();
 
   msg_imu_.angular_velocity_covariance[0] = 0.0;
   msg_imu_.angular_velocity_covariance[1] = 0.0;
@@ -536,9 +536,9 @@ void MicomDriverSim::UpdateImu()
   msg_imu_.angular_velocity_covariance[7] = 0.0;
   msg_imu_.angular_velocity_covariance[8] = 0.0;
 
-  msg_imu_.linear_acceleration.x = m_pbBufMicom_.imu().linear_acceleration().x();
-  msg_imu_.linear_acceleration.y = m_pbBufMicom_.imu().linear_acceleration().y();
-  msg_imu_.linear_acceleration.z = m_pbBufMicom_.imu().linear_acceleration().z();
+  msg_imu_.linear_acceleration.x = pbBufMicom_.imu().linear_acceleration().x();
+  msg_imu_.linear_acceleration.y = pbBufMicom_.imu().linear_acceleration().y();
+  msg_imu_.linear_acceleration.z = pbBufMicom_.imu().linear_acceleration().z();
 
   msg_imu_.linear_acceleration_covariance[0] = 0.0;
   msg_imu_.linear_acceleration_covariance[1] = 0.0;
