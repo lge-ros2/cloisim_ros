@@ -1,3 +1,13 @@
+/**
+ *  @file   micom.proto
+ *  @date   2020-10-27
+ *  @author hyunseok Yang
+ *  @warning
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+
 syntax = "proto2";
 package gazebo.msgs;
 
@@ -9,6 +19,7 @@ import "time.proto";
 import "imu.proto";
 import "battery.proto";
 import "pose.proto";
+import "vector3d.proto";
 
 message Micom
 {
@@ -22,30 +33,24 @@ message Micom
     repeated double distance  = 1;
   }
 
+  message Odometry
+  {
+    message Wheel
+    {
+      required double left   = 1 [default = 0.0];
+      required double right  = 2 [default = 0.0];
+    }
+
+    required Wheel angular_velocity = 1;
+    optional Wheel linear_velocity  = 2;
+    optional Vector3d pose          = 3;
+    optional Vector3d twist_linear  = 4;
+    optional Vector3d twist_angular = 5;
+  }
+
   message Magnet
   {
     repeated bool detected = 1;
-  }
-
-  message Odometry
-  {
-    required double angular_velocity_left   = 1 [default = 0];
-    required double angular_velocity_right  = 2 [default = 0];
-    optional double linear_velocity_left    = 3 [default = 0];
-    optional double linear_velocity_right   = 4 [default = 0];
-  }
-
-  message AccGyro
-  {
-    required double angle_x = 1 [default = 0.0];
-    required double angle_y = 2 [default = 0.0];
-    required double angle_z = 3 [default = 0.0];
-    required double anguler_rate_x = 4 [default = 0.0];
-    required double anguler_rate_y = 5 [default = 0.0];
-    required double anguler_rate_z = 6 [default = 0.0];
-    required double acc_x = 7 [default = 0.0];
-    required double acc_y = 8 [default = 0.0];
-    required double acc_z = 9 [default = 0.0];
   }
 
   message Bumper
@@ -53,14 +58,13 @@ message Micom
     repeated bool bumped = 1;
   }
 
-  required Time time        = 1; /// Time when the data sent
+  required Time time        = 1;
   required Odometry odom    = 2;
   optional USS uss          = 3;
   optional IR ir            = 4;
   optional Magnet magnet    = 5;
-  optional AccGyro accgyro  = 6;
-  optional IMU imu          = 7;
-  optional Bumper bumper    = 8;
-  optional Battery battery  = 9;
-  optional Pose pose        = 10;
+  optional IMU imu          = 6;
+  optional Bumper bumper    = 7;
+  optional Battery battery  = 8;
+  optional Pose pose        = 9;
 }
