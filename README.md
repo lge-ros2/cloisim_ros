@@ -10,7 +10,7 @@ ROS2 simulation device packages to connect the unity3D based multi-robot simulat
 
 ```shell
 ## general
-sudo apt-get install python-websocket
+sudo apt-get install python3-websocket
 sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
 
 ## for camera driver sim
