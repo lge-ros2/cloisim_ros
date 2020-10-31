@@ -226,13 +226,17 @@ void DriverSim::GetRos2Parameter(SimBridge* const pSimBridge)
         m_pbBufParam.name() == "ros2")
     {
       auto param0 = m_pbBufParam.children(0);
-      if (param0.name() == "topic_name" && param0.has_value())
+      if (param0.name() == "topic_name" && param0.has_value() &&
+          param0.value().type() == msgs::Any_ValueType_STRING &&
+          !param0.value().string_value().empty())
       {
         topic_name_ = param0.value().string_value();
       }
 
       auto param1 = m_pbBufParam.children(1);
-      if (param1.name() == "frame_id" && param1.has_value())
+      if (param1.name() == "frame_id" && param1.has_value() &&
+          param1.value().type() == msgs::Any_ValueType_STRING &&
+          !param1.value().string_value().empty())
       {
         frame_id_ = param1.value().string_value();
       }

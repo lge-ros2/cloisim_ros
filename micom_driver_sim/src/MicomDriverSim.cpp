@@ -212,7 +212,9 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
           baseParam.name() == "transform_name")
       {
         auto param0 = baseParam.children(0);
-        if (param0.name() == "imu" && param0.has_value())
+        if (param0.name() == "imu" && param0.has_value() &&
+            param0.value().type() == msgs::Any_ValueType_STRING &&
+            !param0.value().string_value().empty())
         {
           target_transform_name["imu"] = param0.value().string_value();
         }
@@ -221,13 +223,17 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
         if (param1.name() == "wheels")
         {
             auto childParam0 = param1.children(0);
-            if (childParam0.name() == "left" && childParam0.has_value())
+            if (childParam0.name() == "left" && childParam0.has_value() &&
+                childParam0.value().type() == msgs::Any_ValueType_STRING &&
+                !childParam0.value().string_value().empty())
             {
               target_transform_name["wheels/left"] = childParam0.value().string_value();
             }
 
             auto childParam1 = param1.children(1);
-            if (childParam1.name() == "right" && childParam1.has_value())
+            if (childParam1.name() == "right" && childParam1.has_value() &&
+                childParam1.value().type() == msgs::Any_ValueType_STRING &&
+                !childParam1.value().string_value().empty())
             {
               target_transform_name["wheels/right"] = childParam1.value().string_value();
             }
