@@ -59,7 +59,9 @@ CallbackReturn CElevatorSystem::on_activate(const State &)
     msgs::Param response;
     if (receive_response(response))
     {
-      if (response.name().compare("request_system_name") == 0)
+      if (response.name().compare("request_system_name") == 0 &&
+          response.value().type() == msgs::Any_ValueType_STRING &&
+          !response.value().string_value().empty())
       {
         systemName_ = response.value().string_value();
       }

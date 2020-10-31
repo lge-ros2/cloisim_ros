@@ -229,7 +229,9 @@ void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
       for (auto i = 0; i < m_pbBufParam.children_size(); i++)
       {
         auto param = m_pbBufParam.children(i);
-        if (param.name() == "module" && param.has_value())
+        if (param.name() == "module" && param.has_value() &&
+            param.value().type() == msgs::Any_ValueType_STRING &&
+            !param.value().string_value().empty())
         {
           const auto module = param.value().string_value();
           module_list_.push_back(module);
