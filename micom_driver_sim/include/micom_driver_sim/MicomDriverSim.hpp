@@ -64,8 +64,6 @@ private:
   // Micom msgs
   gazebo::msgs::Micom pbBufMicom_;
 
-  std::array<double, 3> odom_pose_;
-  std::array<double, 3> odom_vel_;
   std::array<double, 2> last_rad_;
 
   // IMU msgs
