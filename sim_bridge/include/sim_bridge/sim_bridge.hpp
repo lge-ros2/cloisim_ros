@@ -43,7 +43,6 @@ public:
 
   bool Connect(const unsigned char mode, const uint16_t port, const std::string hashKey = "");
   bool Disconnect(const unsigned char mode = 0);
-  bool Reconnect(const unsigned char mode, const uint16_t port, const std::string hashKey = "");
 
   bool Receive(void** buffer, int& bufferLength, bool isNonBlockingMode = false);
   bool Send(const void* buffer, const int bufferLength, bool isNonBlockingMode = false);

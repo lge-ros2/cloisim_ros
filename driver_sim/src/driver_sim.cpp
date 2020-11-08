@@ -25,8 +25,9 @@ DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
            rclcpp::NodeOptions()
                .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
                .allow_undeclared_parameters(true)
-               .automatically_declare_parameters_from_overrides(true)),
-      m_bRunThread(false), m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
+               .automatically_declare_parameters_from_overrides(true))
+    , m_bRunThread(false)
+    , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
   m_simBridgeList.reserve(number_of_simbridge);
 
