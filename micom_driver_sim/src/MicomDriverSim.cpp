@@ -34,6 +34,10 @@ MicomDriverSim::MicomDriverSim()
       use_pub_(true),
       use_sub_(true)
 {
+  odom_pose_.fill(0.0);
+  odom_vel_.fill(0.0);
+  last_rad_.fill(0.0);
+
   Start();
 }
 
