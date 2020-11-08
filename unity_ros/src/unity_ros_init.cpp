@@ -99,9 +99,6 @@ void UnityRosInit::RxProc()
     if (succeeded == false || bufferLength < 0)
     {
       DBG_SIM_ERR("zmq receive error, return size(%d) %s!", bufferLength, zmq_strerror(zmq_errno()));
-
-      // try reconnection
-      m_pSimBridge->Reconnect(SimBridge::Mode::SUB, portClock_, m_hashKey);
       continue;
     }
 

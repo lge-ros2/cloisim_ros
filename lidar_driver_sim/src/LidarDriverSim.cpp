@@ -89,13 +89,6 @@ void LidarDriverSim::UpdateData(const uint bridge_index)
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-    // try reconnect1ion
-    if (IsRunThread())
-    {
-      simBridge->Reconnect(SimBridge::Mode::SUB, portData_, m_hashKeySub);
-    }
-
     return;
   }
 

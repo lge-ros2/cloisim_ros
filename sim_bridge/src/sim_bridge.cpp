@@ -21,7 +21,6 @@ using namespace std;
 
 #define DEFAULT_SIM_BRIDGE_IP "127.0.0.1"
 
-
 SimBridge::SimBridge()
   : simBridgeIP(DEFAULT_SIM_BRIDGE_IP)
   , pCtx_(nullptr)
@@ -404,15 +403,6 @@ bool SimBridge::Disconnect(const unsigned char mode)
   pSockTx_ = nullptr;
   pSockRx_ = nullptr;
 
-  return result;
-}
-
-bool SimBridge::Reconnect(const unsigned char mode, const uint16_t port, const string hashKey)
-{
-  DBG_SIM_INFO("Reconnect");
-  bool result = true;
-  result &= Disconnect(mode);
-  result &= Connect(mode, port, hashKey);
   return result;
 }
 

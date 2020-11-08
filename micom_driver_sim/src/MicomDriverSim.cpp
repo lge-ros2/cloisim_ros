@@ -315,14 +315,6 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-    // try reconnection
-    if (IsRunThread())
-    {
-      simBridge->Reconnect(SimBridge::Mode::SUB, portTx_, m_hashKeySub);
-      simBridge->Reconnect(SimBridge::Mode::PUB, portRx_, m_hashKeyPub);
-    }
-
     return;
   }
 
