@@ -61,7 +61,7 @@ SimBridge::~SimBridge()
 }
 
 /**
- * @brief setup simdevice
+ * @brief setup sim_device
  *
  * @param mode : bit slection ex) Setup(Mode::PUB|Mode::SUB)
  */

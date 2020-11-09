@@ -11,9 +11,9 @@ import launch.actions
 import launch_ros.actions
 
 from ament_index_python.packages import get_package_share_directory
-from simdevice_bringup.common import get_launcher_file_by_device_type
-from simdevice_bringup.common import get_target_device_list
-from simdevice_bringup.common import generate_temp_params
+from sim_device_bringup.common import get_launcher_file_by_device_type
+from sim_device_bringup.common import get_target_device_list
+from sim_device_bringup.common import generate_temp_params
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -25,7 +25,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def generate_launch_description():
 
     # Get the launch directory
-    _pkg_name = "simdevice_bringup"
+    _pkg_name = "sim_device_bringup"
     launch_dir = os.path.join(get_package_share_directory(_pkg_name), 'launch')
 
     included_launch_world = IncludeLaunchDescription(
