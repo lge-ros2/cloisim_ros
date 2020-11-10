@@ -110,7 +110,9 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
         for (auto i = 0; i < baseParam.children_size(); i++)
         {
           auto param = baseParam.children(i);
-          if (param.name() == "frame_id" && param.has_value())
+          if (param.name() == "frame_id" && param.has_value() &&
+              param.value().type() == msgs::Any_ValueType_STRING &&
+              !param.value().string_value().empty())
           {
             const auto frame_id = param.value().string_value();
             frame_id_.push_back(frame_id);
@@ -124,22 +126,13 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
 
 void MultiCameraDriverSim::UpdateData(const uint bridge_index)
 {
-  (void)bridge_index;
-  auto simBridge = GetSimBridge(1);
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
+  const bool succeeded = GetBufferFromSimulator(1, &pBuffer, bufferLength);
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-    // try reconnect1ion
-    if (IsRunThread())
-    {
-      simBridge->Reconnect(SimBridge::Mode::SUB, portData_, m_hashKeySub);
-    }
-
     return;
   }
 

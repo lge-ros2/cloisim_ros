@@ -3,7 +3,7 @@
 <package format="3">
   <name>sim_device_bringup</name>
   <version>1.2.0</version>
-  <description>Bringup scripts and configurations for simdevice</description>
+  <description>Bringup scripts and configurations for sim_device</description>
 
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>

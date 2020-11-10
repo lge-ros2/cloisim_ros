@@ -8,7 +8,7 @@
 
 import os
 import launch.actions
-from simdevice_bringup.common import get_default_remapping_list
+from sim_device_bringup.common import get_default_remapping_list
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.actions import SetEnvironmentVariable

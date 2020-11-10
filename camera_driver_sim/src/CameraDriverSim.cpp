@@ -86,21 +86,13 @@ void CameraDriverSim::Deinitialize()
 
 void CameraDriverSim::UpdateData(const uint bridge_index)
 {
-  auto simBridge = GetSimBridge(bridge_index);
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
+  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-    // try reconnect1ion
-    if (IsRunThread())
-    {
-      simBridge->Reconnect(SimBridge::Mode::SUB, portData_, m_hashKeySub);
-    }
-
     return;
   }
 

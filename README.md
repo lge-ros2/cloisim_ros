@@ -10,7 +10,7 @@ ROS2 simulation device packages to connect the unity3D based multi-robot simulat
 
 ```shell
 ## general
-sudo apt-get install python-websocket
+sudo apt-get install python3-websocket
 sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
 
 ## for camera driver sim
@@ -79,13 +79,13 @@ Run below command after clone this repository(this branch).
 ```shell
 git clone https://github.com/lge-ros2/sim_device.git -b foxy
 cd sim_device
-docker build -t simdevice .
+docker build -t sim_device .
 ```
 
 #### Running container with laucnher
 
 ```shell
-docker run -it --rm --net=host simdevice {launch script} {arguments}
+docker run -it --rm --net=host sim_device {launch script} {arguments}
 ```
 
 ##### How to run container
@@ -95,9 +95,9 @@ docker run -it --rm --net=host simdevice {launch script} {arguments}
 [here](https://github.com/lge-ros2/sim_device/tree/foxy/bringup/launch) to check launchers
 
 ```shell
-docker run -it --rm --net=host simdevice driver_sim.launch.py robot_name:=cloi1
+docker run -it --rm --net=host sim_device driver_sim.launch.py robot_name:=cloi1
 
-docker run -it --rm --net=host simdevice world_sim.launch.py
+docker run -it --rm --net=host sim_device world_sim.launch.py
 ```
 
 ###### cloisim_world
@@ -106,7 +106,7 @@ it requires to volume mount(-v option) for sim_path and resource
 refer to [here](https://github.com/lge-ros2/cloisim/tree/master/Docker)
 
 ```shell
-docker run -it --rm --net=host simdevice cloisim_world.launch.py sim_path:=/opt/CLOiSim-1.7.1 world:=lg_seocho.world
+docker run -it --rm --net=host sim_device cloisim_world.launch.py sim_path:=/opt/CLOiSim-1.7.1 world:=lg_seocho.world
 ```
 
 ## Version info

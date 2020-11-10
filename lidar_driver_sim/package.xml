@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>lidar_driver_sim</name>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <description>virtual lidar driver for simulation</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>

@@ -25,8 +25,9 @@ DriverSim::DriverSim(const string node_name, const int number_of_simbridge)
            rclcpp::NodeOptions()
                .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
                .allow_undeclared_parameters(true)
-               .automatically_declare_parameters_from_overrides(true)),
-      m_bRunThread(false), m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
+               .automatically_declare_parameters_from_overrides(true))
+    , m_bRunThread(false)
+    , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
   m_simBridgeList.reserve(number_of_simbridge);
 
@@ -226,13 +227,17 @@ void DriverSim::GetRos2Parameter(SimBridge* const pSimBridge)
         m_pbBufParam.name() == "ros2")
     {
       auto param0 = m_pbBufParam.children(0);
-      if (param0.name() == "topic_name" && param0.has_value())
+      if (param0.name() == "topic_name" && param0.has_value() &&
+          param0.value().type() == msgs::Any_ValueType_STRING &&
+          !param0.value().string_value().empty())
       {
         topic_name_ = param0.value().string_value();
       }
 
       auto param1 = m_pbBufParam.children(1);
-      if (param1.name() == "frame_id" && param1.has_value())
+      if (param1.name() == "frame_id" && param1.has_value() &&
+          param1.value().type() == msgs::Any_ValueType_STRING &&
+          !param1.value().string_value().empty())
       {
         frame_id_ = param1.value().string_value();
       }
@@ -240,6 +245,25 @@ void DriverSim::GetRos2Parameter(SimBridge* const pSimBridge)
 
     DBG_SIM_INFO("topic_name: %s, frame_id: %s", topic_name_.c_str(), frame_id_.c_str());
   }
+}
+
+bool DriverSim::GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode)
+{
+  auto simBridge = GetSimBridge(bridge_index);
+  if (simBridge == nullptr)
+  {
+    DBG_SIM_ERR("sim bridge is null!!");
+    return false;
+  }
+
+  const auto succeeded = simBridge->Receive(ppBbuffer, bufferLength, false);
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
+    return false;
+  }
+
+  return true;
 }
 
 void DriverSim::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const string child_frame_id, const string header_frame_id)

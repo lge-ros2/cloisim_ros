@@ -74,6 +74,8 @@ protected:
 
   void GetRos2Parameter(SimBridge* const pSimBridge);
 
+  bool GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
+
 public:
   static gazebo::msgs::Param RequestReplyMessage(SimBridge* const pSimBridge, const gazebo::msgs::Param request_message);
   static gazebo::msgs::Pose IdentityPose();

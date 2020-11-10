@@ -227,7 +227,9 @@ void RealSenseDriverSim::GetActivatedModules(SimBridge* const pSimBridge)
         for (auto i = 0; i < m_pbBufParam.children_size(); i++)
         {
           auto param = m_pbBufParam.children(i);
-          if (param.name() == "module" && param.has_value())
+        if (param.name() == "module" && param.has_value() &&
+            param.value().type() == msgs::Any_ValueType_STRING &&
+            !param.value().string_value().empty())
           {
             const auto module = param.value().string_value();
             module_list_.push_back(module);
@@ -250,24 +252,10 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  auto pSimBridge = GetSimBridge(bridge_index);
-  if (pSimBridge == nullptr)
-  {
-    DBG_SIM_ERR("sim bridge is null!!");
-    return;
-  }
-
-  const bool succeeded = pSimBridge->Receive(&pBuffer, bufferLength, false);
+  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
-
-    // try reconnect1ion
-    if (IsRunThread())
-    {
-      pSimBridge->Reconnect(SimBridge::Mode::SUB, dataPortMap_[bridge_index], hashKeySubs_[bridge_index]);
-    }
-
     return;
   }
 
