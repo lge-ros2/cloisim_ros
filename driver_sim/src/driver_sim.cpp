@@ -247,6 +247,25 @@ void DriverSim::GetRos2Parameter(SimBridge* const pSimBridge)
   }
 }
 
+bool DriverSim::GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode)
+{
+  auto simBridge = GetSimBridge(bridge_index);
+  if (simBridge == nullptr)
+  {
+    DBG_SIM_ERR("sim bridge is null!!");
+    return false;
+  }
+
+  const auto succeeded = simBridge->Receive(ppBbuffer, bufferLength, false);
+  if (!succeeded || bufferLength < 0)
+  {
+    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
+    return false;
+  }
+
+  return true;
+}
+
 void DriverSim::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const string child_frame_id, const string header_frame_id)
 {
   SetTf2(target_msg, IdentityPose(), child_frame_id, header_frame_id);

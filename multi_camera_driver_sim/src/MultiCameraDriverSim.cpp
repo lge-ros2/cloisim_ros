@@ -126,12 +126,10 @@ void MultiCameraDriverSim::GetRos2FramesId(SimBridge* const pSimBridge)
 
 void MultiCameraDriverSim::UpdateData(const uint bridge_index)
 {
-  (void)bridge_index;
-  auto simBridge = GetSimBridge(1);
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = simBridge->Receive(&pBuffer, bufferLength, false);
+  const bool succeeded = GetBufferFromSimulator(1, &pBuffer, bufferLength);
   if (!succeeded || bufferLength < 0)
   {
     DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
