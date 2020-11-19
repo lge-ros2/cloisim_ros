@@ -53,13 +53,13 @@ ros2 launch sim_device_bringup **elevator_system_sim**.launch.py
 #### only simulator
 
 ```shell
-ros2 launch sim_device_bringup **cloisim**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
+ros2 launch sim_device_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
 ```
 
 #### simulator + unity-ros2 packge(clock topic)
 
 ```shell
-ros2 launch sim_device_bringup **cloisim_world**.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
+ros2 launch sim_device_bringup cloisim_world.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
 ```
 
 ##### examples
