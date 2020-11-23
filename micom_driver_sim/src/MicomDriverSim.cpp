@@ -19,6 +19,7 @@
 #include <protobuf/param.pb.h>
 
 #define LOGGING_PERIOD 1000
+#define ENABLE_TR_VELOCITY true
 
 using namespace std;
 using namespace chrono_literals;
@@ -262,6 +263,28 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   auto vel_lin = msg->linear.x;  // m/s
   auto vel_rot = msg->angular.z; // rad/s
 
+  msgs::Param writeBuf;
+  msgs::Any *pVal;
+
+  writeBuf.set_name("control_type");
+  pVal = writeBuf.mutable_value();
+  pVal->set_type(msgs::Any::INT32);
+
+#if ENABLE_TR_VELOCITY
+  pVal->set_int_value(0);
+
+  auto const pLinearVel = writeBuf.add_children();
+  pLinearVel->set_name("LinearVelocity");
+  pVal = pLinearVel->mutable_value();
+  pVal->set_type(msgs::Any::DOUBLE);
+  pVal->set_double_value(vel_lin);
+
+  auto const pAngularVel = writeBuf.add_children();
+  pAngularVel->set_name("AngularVelocity");
+  pVal = pAngularVel->mutable_value();
+  pVal->set_type(msgs::Any::DOUBLE);
+  pVal->set_double_value(vel_rot);
+#else
   // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f * 1000.0) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f * 1000.0) / 2.0));
@@ -269,12 +292,6 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   auto lin_vel_left_wheel = vel_lin - vel_rot_wheel; // m/s
   auto lin_vel_right_wheel = vel_lin + vel_rot_wheel; // m/s
 
-  msgs::Param writeBuf;
-  msgs::Any *pVal;
-
-  writeBuf.set_name("control_type");
-  pVal = writeBuf.mutable_value();
-  pVal->set_type(msgs::Any::INT32);
   pVal->set_int_value(1);
 
   auto const pLinearVel = writeBuf.add_children();
@@ -288,6 +305,7 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   pVal = pAngularVel->mutable_value();
   pVal->set_type(msgs::Any::DOUBLE);
   pVal->set_double_value(lin_vel_right_wheel);
+#endif
 
   string message = "";
   writeBuf.SerializeToString(&message);
