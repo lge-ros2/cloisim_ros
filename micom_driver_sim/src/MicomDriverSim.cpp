@@ -347,8 +347,6 @@ void MicomDriverSim::UpdateData(const uint bridge_index)
   {
     // DBG_SIM_WRN("Simulation time %u %u size(%d)", pbBufMicom_.time().sec(), pbBufMicom_.time().nsec(), bufferLength);
     DBG_SIM_WRN("Simulation time has been reset!!!");
-    // odom_pose_.fill(0.0);
-    // odom_vel_.fill(0.0);
     last_rad_.fill(0.0);
   }
 
