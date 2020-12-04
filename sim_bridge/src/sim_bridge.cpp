@@ -429,7 +429,7 @@ bool SimBridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode
 
   if ((bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
-    DBG_SIM_ERR("failed to receive ZMQ message: %s", zmq_strerror(zmq_errno()));
+    DBG_SIM_ERR("failed to receive ZMQ message: err(%s) length(%d)", zmq_strerror(zmq_errno()), bufferLength);
     return false;
   }
 

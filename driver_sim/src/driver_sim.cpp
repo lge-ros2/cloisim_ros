@@ -259,7 +259,6 @@ bool DriverSim::GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer
   const auto succeeded = simBridge->Receive(ppBbuffer, bufferLength, false);
   if (!succeeded || bufferLength < 0)
   {
-    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return false;
   }
 

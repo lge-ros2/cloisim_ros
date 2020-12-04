@@ -92,7 +92,6 @@ void CameraDriverSim::UpdateData(const uint bridge_index)
   const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
   if (!succeeded || bufferLength < 0)
   {
-    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return;
   }
 
