@@ -66,6 +66,14 @@ void MultiCameraDriverSim::Initialize()
 
     pubImages.push_back(it.advertise(topic_base_name_ + "/image_raw", 1));
 
+    // TODO: to supress the error log
+    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'format' has already been declared
+    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'png_level' has already been declared
+    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'jpeg_quality' has already been declared
+    undeclare_parameter("format");
+    undeclare_parameter("png_level");
+    undeclare_parameter("jpeg_quality");
+    
     // Camera info publisher
     auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
     pubCamerasInfo.push_back(camInfoPub);
