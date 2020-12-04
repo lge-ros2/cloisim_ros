@@ -44,8 +44,8 @@ void MultiCameraDriverSim::Initialize()
   m_hashKeySub = GetMainHashKey();
   DBG_SIM_INFO("hash Key sub: %s", m_hashKeySub.c_str());
 
-  auto pSimBridgeInfo = GetSimBridge(0);
-  auto pSimBridgeData = GetSimBridge(1);
+  auto pSimBridgeData = GetSimBridge(0);
+  auto pSimBridgeInfo = GetSimBridge(1);
 
   if (pSimBridgeInfo != nullptr)
   {
@@ -63,6 +63,11 @@ void MultiCameraDriverSim::Initialize()
     // Image publisher
     const auto topic_base_name_ = multicamera_name_ + "/" + frame_id;
     DBG_SIM_INFO("topic_base_name:%s", topic_base_name_.c_str());
+
+    sensor_msgs::msg::Image msg_img;
+    msg_img.header.frame_id = frame_id;
+
+    msg_imgs_[msg_imgs_.size()] = msg_img;
 
     pubImages.push_back(it.advertise(topic_base_name_ + "/image_raw", 1));
 
@@ -137,10 +142,9 @@ void MultiCameraDriverSim::UpdateData(const uint bridge_index)
   void *pBuffer = nullptr;
   int bufferLength = 0;
 
-  const bool succeeded = GetBufferFromSimulator(1, &pBuffer, bufferLength);
+  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
   if (!succeeded || bufferLength < 0)
   {
-    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return;
   }
 
@@ -161,11 +165,12 @@ void MultiCameraDriverSim::UpdateData(const uint bridge_index)
     const uint32_t rows_arg = img->height();
     const uint32_t step_arg = img->step();
 
-    msg_img.header.stamp = m_simTime;
-    sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
+    auto const msg_img = &msg_imgs_[i];
+    msg_img->header.stamp = m_simTime;
+    sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                            reinterpret_cast<const void *>(img->data().data()));
 
-    pubImages.at(i).publish(msg_img);
+    pubImages.at(i).publish(*msg_img);
 
     // Publish camera info
     auto camera_info_msg = cameraInfoManager[i]->getCameraInfo();
