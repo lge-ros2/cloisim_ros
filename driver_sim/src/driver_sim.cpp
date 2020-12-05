@@ -256,7 +256,7 @@ bool DriverSim::GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer
     return false;
   }
 
-  const auto succeeded = simBridge->Receive(ppBbuffer, bufferLength, false);
+  const auto succeeded = simBridge->Receive(ppBbuffer, bufferLength, isNonBlockingMode);
   if (!succeeded || bufferLength < 0)
   {
     return false;
