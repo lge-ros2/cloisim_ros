@@ -112,7 +112,7 @@ void DriverSim::PublishTF()
 void DriverSim::PublishStaticTF()
 {
   // Update timestamp
-  for (auto _tf : m_static_tf_list)
+  for (auto &_tf : m_static_tf_list)
   {
     _tf.header.stamp = m_simTime;
   }
