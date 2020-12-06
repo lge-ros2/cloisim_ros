@@ -59,7 +59,8 @@ private:
   const uint8_t tagSize = 8; // The size of zmq packet header tag
 
   const int keepOnlyLastMsg = 1;
-  const int reconnect_ivl_min = 500;
+  const int reconnect_ivl_min = 1000;
+  const int reconnect_ivl_max = 5000;
   const int lingerPeriod = 0;
   const int recv_timeout = 2000; // milliseconds
 

@@ -104,6 +104,12 @@ bool SimBridge::SetupCommon(void* const targetSocket)
     return false;
   }
 
+  if (zmq_setsockopt(targetSocket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
+  {
+    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    return false;
+  }
+
   if (zmq_setsockopt(targetSocket, ZMQ_LINGER, &lingerPeriod, sizeof(lingerPeriod)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
