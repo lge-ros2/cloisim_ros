@@ -84,16 +84,16 @@ static void SetCameraInfoInManager(
 
   sensor_msgs::msg::CameraInfo camera_info_msg;
 
-  auto width = msg.image_size().x();
-  auto height = msg.image_size().y();
+  const auto width = msg.image_size().x();
+  const auto height = msg.image_size().y();
 
   // C parameters
-  auto cx_ = (width + 1.0) / 2.0;
-  auto cy_ = (height + 1.0) / 2.0;
+  const auto cx_ = (width + 1.0) / 2.0;
+  const auto cy_ = (height + 1.0) / 2.0;
 
-  double hfov_ = msg.horizontal_fov();
+  const auto hfov_ = msg.horizontal_fov();
 
-  auto computed_focal_length = width / (2.0 * tan(hfov_ / 2.0));
+  const auto computed_focal_length = width / (2.0 * tan(hfov_ / 2.0));
 
   // CameraInfo
   camera_info_msg.header.frame_id = frame_id;
@@ -116,9 +116,10 @@ static void SetCameraInfoInManager(
   // Original camera matrix
   camera_info_msg.k.fill(0.0);
   camera_info_msg.k[0] = computed_focal_length;
-  camera_info_msg.k[2] = cx_;
   camera_info_msg.k[4] = computed_focal_length;
+  camera_info_msg.k[2] = cx_;
   camera_info_msg.k[5] = cy_;
+  camera_info_msg.k[8] = 1.0;
 
   // rectification
   camera_info_msg.r.fill(0.0);
