@@ -54,7 +54,6 @@ void CameraDriverSim::Initialize()
     pSimBridgeData->Connect(SimBridge::Mode::SUB, portData_, m_hashKeySub + "Data");
   }
 
-
   if (pSimBridgeInfo != nullptr)
   {
     pSimBridgeInfo->Connect(SimBridge::Mode::CLIENT, portInfo, m_hashKeySub + "Info");
@@ -74,8 +73,7 @@ void CameraDriverSim::Initialize()
   const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
 
   image_transport::ImageTransport it(GetNode());
-  pubImage = it.advertise(topic_base_name_ + "/image_raw", 1);
-  pubCameraInfo = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
+  pubImage = it.advertiseCamera(topic_base_name_ + "/image_raw", 1);
 }
 
 void CameraDriverSim::Deinitialize()
@@ -114,11 +112,9 @@ void CameraDriverSim::UpdateData(const uint bridge_index)
   sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                          reinterpret_cast<const void *>(m_pbImgBuf.image().data().data()));
 
-  pubImage.publish(msg_img);
-
   // Publish camera info
   auto camera_info_msg = cameraInfoManager->getCameraInfo();
-  camera_info_msg.header.stamp = m_simTime;
+  camera_info_msg.header.stamp = msg_img.header.stamp;
 
-  pubCameraInfo->publish(camera_info_msg);
+  pubImage.publish(msg_img, camera_info_msg);
 }
