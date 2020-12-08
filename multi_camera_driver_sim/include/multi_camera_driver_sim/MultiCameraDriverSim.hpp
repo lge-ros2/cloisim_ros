@@ -48,13 +48,10 @@ private:
   // message for ROS2 communictaion
   std::map<int, sensor_msgs::msg::Image> msg_imgs_;
 
-  // Camera info publishers.
-  std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCamerasInfo;
-
   // Camera info managers
   std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
 
   // Image publisher
-  std::vector<image_transport::Publisher> pubImages;
+  std::vector<image_transport::CameraPublisher> pubImages_;
 };
 #endif

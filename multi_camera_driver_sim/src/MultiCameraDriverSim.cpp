@@ -69,7 +69,7 @@ void MultiCameraDriverSim::Initialize()
 
     msg_imgs_[msg_imgs_.size()] = msg_img;
 
-    pubImages.push_back(it.advertise(topic_base_name_ + "/image_raw", 1));
+    pubImages_.push_back(it.advertiseCamera(topic_base_name_ + "/image_raw", 1));
 
     // TODO: to supress the error log
     // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'format' has already been declared
@@ -78,10 +78,6 @@ void MultiCameraDriverSim::Initialize()
     undeclare_parameter("format");
     undeclare_parameter("png_level");
     undeclare_parameter("jpeg_quality");
-    
-    // Camera info publisher
-    auto camInfoPub = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
-    pubCamerasInfo.push_back(camInfoPub);
 
     cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
     const auto camSensorMsg = GetCameraSensorMessage(pSimBridgeInfo, frame_id);
@@ -93,7 +89,7 @@ void MultiCameraDriverSim::Initialize()
 
 void MultiCameraDriverSim::Deinitialize()
 {
-  for (auto pub : pubImages)
+  for (auto pub : pubImages_)
   {
     pub.shutdown();
   }
@@ -170,12 +166,10 @@ void MultiCameraDriverSim::UpdateData(const uint bridge_index)
     sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                            reinterpret_cast<const void *>(img->data().data()));
 
-    pubImages.at(i).publish(*msg_img);
-
     // Publish camera info
     auto camera_info_msg = cameraInfoManager[i]->getCameraInfo();
     camera_info_msg.header.stamp = m_simTime;
 
-    pubCamerasInfo[i]->publish(camera_info_msg);
+    pubImages_.at(i).publish(*msg_img, camera_info_msg);
   }
 }
