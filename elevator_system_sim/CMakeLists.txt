@@ -18,13 +18,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
-find_package(driver_sim_interfaces REQUIRED)
 find_package(sim_bridge REQUIRED)
 find_package(elevator_system_msgs REQUIRED)
+find_package(driver_sim_interfaces REQUIRED)
 
 set(dependencies
   rclcpp_lifecycle
-  rosgraph_msgs
   elevator_system_msgs
   sim_bridge
   driver_sim_interfaces
