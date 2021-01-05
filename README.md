@@ -9,12 +9,8 @@ ROS2 simulation device packages to connect the unity3D based multi-robot simulat
     - Simulator version: [latest](https://github.com/lge-ros2/multi-robot-simulator/releases/latest)
 
 ```shell
-## general
-sudo apt-get install python3-websocket
-sudo apt-get install libzmq3-dev libprotobuf-dev protobuf-compiler
-
-## for camera driver sim
-sudo sudo apt-get install ros-dashing-camera-info-manager
+rosdep update
+rosdep install -y -r -q --from-paths src --ignore-src --rosdistro dashing
 ```
 
 ## build
@@ -23,7 +19,7 @@ Please setup ROS2 environment first!
 
 ```shell
 source /opt/ros2/dashing/setup.bash
-colcon build --packages-up-to simdevice_bringup
+colcon build --symlink-install --packages-up-to simdevice_bringup
 ```
 
 ## Usage
