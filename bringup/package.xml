@@ -31,7 +31,7 @@
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rmw</exec_depend>
   <exec_depend>unity_ros</exec_depend>
-  <exec_depend>mcu_driver_sim</exec_depend>
+  <exec_depend>micom_driver_sim</exec_depend>
   <exec_depend>lidar_driver_sim</exec_depend>
   <exec_depend>gps_driver_sim</exec_depend>
   <exec_depend>camera_driver_sim</exec_depend>
@@ -46,6 +46,8 @@
   <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>launch</test_depend>
   <test_depend>launch_testing</test_depend>
+
+  <depend>python3-websocket</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
