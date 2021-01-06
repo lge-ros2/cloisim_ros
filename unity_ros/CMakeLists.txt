@@ -35,7 +35,7 @@ include_directories(include)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
-  src/unity_ros_init.cpp)
+  src/unity_ros.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
   ${dependencies}

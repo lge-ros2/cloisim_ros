@@ -21,6 +21,8 @@
   <exec_depend>driver_sim_interfaces</exec_depend>
   <exec_depend>sim_bridge</exec_depend>
 
+  <depend>protobuf-dev</depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

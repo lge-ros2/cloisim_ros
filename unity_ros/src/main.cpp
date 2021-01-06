@@ -12,7 +12,7 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-#include "unity_ros/unity_ros_init.hpp"
+#include "unity_ros/unity_ros.hpp"
 
 using namespace std::chrono_literals;
 

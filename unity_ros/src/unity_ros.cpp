@@ -1,5 +1,5 @@
 /**
- *  @file   unity_ros_init.cpp
+ *  @file   unity_ros.cpp
  *  @date   2020-04-08
  *  @author Hyunseok Yang
  *  @brief
@@ -14,7 +14,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "unity_ros/unity_ros_init.hpp"
+#include "unity_ros/unity_ros.hpp"
 #include <protobuf/param.pb.h>
 #include <protobuf/any.pb.h>
 #include <protobuf/time.pb.h>
@@ -26,7 +26,7 @@ using namespace UnityRos;
 using namespace gazebo;
 
 UnityRosInit::UnityRosInit()
-  : Node("unity_ros_init",
+  : Node("unity_ros",
       rclcpp::NodeOptions()
         .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
         .allow_undeclared_parameters(true)

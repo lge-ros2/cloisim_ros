@@ -112,7 +112,7 @@ void DriverSim::PublishTF()
 void DriverSim::PublishStaticTF()
 {
   // Update timestamp
-  for (auto _tf : m_static_tf_list)
+  for (auto &_tf : m_static_tf_list)
   {
     _tf.header.stamp = m_simTime;
   }
@@ -256,10 +256,9 @@ bool DriverSim::GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer
     return false;
   }
 
-  const auto succeeded = simBridge->Receive(ppBbuffer, bufferLength, false);
+  const auto succeeded = simBridge->Receive(ppBbuffer, bufferLength, isNonBlockingMode);
   if (!succeeded || bufferLength < 0)
   {
-    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return false;
   }
 

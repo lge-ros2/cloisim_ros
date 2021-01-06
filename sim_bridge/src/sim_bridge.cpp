@@ -104,6 +104,12 @@ bool SimBridge::SetupCommon(void* const targetSocket)
     return false;
   }
 
+  if (zmq_setsockopt(targetSocket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
+  {
+    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    return false;
+  }
+
   if (zmq_setsockopt(targetSocket, ZMQ_LINGER, &lingerPeriod, sizeof(lingerPeriod)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
@@ -429,7 +435,7 @@ bool SimBridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode
 
   if ((bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
-    DBG_SIM_ERR("failed to receive ZMQ message: %s", zmq_strerror(zmq_errno()));
+    DBG_SIM_ERR("failed to receive ZMQ message: err(%s) length(%d)", zmq_strerror(zmq_errno()), bufferLength);
     return false;
   }
 

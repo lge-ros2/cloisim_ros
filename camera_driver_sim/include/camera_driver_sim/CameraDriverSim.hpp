@@ -45,10 +45,7 @@ private:
   sensor_msgs::msg::Image msg_img;
 
   // Image publisher
-  image_transport::Publisher pubImage;
-
-  // Camera info publisher
-  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubCameraInfo{nullptr};
+  image_transport::CameraPublisher pubImage;
 
   // Camera info manager
   std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager;

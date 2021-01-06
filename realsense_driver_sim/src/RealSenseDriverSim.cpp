@@ -77,7 +77,7 @@ void RealSenseDriverSim::Initialize()
     hashKeySubs_[simBridgeCount] = hashKeySub;
 
     const auto topic_name = (module.find("depth") == string::npos)? "image_raw":"image_rect_raw";
-    pubImages_[simBridgeCount] = it.advertise(topic_base_name_ + "/" + topic_name, 1);
+    pubImages_[simBridgeCount] = it.advertiseCamera(topic_base_name_ + "/" + topic_name, 1);
 
     // TODO: to supress the error log
     // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'format' has already been declared
@@ -87,7 +87,7 @@ void RealSenseDriverSim::Initialize()
     undeclare_parameter("png_level");
     undeclare_parameter("jpeg_quality");
 
-    pubCameraInfos_[simBridgeCount] = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
+    // pubCameraInfos_[simBridgeCount] = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
 
     sensor_msgs::msg::Image msg_img;
     msg_img.header.frame_id = module;
@@ -255,7 +255,6 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
   const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
   if (!succeeded || bufferLength < 0)
   {
-    DBG_SIM_ERR("zmq receive error return size(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return;
   }
 
@@ -322,11 +321,9 @@ void RealSenseDriverSim::UpdateData(const uint bridge_index)
     }
   }
 
-  pubImages_[bridge_index].publish(*msg_img);
-
   // Publish camera info
   auto camera_info_msg = cameraInfoManager_[bridge_index]->getCameraInfo();
   camera_info_msg.header.stamp = m_simTime;
 
-  pubCameraInfos_[bridge_index]->publish(camera_info_msg);
+  pubImages_[bridge_index].publish(*msg_img, camera_info_msg);
 }
