@@ -22,6 +22,7 @@ ElevatorSystemSim::ElevatorSystemSim(bool intra_process_comms)
     : LifecycleNode("elevator_system_sim",
                     rclcpp::NodeOptions()
                         .allow_undeclared_parameters(true)
+                        .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
                         .automatically_declare_parameters_from_overrides(true)
                         .use_intra_process_comms(intra_process_comms))
     , m_pSimBridge(new SimBridge())
