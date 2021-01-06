@@ -25,7 +25,7 @@ def generate_launch_description():
 
     _package_name = 'unity_ros'
 
-    start_unity_ros_init_cmd = Node(
+    start_unity_ros_cmd = Node(
         package=_package_name,
         executable=_package_name,
         name=_name,
@@ -49,6 +49,6 @@ def generate_launch_description():
     ld.add_action(declare_launch_argument_nn)
 
     # Add the actions to launch all of the navigation nodes
-    ld.add_action(start_unity_ros_init_cmd)
+    ld.add_action(start_unity_ros_cmd)
 
     return ld

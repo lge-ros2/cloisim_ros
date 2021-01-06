@@ -1,5 +1,5 @@
 /**
- *  @file   unity_ros_init.hpp
+ *  @file   unity_ros.hpp
  *  @date   2020-04-08
  *  @author Hyunseok Yang
  *  @brief
@@ -14,8 +14,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _UnityRosInit_H_
-#define _UnityRosInit_H_
+#ifndef _UnityRos_HPP_
+#define _UnityRos_HPP_
 
 #include <sim_bridge/sim_bridge.hpp>
 #include <rclcpp/rclcpp.hpp>
