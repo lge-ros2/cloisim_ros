@@ -1,4 +1,4 @@
-FROM osrf/ros:dashing-desktop
+FROM ros:dashing-ros-base
 
 ENV HOSTNAME sim_device
 
