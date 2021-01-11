@@ -37,8 +37,8 @@ tags
 
 
 # to ignore generated code
-*/include/protobuf/*
-*/src/protobuf/*
+*/include/cloisim_msgs/*
+*/src/cloisim_msgs/*
 
 # COLCON custom files
 COLCON_IGNORE

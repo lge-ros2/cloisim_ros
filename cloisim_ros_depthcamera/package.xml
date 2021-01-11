@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>cloisim_ros_depthcamera</name>
+  <version>2.4.0</version>
+  <description>virtual depth camera driver for simulator</description>
+  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
+  <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cloisim_ros_camera</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

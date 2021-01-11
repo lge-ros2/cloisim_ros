@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>cloisim_ros_camera</name>
+  <version>2.4.0</version>
+  <description>virtual camera driver for cloisim</description>
+  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
+  <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>cloisim_ros_base</depend>
+  <depend>sensor_msgs</depend>
+  <depend>camera_info_manager</depend>
+  <depend>image_transport</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

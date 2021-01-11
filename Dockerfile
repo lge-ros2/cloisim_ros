@@ -1,10 +1,10 @@
 FROM ros:foxy-ros-base
 
-ENV HOSTNAME sim_device
+ENV HOSTNAME cloisim_ros
 
 WORKDIR /opt/lge-ros2/src
 
-RUN git clone https://github.com/lge-ros2/sim_device.git -b ${ROS_DISTRO}
+RUN git clone https://github.com/lge-ros2/cloisim_ros.git -b ${ROS_DISTRO}
 RUN git clone https://github.com/lge-ros2/cloi_common_interfaces.git -b ${ROS_DISTRO}
 
 WORKDIR /opt/lge-ros2

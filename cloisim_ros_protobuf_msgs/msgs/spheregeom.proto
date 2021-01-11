@@ -1,0 +1,12 @@
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface SphereGeom
+/// \brief Information about a sphere geometry
+
+message SphereGeom
+{
+  /// \brief Radius of the sphere.
+  required double radius  = 1;
+}
