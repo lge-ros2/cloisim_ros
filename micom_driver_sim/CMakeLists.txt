@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(sim_bridge REQUIRED)
 find_package(driver_sim_interfaces REQUIRED)
 find_package(driver_sim REQUIRED)
@@ -35,10 +36,10 @@ add_executable(${PROJECT_NAME}
 
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
-  std_msgs/
   sensor_msgs
   geometry_msgs
   nav_msgs
+  std_srvs
   sim_bridge
   driver_sim_interfaces
   driver_sim)

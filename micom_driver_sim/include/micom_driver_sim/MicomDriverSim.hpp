@@ -19,6 +19,7 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <nav_msgs/msg/odometry.hpp>
+#include <std_srvs/srv/empty.hpp>
 #include <protobuf/micom.pb.h>
 
 class MicomDriverSim : public DriverSim
@@ -38,6 +39,12 @@ private:
 
   void MicomWrite(const void* const pcBuf, const uint32_t unSize);
 
+  void ResetOdometryCallback(
+      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
+      const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
+      std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/);
+
+  std::string MakeCommandMessage(const std::string command);
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
 
   bool CalculateOdometry(const rclcpp::Duration duration, const double _wheel_angular_vel_left, const double _wheel_angular_vel_right, const double _theta);
@@ -88,5 +95,8 @@ private:
 
   // wheel command subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMicom_;
+
+  // reset odometry pose service
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srvResetOdom_;
 };
 #endif
