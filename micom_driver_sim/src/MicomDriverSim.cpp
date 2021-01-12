@@ -23,6 +23,7 @@
 
 using namespace std;
 using namespace chrono_literals;
+using namespace placeholders;
 using namespace gazebo;
 
 MicomDriverSim::MicomDriverSim(const string node_name)
@@ -123,6 +124,8 @@ void MicomDriverSim::Initialize()
 
   // ROS2 Subscriber
   subMicom_ = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
+
+  srvResetOdom_ = create_service<std_srvs::srv::Empty>("reset_odometry", std::bind(&MicomDriverSim::ResetOdometryCallback, this, _1, _2, _3));
 }
 
 
@@ -251,6 +254,28 @@ void MicomDriverSim::GetTransformNameInfo(SimBridge* const pSimBridge)
   }
 }
 
+void MicomDriverSim::ResetOdometryCallback(
+    const std::shared_ptr<rmw_request_id_t> /*request_header*/,
+    const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
+    std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/)
+{
+  const auto msgBuf = MakeCommandMessage("reset_odometry");
+  MicomWrite(msgBuf.data(), msgBuf.size());
+}
+
+string MicomDriverSim::MakeCommandMessage(const string command)
+{
+  msgs::Param writeBuf;
+  writeBuf.set_name("command");
+  auto pVal = writeBuf.mutable_value();
+  pVal->set_type(msgs::Any::STRING);
+  pVal->set_string_value(command);
+
+  string message = "";
+  writeBuf.SerializeToString(&message);
+  return message;
+}
+
 string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
   auto vel_lin = msg->linear.x;  // m/s
@@ -259,7 +284,7 @@ string MicomDriverSim::MakeControlMessage(const geometry_msgs::msg::Twist::Share
   msgs::Param writeBuf;
   msgs::Any *pVal;
 
-  writeBuf.set_name("control_type");
+  writeBuf.set_name("control");
   pVal = writeBuf.mutable_value();
   pVal->set_type(msgs::Any::INT32);
 
