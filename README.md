@@ -5,8 +5,8 @@ ROS2 simulation device packages to connect the unity3D based multi-robot simulat
 ## prerequisite
 
 - Download Simulator release
-  - CLOiSim: Unity multi-robot simulator [releases](https://github.com/lge-ros2/multi-robot-simulator/releases)
-    - Simulator version: [latest](https://github.com/lge-ros2/multi-robot-simulator/releases/latest)
+  - CLOiSim: Unity multi-robot simulator [releases](https://github.com/lge-ros2/cloisim/releases)
+    - Simulator version: [latest](https://github.com/lge-ros2/cloisim/releases/latest)
 
 ```shell
 rosdep update
