@@ -1,21 +1,20 @@
-# sim_device (foxy version)
+# cloisim_ros (foxy version)
 
 ROS2 simulation device packages to connect the unity3D based multi-robot simulator(latest version).
 
 ## Prerequisite
 
-- Download Simulator release
-  - CLOiSim: Unity multi-robot simulator [releases](https://github.com/lge-ros2/multi-robot-simulator/releases)
-    - Simulator version: [latest](https://github.com/lge-ros2/multi-robot-simulator/releases/latest)
+- Download CLOiSim Simulator
+  - CLOiSim: Latest \[[link](https://github.com/lge-ros2/multi-robot-simulator/releases/latest)\], All Releases \[[link](https://github.com/lge-ros2/multi-robot-simulator/releases)\]
 
 ```shell
 rosdep update
-rosdep install -y -r -q --from-paths src --ignore-src --rosdistro dashing
+rosdep install -y -r -q --from-paths src --ignore-src --rosdistro $ROS_DISTRO
 ```
 
 ## Build
 
-Please setup ROS2 environment first!
+Set up ROS2 environment first
 
 ```shell
 source /opt/ros2/foxy/setup.bash
@@ -24,53 +23,52 @@ colcon build --packages-up-to sim_device_bringup
 
 ## Usage
 
-Set environment variable.
+Set environment variable, if the server is not localhost
 
 ```shell
-export SIM_BRIDGE_IP='127.0.0.1'
+export SIM_BRIDGE_IP='xxx.xxx.xxx.xxx'
 ```
 
-### driver sim
+### launch driver sim
 
 check here [details](https://github.com/lge-ros2/sim_device/tree/foxy/bringup)
 
 ```shell
-ros2 launch sim_device_bringup **driver_sim**.launch.py robot_name:=cloi1
+ros2 launch sim_device_bringup driver_sim.launch.py robot_name:=cloi
 ```
 
-### elevator system sim
+### launch elevator system sim
 
 ```shell
-ros2 launch sim_device_bringup **elevator_system_sim**.launch.py
+ros2 launch sim_device_bringup elevator_system_sim.launch.py
 ```
 
-### CLOiSim(simulator) with world
+### launch world sim
 
-#### only simulator
+```shell
+ros2 launch sim_device_bringup world_sim.launch.py
+```
+
+
+## How to run cloisim_ros with CLOiSim together
+
+### only simulator
 
 ```shell
 ros2 launch sim_device_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
 ```
 
-#### simulator + unity-ros2 packge(clock topic)
+### simulator + unity-ros2 packge(clock topic)
 
 ```shell
 ros2 launch sim_device_bringup cloisim_world.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.4.0 world:=lg_seocho.world
 ```
 
-##### examples
-
-```shell
-ros2 launch sim_device_bringup driver_sim.launch.py robot_name:=cloi
-
-ros2 launch sim_device_bringup world_sim.launch.py
-```
-
-### Using Docker
+## Using Docker
 
 Run below command after clone this repository(this branch).
 
-#### Build image
+### Build image
 
 ```shell
 git clone https://github.com/lge-ros2/sim_device.git -b foxy
@@ -78,20 +76,20 @@ cd sim_device
 docker build -t sim_device .
 ```
 
-#### Running container with laucnher
+### Running container with laucnher
 
 ```shell
 docker run -it --rm --net=host sim_device {launch script} {arguments}
 ```
 
-##### How to run container
+#### How to run container
 
 ###### launchers
 
 [here](https://github.com/lge-ros2/sim_device/tree/foxy/bringup/launch) to check launchers
 
 ```shell
-docker run -it --rm --net=host sim_device driver_sim.launch.py robot_name:=cloi1
+docker run -it --rm --net=host sim_device driver_sim.launch.py robot_name:=cloi
 
 docker run -it --rm --net=host sim_device world_sim.launch.py
 ```
