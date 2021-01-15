@@ -17,13 +17,12 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
 
+    _package_name = LaunchConfiguration('package_name')
     _robot_name = LaunchConfiguration('robot_name')
     _name = LaunchConfiguration('name')
     _parameters = LaunchConfiguration('parameters')
 
-    _package_name = 'cloisim_ros_camera'
-
-    start_driver_cmd = Node(
+    cloisim_ros_cmd = Node(
         package=_package_name,
         executable=_package_name,
         name=_name,
@@ -32,10 +31,10 @@ def generate_launch_description():
         parameters=[_parameters],
         remappings=get_default_remapping_list())
 
-    declare_launch_argument_nn = DeclareLaunchArgument(
-        'name',
-        default_value='camera',
-        description='it is node name')
+    declare_launch_argument_rn = DeclareLaunchArgument(
+        'robot_name',
+        default_value='',
+        description='it is equal to namespace')
 
     stdout_linebuf_envvar = SetEnvironmentVariable(
         'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
@@ -45,9 +44,7 @@ def generate_launch_description():
 
      # Set environment variables
     ld.add_action(stdout_linebuf_envvar)
-
-    ld.add_action(declare_launch_argument_nn)
-
-    ld.add_action(start_driver_cmd)
+    ld.add_action(declare_launch_argument_rn)
+    ld.add_action(cloisim_ros_cmd)
 
     return ld

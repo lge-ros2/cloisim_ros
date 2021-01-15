@@ -9,7 +9,7 @@
 import os
 import launch.actions
 from ament_index_python.packages import get_package_share_directory
-from cloisim_ros_bringup.common import get_launcher_file_by_device_type
+from cloisim_ros_bringup.common import get_package_name_by_device_type
 from cloisim_ros_bringup.common import get_target_device_list
 from cloisim_ros_bringup.common import generate_temp_params
 from launch.actions import IncludeLaunchDescription
@@ -38,15 +38,15 @@ def generate_launch_description():
         for (name, port_maps) in nodes.items():
             print("\t", name)
 
-            launcher_filename = get_launcher_file_by_device_type(device_type)
-            print("\t > ", launcher_filename)
+            package_name = get_package_name_by_device_type(device_type)
+            print("\t > ", package_name)
 
             _config_params = generate_temp_params(name, model_name, port_maps)
 
             included_launch = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
-                    [launch_dir, '/', launcher_filename]),
-                    launch_arguments={'model_name': model_name, 'name': name, 'parameters': _config_params}.items())
+                    [launch_dir, '/cloisim_ros.launch.py']),
+                    launch_arguments={'package_name':package_name, 'name': name, 'parameters': _config_params}.items())
 
             ld.add_action(included_launch)
 
@@ -61,14 +61,15 @@ def generate_launch_description():
         for (name, port_maps) in nodes.items():
             print("\t", name)
 
-            launcher_filename = get_launcher_file_by_device_type(device_type)
-            print("\t > ", launcher_filename)
+            package_name = get_package_name_by_device_type(device_type)
+            print("\t > ", package_name)
 
             _config_params = generate_temp_params(name, model_name, port_maps)
 
             included_launch = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([launch_dir, '/', launcher_filename]),
-                launch_arguments={'name': name, 'parameters': _config_params}.items())
+                PythonLaunchDescriptionSource(
+                    [launch_dir, '/cloisim_ros.launch.py']),
+                    launch_arguments={'package_name':package_name, 'name': name, 'parameters': _config_params}.items())
 
             ld.add_action(included_launch)
 

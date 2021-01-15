@@ -11,7 +11,7 @@ import launch.actions
 import launch_ros.actions
 
 from ament_index_python.packages import get_package_share_directory
-from cloisim_ros_bringup.common import get_launcher_file_by_device_type
+from cloisim_ros_bringup.common import get_package_name_by_device_type
 from cloisim_ros_bringup.common import get_target_device_list
 from cloisim_ros_bringup.common import generate_temp_params
 from launch import LaunchDescription

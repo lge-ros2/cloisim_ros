@@ -17,21 +17,20 @@ from websocket import create_connection
 SIM_BIRDGE_IP="127.0.0.1"
 SIM_BRIDGE_SERVICE_PORT=8080
 
+def get_package_name_by_device_type(device_type):
 
-def get_launcher_file_by_device_type(device_type):
+    package_name = {'MICOM': 'cloisim_ros_micom',
+                    'LIDAR': 'cloisim_ros_lidar',
+                    'LASER': 'cloisim_ros_lidar',
+                    'CAMERA': 'cloisim_ros_camera',
+                    'DEPTHCAMERA': 'cloisim_ros_depthcamera',
+                    'MULTICAMERA': 'cloisim_ros_multicamera',
+                    'REALSENSE': 'cloisim_ros_realsense',
+                    'GPS': 'cloisim_ros_gps',
+                    'ELEVATOR': 'cloisim_ros_elevatorsystem',
+                    'WORLD': 'cloisim_ros_world'}.get(device_type, None)
 
-    launcher_filename = {'MICOM': 'cloisim_ros_micom',
-                         'LIDAR': 'cloisim_ros_lidar',
-                         'LASER': 'cloisim_ros_lidar',
-                         'CAMERA': 'cloisim_ros_camera',
-                         'DEPTHCAMERA': 'cloisim_ros_depthcamera',
-                         'MULTICAMERA': 'cloisim_ros_multicamera',
-                         'REALSENSE': 'cloisim_ros_realsense',
-                         'GPS': 'cloisim_ros_gps',
-                         'ELEVATOR': 'cloisim_ros_elevatorsystem',
-                         'WORLD': 'cloisim_ros_world'}.get(device_type, None)
-
-    return None if (launcher_filename is None) else launcher_filename + ".launch.py"
+    return None if (package_name is None) else package_name
 
 
 def _get_robot_name_in_arg():
@@ -98,7 +97,7 @@ def get_default_remapping_list():
 
 
 def _create_params_file_from_dict(params):
-    with NamedTemporaryFile(mode='w', prefix='launch_params_', delete=False) as h:
+    with NamedTemporaryFile(mode='w', prefix='cloisim_ros_launch_params_', delete=False) as h:
         param_file_path = h.name
         yaml.dump(params, h, default_flow_style=False)
         return param_file_path
