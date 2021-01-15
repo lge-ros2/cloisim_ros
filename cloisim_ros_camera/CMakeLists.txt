@@ -12,6 +12,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic -fstack-protector -O2)
 endif()
 
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
@@ -31,46 +35,53 @@ set(dependencies
 ################################################################################
 # Build
 ################################################################################
-add_library(${PROJECT_NAME}-lib SHARED
+add_library(${PROJECT_NAME}_core SHARED
   src/camera.cpp
 )
 
-target_include_directories(${PROJECT_NAME}-lib PUBLIC
+target_include_directories(
+  ${PROJECT_NAME}_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
-ament_target_dependencies(${PROJECT_NAME}-lib
+ament_target_dependencies(
+  ${PROJECT_NAME}_core
   ${dependencies}
 )
 
-add_executable(${PROJECT_NAME}
+add_executable(
+  ${PROJECT_NAME}
   src/main.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-  ${PROJECT_NAME}-lib
+target_link_libraries(
+  ${PROJECT_NAME} PRIVATE
+  ${PROJECT_NAME}_core
 )
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS ${PROJECT_NAME}-lib
+install(
+  TARGETS ${PROJECT_NAME}_core
+  EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   INCLUDES DESTINATION include
 )
 
-install(TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
+install(
+  TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib
 )
 
-install(DIRECTORY include/
+install(
+  DIRECTORY include/
   DESTINATION include
 )
 
-ament_export_libraries(${PROJECT_NAME}-lib)
-ament_export_include_directories(include)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${dependencies})
 
 ament_package()

@@ -56,5 +56,5 @@ namespace cloisim_ros
     // Image publisher
     std::vector<image_transport::CameraPublisher> pubImages_;
   };
-} // namespace cloisim_ros
+}
 #endif

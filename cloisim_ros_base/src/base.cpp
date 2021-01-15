@@ -13,7 +13,6 @@
  *      SPDX-License-Identifier: MIT
  */
 
-// #include <unistd.h>
 #include <cloisim_ros_base/base.hpp>
 
 using namespace std;

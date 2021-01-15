@@ -50,5 +50,5 @@ namespace cloisim_ros
     // Laser publisher
     rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr pubLaser;
   };
-} // namespace cloisim_ros
+}
 #endif

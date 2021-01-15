@@ -47,5 +47,5 @@ namespace cloisim_ros
     // Laser publisher
     rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pubNav;
   };
-} // namespace cloisim_ros
+}
 #endif
