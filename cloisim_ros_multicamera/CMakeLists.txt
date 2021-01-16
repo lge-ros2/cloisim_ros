@@ -74,7 +74,7 @@ install(
 
 install(
   TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(
