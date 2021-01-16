@@ -26,7 +26,7 @@ colcon build --symlink-install --packages-up-to cloisim_ros_bringup
 Set environment variable, if the server is not localhost
 
 ```shell
-export SIM_BRIDGE_IP='xxx.xxx.xxx.xxx'
+export CLOISIM_BRIDGE_IP='xxx.xxx.xxx.xxx'
 ```
 
 check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup)

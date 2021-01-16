@@ -13,8 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _SIM_BRIDGE_H_
-#define _SIM_BRIDGE_H_
+#ifndef _CLOISIM_ROS_BRIDGE_ZMQ_HPP_
+#define _CLOISIM_ROS_BRIDGE_ZMQ_HPP_
 
 #include "debug_log.h"
 #include <string>
@@ -53,11 +53,6 @@ namespace cloisim_ros
 
       std::string RequestReply(std::string request_data);
 
-      void SetRetryRequestPeriod(const int value)
-      {
-        retryPortRequest_ = value;
-      }
-
     private:
       const bool useTCP = true;
       const uint8_t tagSize = 8; // The size of zmq packet header tag
@@ -82,8 +77,6 @@ namespace cloisim_ros
 
       void* pSockTx_; // for Send function
       void* pSockRx_; // for Recieve function
-
-      int retryPortRequest_;
 
       std::string lastErrMsg;
 

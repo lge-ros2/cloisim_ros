@@ -20,34 +20,33 @@
 using namespace std;
 using namespace cloisim_ros::zmq;
 
-#define DEFAULT_SIM_BRIDGE_IP "127.0.0.1"
+#define DEFAULT_CLOISIM_BRIDGE_IP "127.0.0.1"
 
 Bridge::Bridge()
-  : bridgeAddr_(DEFAULT_SIM_BRIDGE_IP)
-  , pCtx_(nullptr)
+  : pCtx_(nullptr)
   , pPub_(nullptr)
   , pSub_(nullptr)
   , pReq_(nullptr)
   , pRep_(nullptr)
   , pSockTx_(nullptr)
   , pSockRx_(nullptr)
-  , retryPortRequest_(1700)
   , lastErrMsg("")
 {
-  auto env_sim_bridge_ip = getenv("SIM_BRIDGE_IP");
+  const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
 
-  if (env_sim_bridge_ip == nullptr)
+  if (env_bridge_ip == nullptr)
   {
-    // DBG_SIM_WRN("env for SIM_BRIDGE_IP is null, will use default.");
+    // DBG_SIM_WRN("env for CLOISIM_BRIDGE_IP is null, will use default.");
+    SetBridgeAddress(DEFAULT_CLOISIM_BRIDGE_IP);
   }
   else
   {
-    SetBridgeAddress(string(env_sim_bridge_ip));
+    SetBridgeAddress(string(env_bridge_ip));
   }
 
   pCtx_ = zmq_ctx_new();
 
-  // DBG_SIM_INFO("[SIM_BRIDGE] bridge_ip = %s", bridgeAddr_.c_str());
+  // DBG_SIM_INFO("bridge_ip = %s", bridgeAddr_.c_str());
 }
 
 
