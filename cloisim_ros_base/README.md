@@ -40,13 +40,13 @@ Following bridge combination should be setup through separated Bridge module.
 - 'subscriber' + ('service' or 'client')
 - 'service' + 'client'
 
-Examples of using separated Bridge modules when base class DriverSim() is inherited.
+Examples of using separated Bridge modules when base class Base() is inherited.
 
-- inherit base class 'DriverSim(node name, number of sim bridge);'
+- inherit base class 'Base(node name, number of sim bridge);'
 - Call sim bridge using bridge index
   - GetBridge(0)-> ...
   - GetBridge(1)-> ...
-  - GetBridge(0)->Connect(Bridge::Mode::SUB, hashKeySub_);
-  - GetBridge(1)->Connect(Bridge::Mode::CLIENT, hashKeySub_ + "Info");
+  - GetBridge(0)->Connect(zmq::Bridge::Mode::SUB, hashKeySub_);
+  - GetBridge(1)->Connect(zmq::Bridge::Mode::CLIENT, hashKeySub_ + "Info");
   - GetBridge(0)->Disconnect();
   - GetBridge(1)->Disconnect();

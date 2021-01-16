@@ -3,7 +3,7 @@
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 MicomDriver class for simulator
+ *        ROS2 Micom class for simulator
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory

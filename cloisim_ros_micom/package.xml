@@ -3,7 +3,7 @@
 <package format="3">
   <name>cloisim_ros_micom</name>
   <version>2.4.0</version>
-  <description>micom driver package for simulator</description>
+  <description>micom package for simulator</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
   <license>MIT</license>

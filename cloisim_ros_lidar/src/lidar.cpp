@@ -3,7 +3,7 @@
  *  @date   2019-04-02
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 Lidar Driver class for simulator
+ *        ROS2 Lidar class for simulator
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory

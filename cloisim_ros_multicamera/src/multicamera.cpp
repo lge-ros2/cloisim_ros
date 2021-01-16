@@ -4,7 +4,7 @@
  *  @author hyunseok Yang
  *  @author Sungkyu Kang
  *  @brief
- *        ROS2 Multi Camera Driver class for simulator
+ *        ROS2 Multi Camera class for simulator
  *  @remark
  *  @warning
  *       LGE Advanced Robotics Laboratory

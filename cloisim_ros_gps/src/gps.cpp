@@ -3,7 +3,7 @@
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 GPS Driver class for simulator
+ *        ROS2 GPS class for simulator
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory

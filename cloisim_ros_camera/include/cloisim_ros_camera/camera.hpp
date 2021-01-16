@@ -4,7 +4,7 @@
  *  @author Sungkyu Kang
  *  @author hyunseok Yang
  *  @brief
- *        ROS2 Camera Driver class for cloisim
+ *        ROS2 Camera class for cloisim
  *  @remark
  *  @warning
  *       LGE Advanced Robotics Laboratory

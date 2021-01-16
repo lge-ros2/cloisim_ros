@@ -3,7 +3,7 @@
 <package format="3">
   <name>cloisim_ros_camera</name>
   <version>2.4.0</version>
-  <description>virtual camera driver for cloisim</description>
+  <description>virtual camera for cloisim</description>
   <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>

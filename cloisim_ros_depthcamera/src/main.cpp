@@ -3,7 +3,7 @@
  *  @date   2021-01-14
  *  @author Sungkyu Kang
  *  @brief
- *        ROS2 Camera Driver class for simulator
+ *        ROS2 Camera class for simulator
  *  @remark
  *  @warning
  *      LGE Advanced Robotics Laboratory

@@ -3,7 +3,7 @@
 <package format="3">
   <name>cloisim_ros_gps</name>
   <version>2.4.0</version>
-  <description>virtual gps driver for simulation</description>
+  <description>virtual gps for simulation</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
   <license>MIT</license>

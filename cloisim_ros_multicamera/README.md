@@ -1,1 +1,1 @@
-# Multi-Camera driver sim
+# CLOiSim-ROS Multi-Camera

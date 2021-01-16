@@ -3,7 +3,7 @@
 <package format="3">
   <name>cloisim_ros_depthcamera</name>
   <version>2.4.0</version>
-  <description>virtual depth camera driver for simulator</description>
+  <description>virtual depth camera for simulator</description>
   <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>

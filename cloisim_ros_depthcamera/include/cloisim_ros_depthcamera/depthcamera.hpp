@@ -4,7 +4,7 @@
  *  @author Sungkyu Kang
  *  @author hyunseok Yang
  *  @brief
- *        ROS2 Depth Camera Driver class for simulator
+ *        ROS2 Depth Camera class for simulator
  *  @remark
  *  @warning
  *       LGE Advanced Robotics Laboratory
