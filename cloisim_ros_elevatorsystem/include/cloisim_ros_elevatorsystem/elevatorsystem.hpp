@@ -29,7 +29,8 @@ namespace cloisim_ros
   class ElevatorSystem : public Base
   {
   public:
-    explicit ElevatorSystem(const std::string node_name = "cloisim_ros_world");
+    explicit ElevatorSystem(const rclcpp::NodeOptions &options_, const std::string node_name_);
+    explicit ElevatorSystem();
     virtual ~ElevatorSystem();
 
   private:

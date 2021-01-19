@@ -23,13 +23,19 @@ using namespace elevator_system_msgs;
 
 #define BindCallback(func) bind(&ElevatorSystem::func, this, _1, _2, _3)
 
-ElevatorSystem::ElevatorSystem(const string node_name)
-    : Base(node_name, 1)
+ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string node_name_)
+    : Base(node_name_, options_, 1)
     , systemName_("ElevatorSystem")
     , pBridgeControl(nullptr)
     , srvMode_(false)
 {
+  
   Start(false);
+}
+
+ElevatorSystem::ElevatorSystem()
+    : ElevatorSystem(rclcpp::NodeOptions(), "cloisim_ros_world")
+{
 }
 
 ElevatorSystem::~ElevatorSystem()
@@ -44,7 +50,7 @@ void ElevatorSystem::Initialize()
 
   const auto nodeName = GetPartsName();
   hashKeySrv_ = modelName + nodeName;
-  DBG_SIM_INFO("hash Key sub: %s", hashKeySrv_.c_str());
+  DBG_SIM_INFO("hash Key srv: %s", hashKeySrv_.c_str());
 
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));

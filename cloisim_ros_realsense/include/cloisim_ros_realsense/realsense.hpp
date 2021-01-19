@@ -27,7 +27,8 @@ namespace cloisim_ros
   class RealSense : public Base
   {
   public:
-    explicit RealSense(const std::string node_name = "cloisim_ros_realsense");
+    explicit RealSense(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit RealSense(const std::string namespace_ = "");
     virtual ~RealSense();
 
   private:

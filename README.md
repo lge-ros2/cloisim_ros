@@ -27,9 +27,31 @@ Set environment variable, if the server is not localhost
 
 ```shell
 export CLOISIM_BRIDGE_IP='xxx.xxx.xxx.xxx'
+export CLOISIM_SERVICE_PORT=8080
 ```
 
 check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup)
+
+
+### launch all cloisim_ros
+
+#### Turn on single Mode
+
+will NOT apply namespace for robot and the number of robot must BE single in world environment.
+
+```shell
+ros2 run cloisim_ros_bringup cloisim_ros_bringup --ros-args -p singlemode:=True
+```
+
+#### Turn off single mode
+
+apply namespace for each robot)
+
+```shell
+ros2 run cloisim_ros_bringup cloisim_ros_bringup --ros-args -p singlemode:=False
+
+ros2 run cloisim_ros_bringup cloisim_ros_bringup
+```
 
 ### launch cloisim_ros for robot
 
@@ -57,7 +79,7 @@ ros2 launch cloisim_ros_bringup factory.launch.py
 ros2 launch cloisim_ros_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.10.0 world:=lg_seocho.world
 ```
 
-#### simulator + cloisim_ros  packge(clock topic)
+#### simulator + cloisim_ros package(clock topic)
 
 ```shell
 ros2 launch cloisim_ros_bringup cloisim_and_factory.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.10.0 world:=lg_seocho.world

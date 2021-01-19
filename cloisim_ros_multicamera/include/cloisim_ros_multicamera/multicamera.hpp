@@ -26,7 +26,8 @@ namespace cloisim_ros
   class MultiCamera : public Base
   {
   public:
-    explicit MultiCamera(const std::string node_name = "cloisim_ros_multicamera");
+    explicit MultiCamera(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit MultiCamera(const std::string namespace_ = "");
     virtual ~MultiCamera();
 
   private:
@@ -39,7 +40,6 @@ namespace cloisim_ros
   private:
     std::string multicamera_name_;
 
-    uint16_t portData_;
     std::string hashKeySub_;
 
     std::vector<std::string> frame_id_;

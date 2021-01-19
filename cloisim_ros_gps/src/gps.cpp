@@ -19,13 +19,18 @@
 using namespace std;
 using namespace cloisim_ros;
 
-Gps::Gps(const string node_name)
-    : Base(node_name, 2)
+Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
+    : Base(node_name_, namespace_, options_, 2)
 {
   topic_name_ = "navsatfix";
   frame_id_ = "gps";
 
   Start();
+}
+
+Gps::Gps(const string namespace_)
+    : Gps(rclcpp::NodeOptions(), "cloisim_ros_gps", namespace_)
+{
 }
 
 Gps::~Gps()
@@ -35,8 +40,8 @@ Gps::~Gps()
 
 void Gps::Initialize()
 {
-  uint16_t portInfo;
-  get_parameter_or("bridge.Data", portData_, uint16_t(0));
+  uint16_t portInfo, portData;
+  get_parameter_or("bridge.Data", portData, uint16_t(0));
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
   hashKeySub_ = GetMainHashKey();
@@ -61,7 +66,7 @@ void Gps::Initialize()
 
   if (pBridgeData != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData_, hashKeySub_ + "Data");
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
   }
 
   if (pBridgeInfo != nullptr)

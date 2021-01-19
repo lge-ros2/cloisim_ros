@@ -14,8 +14,8 @@ import time
 from tempfile import NamedTemporaryFile
 from websocket import create_connection
 
-SIM_BIRDGE_IP="127.0.0.1"
-SIM_BRIDGE_SERVICE_PORT=8080
+CLOISIM_BRIDGE_IP="127.0.0.1"
+CLOISIM_SERVICE_PORT=8080
 
 def get_package_name_by_device_type(device_type):
 
@@ -81,21 +81,6 @@ def find_robot_name():
 
     return _robot_name
 
-
-def get_default_remapping_list():
-
-    default_remapping_topic_list = ["/tf", "/tf_static"]
-
-    result_remapping_list = set()
-
-    # set topic remap list with prefix
-    for remap_topic in default_remapping_topic_list:
-        result_remapping_list.add((remap_topic, remap_topic.replace("/", "")))
-
-    # print(result_remapping_list)
-    return result_remapping_list
-
-
 def _create_params_file_from_dict(params):
     with NamedTemporaryFile(mode='w', prefix='cloisim_ros_launch_params_', delete=False) as h:
         param_file_path = h.name
@@ -147,12 +132,12 @@ def connect_to_simulator(_target_model_name):
     while True:
 
         try:
-            ws = create_connection("ws://" + SIM_BIRDGE_IP + ":" + str(SIM_BRIDGE_SERVICE_PORT) + "/control")
+            ws = create_connection("ws://" + CLOISIM_BRIDGE_IP + ":" + str(CLOISIM_SERVICE_PORT) + "/control")
             message = "{'command':'device_list', 'filter':'" + _target_model_name + "'}"
             ws.send(message)
             # print("send '%s'" % message)
             result = ws.recv()
-            print("Received '%s'" % result)
+            # print("Received '%s'" % result)
             ws.close()
 
             return result;

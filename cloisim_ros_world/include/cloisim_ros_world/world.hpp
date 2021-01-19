@@ -27,7 +27,8 @@ namespace cloisim_ros
   class World : public Base
   {
   public:
-    explicit World(const std::string node_name = "cloisim_ros_world");
+    explicit World(const rclcpp::NodeOptions &options_, const std::string node_name_);
+    explicit World();
     virtual ~World();
 
   private:
@@ -40,7 +41,6 @@ namespace cloisim_ros
   private:
     Throttler *throttler_;
 
-    uint16_t portData_;
     std::string hashKeySub_;
 
     cloisim::msgs::Param pbBuf_;

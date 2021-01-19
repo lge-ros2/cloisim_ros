@@ -24,13 +24,18 @@ using namespace chrono_literals;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-RealSense::RealSense(const string node_name)
-    : Base(node_name, 9)
+RealSense::RealSense(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
+    : Base(node_name_, namespace_, options_, 9)
     , depth_range_min_(0.1)
     , depth_range_max_(10.0)
     , depth_scale_(1000)
 {
   Start(false);
+}
+
+RealSense::RealSense(const string namespace_)
+    : RealSense(rclcpp::NodeOptions(), "cloisim_ros_realsense", namespace_)
+{
 }
 
 RealSense::~RealSense()

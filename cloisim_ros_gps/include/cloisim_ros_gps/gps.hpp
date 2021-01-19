@@ -25,7 +25,8 @@ namespace cloisim_ros
   class Gps : public Base
   {
   public:
-    explicit Gps(const std::string node_name = "cloisim_ros_gps");
+    explicit Gps(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit Gps(const std::string namespace_ = "");
     ~Gps();
 
   private:
@@ -35,7 +36,6 @@ namespace cloisim_ros
 
   private:
     // key for connection
-    uint16_t portData_;
     std::string hashKeySub_;
 
     // buffer from simulation

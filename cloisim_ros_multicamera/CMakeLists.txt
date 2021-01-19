@@ -65,6 +65,11 @@ target_link_libraries(
 # Install
 ################################################################################
 install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
   TARGETS ${PROJECT_NAME}_core
   EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
@@ -75,11 +80,6 @@ install(
 install(
   TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
-)
-
-install(
-  DIRECTORY include/
-  DESTINATION include
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)

@@ -19,26 +19,34 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-Base::Base(const string node_name, const int number_of_bridge)
-    : Node(node_name,
-           rclcpp::NodeOptions()
-               .parameter_overrides(vector<rclcpp::Parameter>{rclcpp::Parameter("use_sim_time", true)})
+Base::Base(const string node_name_, const rclcpp::NodeOptions &options_, const int number_of_bridges)
+    : Base(node_name_, "",  rclcpp::NodeOptions(options_), number_of_bridges)
+{
+}
+
+Base::Base(const string node_name_, const int number_of_bridges)
+    : Base(node_name_, "", rclcpp::NodeOptions(), number_of_bridges)
+{
+}
+
+Base::Base(const string node_name_, const string namespace_, const int number_of_bridges)
+    : Base(node_name_, namespace_,  rclcpp::NodeOptions(), number_of_bridges)
+{
+}
+
+Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeOptions &options_, const int number_of_bridges)
+    : Node(node_name_,
+           namespace_,
+           rclcpp::NodeOptions(options_)
+               .arguments(vector<string>{"/tf:=tf", "/tf_static:=tf_static"})
+               .append_parameter_override("use_sim_time", true)
                .allow_undeclared_parameters(true)
                .automatically_declare_parameters_from_overrides(true)
                .use_intra_process_comms(false))
     , m_bRunThread(false)
     , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
-  m_bridgeList.reserve(number_of_bridge);
-
-  for (auto index = 0; index < number_of_bridge; index++)
-  {
-    auto pBridge = new zmq::Bridge();
-    m_bridgeList.push_back(pBridge);
-  }
-
-  m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(m_node_handle);
-  m_static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(m_node_handle);
+  SetupBridges(number_of_bridges);
 }
 
 Base::~Base()
@@ -50,9 +58,23 @@ Base::~Base()
   }
 }
 
+void Base::SetupBridges(const int number_of_bridges)
+{
+  m_bridgeList.reserve(number_of_bridges);
+
+  for (size_t index = 0; index < m_bridgeList.capacity(); index++)
+  {
+    auto pBridge = new zmq::Bridge();
+    m_bridgeList.push_back(pBridge);
+  }
+}
+
 void Base::Start(const bool runSingleDataThread)
 {
   m_bRunThread = true;
+
+  m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(m_node_handle);
+  m_static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(m_node_handle);
 
   Initialize();
 

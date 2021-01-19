@@ -27,7 +27,8 @@ namespace cloisim_ros
   class Camera : public Base
   {
   public:
-    explicit Camera(const std::string node_name = "cloisim_ros_camera");
+    explicit Camera(const rclcpp::NodeOptions &options_, const std::string node_name_ = "cloisim_ros_camera", const std::string namespace_ = "");
+    explicit Camera(const std::string node_name_ = "cloisim_ros_camera", const std::string namespace_ = "");
     virtual ~Camera();
 
   protected:
@@ -37,10 +38,9 @@ namespace cloisim_ros
 
   private:
     // key for connection
-    uint16_t portData_;
     std::string hashKeySub_;
 
-    // image buffer from simulator
+    // image buffer from simulatornode_name_
     cloisim::msgs::ImageStamped m_pbImgBuf;
 
     // message for ROS2 communictaion

@@ -23,10 +23,15 @@ using namespace chrono_literals;
 using namespace cloisim_ros;
 using namespace cloisim;
 
-MultiCamera::MultiCamera(const string node_name)
-    : Base(node_name, 2)
+MultiCamera::MultiCamera(const rclcpp::NodeOptions &options_, const string node_name_, const std::string namespace_)
+    : Base(node_name_, namespace_, options_, 2)
 {
   Start();
+}
+
+MultiCamera::MultiCamera(const std::string namespace_)
+    : MultiCamera(rclcpp::NodeOptions(), "cloisim_ros_multicamera", namespace_)
+{
 }
 
 MultiCamera::~MultiCamera()
@@ -36,8 +41,8 @@ MultiCamera::~MultiCamera()
 
 void MultiCamera::Initialize()
 {
-  uint16_t portInfo;
-  get_parameter_or("bridge.Data", portData_, uint16_t(0));
+  uint16_t portInfo, portData;
+  get_parameter_or("bridge.Data", portData, uint16_t(0));
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
   multicamera_name_ = get_name();
@@ -86,7 +91,7 @@ void MultiCamera::Initialize()
     SetCameraInfoInManager(cameraInfoManager.back(), camSensorMsg, frame_id);
   }
 
-  pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData_, hashKeySub_ + "Data");
+  pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
 }
 
 void MultiCamera::Deinitialize()

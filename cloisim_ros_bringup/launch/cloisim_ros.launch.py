@@ -8,7 +8,6 @@
 
 import os
 import launch.actions
-from cloisim_ros_bringup.common import get_default_remapping_list
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.actions import SetEnvironmentVariable
@@ -28,8 +27,7 @@ def generate_launch_description():
         name=_name,
         namespace=_robot_name,
         output='screen',
-        parameters=[_parameters],
-        remappings=get_default_remapping_list())
+        parameters=[_parameters])
 
     declare_launch_argument_rn = DeclareLaunchArgument(
         'robot_name',

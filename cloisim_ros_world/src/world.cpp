@@ -23,11 +23,16 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-World::World(const string node_name)
-  : Base(node_name, 1)
+World::World(const rclcpp::NodeOptions &options_, const std::string node_name_)
+  : Base(node_name_, options_, 1)
   , throttler_(nullptr)
 {
   Start();
+}
+
+World::World()
+  : World(rclcpp::NodeOptions(), "cloisim_ros_world")
+{
 }
 
 World::~World()
@@ -38,22 +43,24 @@ World::~World()
 void World::Initialize()
 {
   string model_name;
+  uint16_t portData;
   get_parameter_or("model", model_name, string("World"));
-  get_parameter_or("bridge.Clock", portData_, uint16_t(0));
+  get_parameter_or("bridge.Clock", portData, uint16_t(3));
 
   hashKeySub_ = model_name + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
 
-  auto publish_rate(50.0);
+  double publish_rate;
   get_parameter_or("publish_rate", publish_rate, 50.0);
   DBG_SIM_INFO("publish_rate:%f", publish_rate);
+
   throttler_ = new Throttler(publish_rate);
 
   auto pBridgeData = GetBridge(0);
 
   if (pBridgeData != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData_, hashKeySub_ + "Clock");
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Clock");
   }
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,

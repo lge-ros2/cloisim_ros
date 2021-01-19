@@ -22,13 +22,15 @@ using namespace std;
 using namespace chrono_literals;
 using namespace cloisim_ros;
 
-Camera::Camera(const string node_name)
-    : Base(node_name, 2)
+Camera::Camera(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
+    : Base(node_name_, namespace_, options_, 2)
 {
-  topic_name_ = "camera";
-  frame_id_ = "camera_link";
-
   Start();
+}
+
+Camera::Camera(const string node_name_, const string namespace_)
+    : Camera(rclcpp::NodeOptions(), node_name_, namespace_)
+{
 }
 
 Camera::~Camera()
@@ -39,8 +41,11 @@ Camera::~Camera()
 
 void Camera::Initialize()
 {
-  uint16_t portInfo;
-  get_parameter_or("bridge.Data", portData_, uint16_t(0));
+  topic_name_ = "camera";
+  frame_id_ = "camera_link";
+
+  uint16_t portInfo, portData;;
+  get_parameter_or("bridge.Data", portData, uint16_t(0));
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
   hashKeySub_ = GetMainHashKey();
@@ -51,7 +56,7 @@ void Camera::Initialize()
 
   if (pBridgeData != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData_, hashKeySub_ + "Data");
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
   }
 
   if (pBridgeInfo != nullptr)

@@ -25,7 +25,8 @@ namespace cloisim_ros
   class Lidar : public Base
   {
   public:
-    explicit Lidar(const std::string node_name = "cloisim_ros_lidar");
+    explicit Lidar(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit Lidar(const std::string namespace_ = "");
     ~Lidar();
 
   private:
@@ -38,7 +39,6 @@ namespace cloisim_ros
 
   private:
     // key for connection
-    uint16_t portData_;
     std::string hashKeySub_;
 
     // buffer from simulation

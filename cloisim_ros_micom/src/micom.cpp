@@ -27,19 +27,22 @@ using namespace placeholders;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-Micom::Micom(const string node_name)
-    : Base(node_name, 2),
-      m_hashKeyPub(""),
-      hashKeySub_(""),
-      wheel_base(0.0),
-      wheel_radius(0.0),
-      base_link_name_("base_link"),
-      use_pub_(true),
-      use_sub_(true)
+Micom::Micom(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
+    : Base(node_name_, namespace_, options_, 2)
+    , hashKeyPub_("")
+    , hashKeySub_("")
+    , wheel_base(0.0)
+    , wheel_radius(0.0)
+    , base_link_name_("base_link")
+    , use_pub_(true)
+    , use_sub_(true)
 {
-  last_rad_.fill(0.0);
-
   Start();
+}
+
+Micom::Micom(const string namespace_)
+    : Micom(rclcpp::NodeOptions(), "cloisim_ros_micom", namespace_)
+{
 }
 
 Micom::~Micom()
@@ -56,9 +59,9 @@ void Micom::Initialize()
   // DBG_SIM_INFO("%d %d %d", portInfo, portTx_, portRx_);
 
   const auto hashKeyInfo = GetMainHashKey() + "Info";
-  m_hashKeyPub = GetMainHashKey() + "Rx";
+  hashKeyPub_ = GetMainHashKey() + "Rx";
   hashKeySub_ = GetMainHashKey() + "Tx";
-  DBG_SIM_INFO("Hash Key sub(%s) pub(%s)", hashKeySub_.c_str(), m_hashKeyPub.c_str());
+  DBG_SIM_INFO("Hash Key sub(%s) pub(%s)", hashKeySub_.c_str(), hashKeyPub_.c_str());
 
   msg_imu_.header.frame_id = "imu_link";
   msg_odom_.header.frame_id = "odom";
@@ -80,7 +83,7 @@ void Micom::Initialize()
 
     if (use_pub_)
     {
-      pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx_, m_hashKeyPub);
+      pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx_, hashKeyPub_);
     }
   }
 

@@ -27,7 +27,8 @@ namespace cloisim_ros
   class Micom : public Base
   {
   public:
-    explicit Micom(const std::string node_name = "cloisim_ros_micom");
+    explicit Micom(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit Micom(const std::string namespace_ = "");
     virtual ~Micom();
 
   private:
@@ -58,7 +59,7 @@ namespace cloisim_ros
   private:
     uint16_t portTx_;
     uint16_t portRx_;
-    std::string m_hashKeyPub;
+    std::string hashKeyPub_;
     std::string hashKeySub_;
 
     std::map<std::string, std::string> target_transform_name;
@@ -73,7 +74,7 @@ namespace cloisim_ros
     // Micom msgs
     cloisim::msgs::Micom pbBufMicom_;
 
-    std::array<double, 2> last_rad_;
+    std::array<double, 2> last_rad_ = {0, 0};
 
     // IMU msgs
     sensor_msgs::msg::Imu msg_imu_;

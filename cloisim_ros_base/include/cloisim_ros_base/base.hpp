@@ -29,7 +29,10 @@ namespace cloisim_ros
   class Base : public rclcpp::Node
   {
   public:
-    explicit Base(const std::string node_name, const int number_of_bridge = 1);
+    explicit Base(const std::string node_name_, const int number_of_bridges = 1);
+    explicit Base(const std::string node_name_, const rclcpp::NodeOptions &options_, const int number_of_bridges = 1);
+    explicit Base(const std::string node_name_, const std::string namespace_, const int number_of_bridges = 1);
+    explicit Base(const std::string node_name_, const std::string namespace_, const rclcpp::NodeOptions &options_, const int number_of_bridges = 1);
     ~Base();
 
   protected:
@@ -83,6 +86,7 @@ namespace cloisim_ros
     static cloisim::msgs::Pose IdentityPose();
 
   private:
+    void SetupBridges(const int number_of_bridges);
     void PublishStaticTF();
 
   private:

@@ -57,16 +57,16 @@ target_include_directories(
 # Install
 ################################################################################
 install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
   TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   INCLUDES DESTINATION include
-)
-
-install(
-  DIRECTORY include/
-  DESTINATION include
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)

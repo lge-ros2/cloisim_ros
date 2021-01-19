@@ -15,21 +15,23 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>launch_ros</exec_depend>
-  <exec_depend>cloisim_ros_micom</exec_depend>
-  <exec_depend>cloisim_ros_lidar</exec_depend>
-  <exec_depend>cloisim_ros_camera</exec_depend>
-  <exec_depend>cloisim_ros_depthcamera</exec_depend>
-  <exec_depend>cloisim_ros_multicamera</exec_depend>
-  <exec_depend>cloisim_ros_realsense</exec_depend>
-  <exec_depend>cloisim_ros_gps</exec_depend>
-  <exec_depend>cloisim_ros_elevatorsystem</exec_depend>
-  <exec_depend>cloisim_ros_world</exec_depend>
+  <depend>launch_ros</depend>
+  <depend>rclcpp</depend>
+  <depend>cloisim_ros_micom</depend>
+  <depend>cloisim_ros_lidar</depend>
+  <depend>cloisim_ros_camera</depend>
+  <depend>cloisim_ros_depthcamera</depend>
+  <depend>cloisim_ros_multicamera</depend>
+  <depend>cloisim_ros_realsense</depend>
+  <depend>cloisim_ros_gps</depend>
+  <depend>cloisim_ros_elevatorsystem</depend>
+  <depend>cloisim_ros_world</depend>
+
+  <depend>libwebsocketpp-dev</depend>
+  <depend>libjsoncpp-dev</depend>
 
   <test_depend>launch</test_depend>
   <test_depend>launch_testing</test_depend>
-
-  <depend>python3-websocket</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
