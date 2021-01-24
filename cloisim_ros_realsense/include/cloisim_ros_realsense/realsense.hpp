@@ -57,9 +57,6 @@ namespace cloisim_ros
     // message for ROS2 communictaion
     std::map<int, sensor_msgs::msg::Image> msgImgs_;
 
-    // Camera info publishers.
-    // std::map<int, rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> pubCameraInfos_;
-
     // Camera info managers
     std::map<int, std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager_;
 

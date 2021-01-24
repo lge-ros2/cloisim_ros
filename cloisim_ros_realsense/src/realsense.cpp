@@ -86,16 +86,6 @@ void RealSense::Initialize()
     const auto topic_name = (module.find("depth") == string::npos)? "image_raw":"image_rect_raw";
     pubImages_[bridgeIndex] = it.advertiseCamera(topic_base_name_ + "/" + topic_name, 1);
 
-    // TODO: to supress the error log
-    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'format' has already been declared
-    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'png_level' has already been declared
-    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'jpeg_quality' has already been declared
-    undeclare_parameter("format");
-    undeclare_parameter("png_level");
-    undeclare_parameter("jpeg_quality");
-
-    // pubCameraInfos_[bridgeIndex] = create_publisher<sensor_msgs::msg::CameraInfo>(topic_base_name_ + "/camera_info", 1);
-
     sensor_msgs::msg::Image msg_img;
     msg_img.header.frame_id = module;
 
