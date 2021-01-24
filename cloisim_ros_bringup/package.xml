@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>cloisim_ros_bringup</name>
+  <version>2.4.0</version>
+  <description>Bringup scripts and configurations for cloisim_ros</description>
+
+  <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
+
+  <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>
+  <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
+
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>launch_ros</depend>
+  <depend>rclcpp</depend>
+  <depend>cloisim_ros_micom</depend>
+  <depend>cloisim_ros_lidar</depend>
+  <depend>cloisim_ros_camera</depend>
+  <depend>cloisim_ros_depthcamera</depend>
+  <depend>cloisim_ros_multicamera</depend>
+  <depend>cloisim_ros_realsense</depend>
+  <depend>cloisim_ros_gps</depend>
+  <depend>cloisim_ros_elevatorsystem</depend>
+  <depend>cloisim_ros_world</depend>
+
+  <depend>libwebsocketpp-dev</depend>
+  <depend>libjsoncpp-dev</depend>
+
+  <test_depend>launch</test_depend>
+  <test_depend>launch_testing</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

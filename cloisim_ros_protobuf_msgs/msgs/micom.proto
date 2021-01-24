@@ -1,0 +1,70 @@
+/**
+ *  @file   micom.proto
+ *  @date   2020-10-27
+ *  @author hyunseok Yang
+ *  @warning
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface Micom
+/// \brief Message for Micom Board
+
+import "time.proto";
+import "imu.proto";
+import "battery.proto";
+import "pose.proto";
+import "vector3d.proto";
+
+message Micom
+{
+  message USS
+  {
+    repeated double distance  = 1;
+  }
+
+  message IR
+  {
+    repeated double distance  = 1;
+  }
+
+  message Odometry
+  {
+    message Wheel
+    {
+      required double left   = 1 [default = 0.0];
+      required double right  = 2 [default = 0.0];
+    }
+
+    required Wheel angular_velocity = 1;
+    optional Wheel linear_velocity  = 2;
+    optional Vector3d pose          = 3;
+    optional Vector3d twist_linear  = 4;
+    optional Vector3d twist_angular = 5;
+  }
+
+  message Magnet
+  {
+    repeated bool detected = 1;
+  }
+
+  message Bumper
+  {
+    repeated bool bumped = 1;
+  }
+
+  required Time time        = 1;
+  required Odometry odom    = 2;
+  optional USS uss          = 3;
+  optional IR ir            = 4;
+  optional Magnet magnet    = 5;
+  optional IMU imu          = 6;
+  optional Bumper bumper    = 7;
+  optional Battery battery  = 8;
+  optional Pose pose        = 9;
+}
