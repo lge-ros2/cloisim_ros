@@ -134,7 +134,6 @@ void Micom::Initialize()
 
 void Micom::Deinitialize()
 {
-  DisconnectBridges();
 }
 
 void Micom::GetWeelInfo(zmq::Bridge* const pBridge)

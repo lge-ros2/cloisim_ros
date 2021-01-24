@@ -26,11 +26,10 @@ class BringUpParam : public rclcpp::Node
         : Node("cloisim_ros_bringup_param",
                rclcpp::NodeOptions()
                    .automatically_declare_parameters_from_overrides(true)
-                   .allow_undeclared_parameters(false)
-                   .use_intra_process_comms(false))
+                   .allow_undeclared_parameters(false))
         , isSingleMode(false)
     {
-      get_parameter_or("singlemode", isSingleMode, bool(false));
+      get_parameter("singlemode", isSingleMode);
 
       RCLCPP_INFO_ONCE(this->get_logger(), "singleMode: %d", isSingleMode);
     };

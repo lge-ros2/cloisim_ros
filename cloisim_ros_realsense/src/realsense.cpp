@@ -132,8 +132,6 @@ void RealSense::Deinitialize()
   {
     pub.second.shutdown();
   }
-
-  DisconnectBridges();
 }
 
 void RealSense::GetParameters(zmq::Bridge* const pBridge)

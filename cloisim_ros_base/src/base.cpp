@@ -103,6 +103,8 @@ void Base::Stop()
   }
 
   Deinitialize();
+
+  CloseBridges();
 }
 
 void Base::SetupStaticTf2Message(const cloisim::msgs::Pose transform, const string child_frame_id, const string parent_frame_id)
@@ -149,12 +151,23 @@ zmq::Bridge* Base::GetBridge(const uint bridge_index)
   return m_bridgeList.at(bridge_index);
 }
 
-void Base::DisconnectBridges()
+void Base::CloseBridges()
 {
   for (auto pBridge : m_bridgeList)
   {
     pBridge->Disconnect();
   }
+}
+
+string Base::GetRobotName()
+{
+  bool isSingleMode;
+  get_parameter("single_mode", isSingleMode);
+
+  string robotName;
+  get_parameter("single_mode.robotname", robotName);
+
+  return (isSingleMode) ? robotName : string(get_namespace()).substr(1);
 }
 
 msgs::Pose Base::GetObjectTransform(const int bridge_index, const string target_name)

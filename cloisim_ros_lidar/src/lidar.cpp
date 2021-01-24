@@ -71,7 +71,6 @@ void Lidar::Initialize()
 
 void Lidar::Deinitialize()
 {
-  DisconnectBridges();
 }
 
 void Lidar::UpdateData(const uint bridge_index)

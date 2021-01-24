@@ -66,9 +66,9 @@ namespace cloisim_ros
 
     zmq::Bridge* GetBridge(const uint bridge_index = 0);
 
-    void DisconnectBridges();
+    void CloseBridges();
 
-    std::string GetRobotName() { return std::string(get_namespace()).substr(1); }
+    std::string GetRobotName();
     std::string GetPartsName() { return get_name(); }
     std::string GetMainHashKey() { return GetRobotName() + GetPartsName(); }
 

@@ -32,8 +32,9 @@ export CLOISIM_SERVICE_PORT=8080
 
 check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup)
 
+### Run all cloisim_ros (robot + factory)
 
-### launch all cloisim_ros
+strongly recommend to use this method.
 
 #### Turn on single Mode
 
@@ -55,17 +56,15 @@ ros2 run cloisim_ros_bringup cloisim_ros_bringup
 
 ### launch cloisim_ros for robot
 
+will be deprecated.
+
 ```shell
 ros2 launch cloisim_ros_bringup robot.launch.py robot_name:=cloi
 ```
 
-### launch elevator system
-
-```shell
-ros2 launch cloisim_ros_bringup elevatorsystem.launch.py
-```
-
 ### launch factory (elevator system and world)
+
+will be deprecated.
 
 ```shell
 ros2 launch cloisim_ros_bringup factory.launch.py

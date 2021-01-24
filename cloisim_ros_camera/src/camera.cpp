@@ -84,7 +84,6 @@ void Camera::Initialize()
 void Camera::Deinitialize()
 {
   pubImage.shutdown();
-  DisconnectBridges();
 }
 
 void Camera::UpdateData(const uint bridge_index)

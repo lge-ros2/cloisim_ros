@@ -85,7 +85,6 @@ void Gps::Initialize()
 
 void Gps::Deinitialize()
 {
-  DisconnectBridges();
 }
 
 void Gps::UpdateData(const uint bridge_index)

@@ -45,7 +45,7 @@ void World::Initialize()
   string model_name;
   uint16_t portData;
   get_parameter_or("model", model_name, string("World"));
-  get_parameter_or("bridge.Clock", portData, uint16_t(3));
+  get_parameter_or("bridge.Clock", portData, uint16_t(0));
 
   hashKeySub_ = model_name + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
@@ -72,7 +72,6 @@ void World::Initialize()
 void World::Deinitialize()
 {
   delete throttler_;
-  DisconnectBridges();
 }
 
 void World::UpdateData(const uint bridge_index)

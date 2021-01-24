@@ -29,7 +29,6 @@ ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string
     , pBridgeControl(nullptr)
     , srvMode_(false)
 {
-  
   Start(false);
 }
 
@@ -113,7 +112,6 @@ void ElevatorSystem::Initialize()
 
 void ElevatorSystem::Deinitialize()
 {
-  DisconnectBridges();
 }
 
 void ElevatorSystem::CallElevator(

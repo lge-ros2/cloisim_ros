@@ -100,8 +100,6 @@ void MultiCamera::Deinitialize()
   {
     pub.shutdown();
   }
-
-  DisconnectBridges();
 }
 
 void MultiCamera::GetRos2FramesId(zmq::Bridge* const pBridge)

@@ -57,10 +57,16 @@ int main(int argc, char** argv)
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
+
   const auto bringup_param_node = std::make_shared<BringUpParam>();
   executor.add_node(bringup_param_node);
 
   const auto isSingleMode = bringup_param_node->IsSingleMode();
+
+  rclcpp::NodeOptions default_node_options;
+  default_node_options.append_parameter_override("single_mode", bool(isSingleMode));
+
+  std::vector<std::shared_ptr<cloisim_ros::Base>> node_list;
 
   for (auto it = result_map.begin(); it != result_map.end(); it++)
   {
@@ -78,10 +84,15 @@ int main(int argc, char** argv)
       cout << "Node Type: " << node_type << ", Name: " << node_name << endl;
       // cout << item << endl;
 
-      std::shared_ptr<cloisim_ros::Base> node;
-      vector<rclcpp::Parameter> params;
-      rclcpp::NodeOptions node_options;
+      std::shared_ptr<cloisim_ros::Base> node = nullptr;
+      rclcpp::NodeOptions node_options(default_node_options);
 
+      if (isSingleMode)
+      {
+        node_options.append_parameter_override("single_mode.robotname", item_name);
+      }
+
+      // store parameters
       for (auto paramIt = item.begin(); paramIt != item.end(); ++paramIt)
       {
         const auto bridge_key = paramIt.key().asString();
@@ -105,6 +116,7 @@ int main(int argc, char** argv)
       {
         if (isSingleMode)
         {
+
           node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name);
         }
         else
@@ -183,8 +195,13 @@ int main(int argc, char** argv)
         continue;
       }
 
-      executor.add_node(node);
+      node_list.push_back(node);
     }
+  }
+
+  for (auto it = node_list.begin(); it != node_list.end(); ++it)
+  {
+    executor.add_node(*it);
   }
 
   executor.spin();
