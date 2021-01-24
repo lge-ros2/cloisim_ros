@@ -40,9 +40,7 @@ Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeO
            rclcpp::NodeOptions(options_)
                .arguments(vector<string>{"/tf:=tf", "/tf_static:=tf_static"})
                .append_parameter_override("use_sim_time", true)
-               .allow_undeclared_parameters(true)
-               .automatically_declare_parameters_from_overrides(true)
-               .use_intra_process_comms(false))
+               .automatically_declare_parameters_from_overrides(true))
     , m_bRunThread(false)
     , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
@@ -86,12 +84,12 @@ void Base::Start(const bool runSingleDataThread)
       }});
   }
 
-  auto callback_pub = [this]() -> void {
+  auto callback_static_tf_pub = [this]() -> void {
     PublishStaticTF();
   };
 
-  // ROS2 timer for Publisher
-  m_timer = this->create_wall_timer(0.5s, callback_pub);
+  // ROS2 timer for static tf
+  m_timer = this->create_wall_timer(0.5s, callback_static_tf_pub);
 }
 
 void Base::Stop()

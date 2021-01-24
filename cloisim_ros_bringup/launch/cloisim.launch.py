@@ -7,7 +7,6 @@
 #
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.actions import SetEnvironmentVariable
 from launch.actions import ExecuteProcess
 from launch.substitutions import LaunchConfiguration
 
@@ -22,10 +21,6 @@ def generate_launch_description() -> LaunchDescription:
         cwd=[sim_path],
         output='screen')
 
-    # Create environment variables
-    stdout_linebuf_envvar = SetEnvironmentVariable(
-        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
-
     declare_launch_argument_sim_path = DeclareLaunchArgument(
         'sim_path',
         default_value='',
@@ -38,9 +33,6 @@ def generate_launch_description() -> LaunchDescription:
 
     # Create the launch description and populate
     ld = LaunchDescription()
-
-    # Set environment variables
-    ld.add_action(stdout_linebuf_envvar)
 
     # Add the actions to launch all nodes
     ld.add_action(declare_launch_argument_sim_path)

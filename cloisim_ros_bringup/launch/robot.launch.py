@@ -15,9 +15,6 @@ from cloisim_ros_bringup.common import find_robot_name
 from cloisim_ros_bringup.common import get_package_name_by_device_type
 from cloisim_ros_bringup.common import get_target_device_list
 from launch.actions import IncludeLaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.actions import SetEnvironmentVariable
-# from launch.actions import SetLaunchConfiguration
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -35,14 +32,6 @@ def generate_launch_description():
     launch_dir = os.path.join(get_package_share_directory("cloisim_ros_bringup"), 'launch')
 
     robot_namespace = LaunchConfiguration('robot_name')
-
-    declare_launch_argument_rn = DeclareLaunchArgument(
-        'robot_name',
-        default_value='',
-        description='It is robot name. same as `node namspace`')
-
-    stdout_linebuf_envvar = SetEnvironmentVariable(
-        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
     for (device_type, nodes) in target_device_list.items():
         print(device_type)
