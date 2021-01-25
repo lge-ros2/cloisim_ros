@@ -27,6 +27,7 @@
   <depend>cloisim_ros_elevatorsystem</depend>
   <depend>cloisim_ros_world</depend>
 
+  <depend>python3-websocket</depend>
   <depend>libwebsocketpp-dev</depend>
   <depend>libjsoncpp-dev</depend>
   <depend>asio</depend>
