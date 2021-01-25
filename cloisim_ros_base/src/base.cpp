@@ -38,7 +38,7 @@ Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeO
     : Node(node_name_,
            namespace_,
            rclcpp::NodeOptions(options_)
-               .arguments(vector<string>{"/tf:=tf", "/tf_static:=tf_static"})
+               .arguments(vector<string>{"--ros-args",  "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"})
                .append_parameter_override("use_sim_time", true)
                .automatically_declare_parameters_from_overrides(true))
     , m_bRunThread(false)
