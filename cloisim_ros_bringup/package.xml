@@ -29,6 +29,7 @@
 
   <depend>libwebsocketpp-dev</depend>
   <depend>libjsoncpp-dev</depend>
+  <depend>asio</depend>
 
   <test_depend>launch</test_depend>
   <test_depend>launch_testing</test_depend>
