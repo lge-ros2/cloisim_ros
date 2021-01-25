@@ -10,7 +10,7 @@ RUN git clone https://github.com/lge-ros2/cloi_common_interfaces.git -b ${ROS_DI
 WORKDIR /opt/lge-ros2
 
 RUN apt update && apt upgrade -y && rosdep update && \
-	rosdep install -y -r -q --from-paths src --ignore-src --rosdistro $ROS_DISTRO
+rosdep install -y -r -q --from-paths src --ignore-src --rosdistro $ROS_DISTRO
 
 RUN ["/bin/bash", "-c", "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"]
 

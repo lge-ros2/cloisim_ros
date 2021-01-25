@@ -86,7 +86,7 @@ ros2 launch cloisim_ros_bringup cloisim_and_factory.launch.py sim_path:=/opt/CLO
 
 ## Using Docker
 
-Run below command after clone this repository(this branch).
+Run below command after clone this repository(this branch). Only support 'ros2 run' 
 
 ### Build Docker image
 
@@ -96,28 +96,18 @@ cd cloisim_ros
 docker build -t cloisim_ros .
 ```
 
-### Running container with laucnher
-
-[here](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup/launch) to check launchers
+### Running container
 
 ```shell
-docker run -it --rm --net=host cloisim_ros {launch script} {arguments}
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros 
+
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros --ros-args -p singlemode:=False
 ```
 
-#### examples
+or
 
 ```shell
-docker run -it --rm --net=host cloisim_ros robot.launch.py robot_name:=cloi
-
-docker run -it --rm --net=host cloisim_ros factory.launch.py
-```
-
-it requires to mount volume(-v option) for sim_path and resource to execute a CLOiSim.
-
-refer to [here](https://github.com/lge-ros2/cloisim/tree/master/Docker)
-
-```shell
-docker run -it --rm --net=host cloisim_ros closim_and_factory.launch.py sim_path:=/opt/CLOiSim-1.10.0 world:=lg_seocho.world
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros --ros-args -p singlemode:=True
 ```
 
 ## Version info
