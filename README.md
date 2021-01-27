@@ -68,9 +68,9 @@ or
 ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=True
 ```
 
-### How to run cloisim_ros with CLOiSim together
+## Running CLOiSim
 
-#### only simulator
+it provides a script to run CLOiSim easily.
 
 ```shell
 ros2 launch cloisim_ros_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.10.0 world:=lg_seocho.world
