@@ -93,6 +93,4 @@ install(
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR launch/module)
-
 ament_package()

@@ -17,7 +17,7 @@ def generate_launch_description() -> LaunchDescription:
     world = LaunchConfiguration('world')
 
     execute_multi_robot_simulator = ExecuteProcess(
-        cmd=['./CLOiSim.x86_64', '-worldFile', world],
+        cmd=['./CLOiSim.x86_64', '-world', world],
         cwd=[sim_path],
         output='screen')
 
