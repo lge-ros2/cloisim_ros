@@ -36,15 +36,7 @@ check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_r
 
 strongly recommend to use this method.
 
-#### Turn on single Mode
-
-will NOT apply namespace for robot and the number of robot must BE single in world environment.
-
-```shell
-ros2 run cloisim_ros_bringup cloisim_ros_bringup --ros-args -p singlemode:=True
-```
-
-#### Turn off single mode
+#### Turn off single mode(=multi robot mode)
 
 apply namespace for each robot)
 
@@ -54,20 +46,26 @@ ros2 run cloisim_ros_bringup cloisim_ros_bringup --ros-args -p singlemode:=False
 ros2 run cloisim_ros_bringup cloisim_ros_bringup
 ```
 
-### launch cloisim_ros for robot
-
-will be deprecated.
+or
 
 ```shell
-ros2 launch cloisim_ros_bringup robot.launch.py robot_name:=cloi
+ros2 launch cloisim_ros_bringup bringup.launch.py
+
+ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=False
 ```
 
-### launch factory (elevator system and world)
+#### Turn on single Mode
 
-will be deprecated.
+will NOT apply namespace for robot and the number of robot must BE single in world environment.
 
 ```shell
-ros2 launch cloisim_ros_bringup factory.launch.py
+ros2 run cloisim_ros_bringup cloisim_ros_bringup --ros-args -p singlemode:=True
+```
+
+or
+
+```shell
+ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=True
 ```
 
 ### How to run cloisim_ros with CLOiSim together
@@ -78,15 +76,9 @@ ros2 launch cloisim_ros_bringup factory.launch.py
 ros2 launch cloisim_ros_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.10.0 world:=lg_seocho.world
 ```
 
-#### simulator + cloisim_ros package(clock topic)
-
-```shell
-ros2 launch cloisim_ros_bringup cloisim_and_factory.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.10.0 world:=lg_seocho.world
-```
-
 ## Using Docker
 
-Run below command after clone this repository(this branch). Only support 'ros2 run' 
+Run below command after clone this repository(this branch). Only support 'ros2 run'
 
 ### Build Docker image
 
@@ -99,15 +91,15 @@ docker build -t cloisim_ros .
 ### Running container
 
 ```shell
-docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros 
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
 
-docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros --ros-args -p singlemode:=False
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros singlemode:=False
 ```
 
 or
 
 ```shell
-docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros --ros-args -p singlemode:=True
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros singlemode:=True
 ```
 
 ## Version info
