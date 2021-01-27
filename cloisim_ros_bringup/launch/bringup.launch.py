@@ -16,33 +16,32 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
 
-    _package_name = LaunchConfiguration('package_name')
-    _robot_name = LaunchConfiguration('robot_name')
-    _name = LaunchConfiguration('name')
-    _parameters = LaunchConfiguration('parameters')
+    _singlemode = LaunchConfiguration('singlemode')
 
     cloisim_ros_cmd = Node(
-        package=_package_name,
-        executable=_package_name,
-        name=_name,
-        namespace=_robot_name,
+        package="cloisim_ros_bringup",
+        executable="cloisim_ros_bringup",
         output='screen',
-        parameters=[_parameters])
+        parameters=[{'singlemode': _singlemode}])
 
-    declare_launch_argument_rn = DeclareLaunchArgument(
-        'robot_name',
-        default_value='',
-        description='it is equal to namespace')
+    declare_launch_argument = DeclareLaunchArgument(
+        'singlemode',
+        default_value='False',
+        description='whether to use single mode')
 
-    stdout_linebuf_envvar = SetEnvironmentVariable(
+    stdout_log_use_stdout_envvar = SetEnvironmentVariable(
+        'RCUTILS_LOGGING_USE_STDOUT', '1')
+
+    stdout_log_buf_stream_envvar = SetEnvironmentVariable(
         'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
     # Create the launch description and populate
     ld = launch.LaunchDescription()
 
      # Set environment variables
-    ld.add_action(stdout_linebuf_envvar)
-    ld.add_action(declare_launch_argument_rn)
+    ld.add_action(stdout_log_use_stdout_envvar)
+    ld.add_action(stdout_log_buf_stream_envvar)
+    ld.add_action(declare_launch_argument)
     ld.add_action(cloisim_ros_cmd)
 
     return ld
