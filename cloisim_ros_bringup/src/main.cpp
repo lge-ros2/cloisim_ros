@@ -64,7 +64,7 @@ int main(int argc, char** argv)
   const auto isSingleMode = bringup_param_node->IsSingleMode();
 
   rclcpp::NodeOptions default_node_options;
-  default_node_options.append_parameter_override("single_mode", bool(isSingleMode));
+  default_node_options.append_parameter_override("singlemode", bool(isSingleMode));
 
   std::vector<std::shared_ptr<cloisim_ros::Base>> node_list;
 
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 
       if (isSingleMode)
       {
-        node_options.append_parameter_override("single_mode.robotname", item_name);
+        node_options.append_parameter_override("singlemode.robotname", item_name);
       }
 
       // store parameters

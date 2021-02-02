@@ -31,7 +31,7 @@ class BringUpParam : public rclcpp::Node
     {
       get_parameter("singlemode", isSingleMode);
 
-      RCLCPP_INFO_ONCE(this->get_logger(), "singleMode: %d", isSingleMode);
+      RCLCPP_INFO_ONCE(this->get_logger(), "single mode: %d", isSingleMode);
     };
 
     bool IsSingleMode() const { return isSingleMode; }
