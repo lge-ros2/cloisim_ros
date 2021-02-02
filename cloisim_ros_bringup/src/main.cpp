@@ -66,140 +66,147 @@ int main(int argc, char** argv)
   rclcpp::NodeOptions default_node_options;
   default_node_options.append_parameter_override("singlemode", bool(isSingleMode));
 
-  std::vector<std::shared_ptr<cloisim_ros::Base>> node_list;
+  std::vector<std::shared_ptr<cloisim_ros::Base>> rclcpp_node_list;
 
   for (auto it = result_map.begin(); it != result_map.end(); it++)
   {
     const auto item_name = it.key().asString();
     const auto item_list = (*it);
 
-    cout << "# Item Name: " << item_name << endl;
+    cout << "Item Name: " << item_name << endl;
 
     for (auto it2 = item_list.begin(); it2 != item_list.end(); ++it2)
     {
       const auto node_type = it2.key().asString();
-      const auto node_name = (*it2).begin().key().asString();
-      const auto item = (*it2)[node_name];
+      const auto node_list = (*it2);
 
-      cout << "Node Type: " << node_type << ", Name: " << node_name << endl;
-      // cout << item << endl;
+      cout << "\tNode Type: " << node_type << endl;
 
-      std::shared_ptr<cloisim_ros::Base> node = nullptr;
-      rclcpp::NodeOptions node_options(default_node_options);
-
-      if (isSingleMode)
+      for (auto it3 = node_list.begin(); it3 != node_list.end(); ++it3)
       {
-        node_options.append_parameter_override("singlemode.robotname", item_name);
-      }
+        const auto node_name = it3.key().asString();
+        const auto item = (*it2)[node_name];
 
-      // store parameters
-      for (auto paramIt = item.begin(); paramIt != item.end(); ++paramIt)
-      {
-        const auto bridge_key = paramIt.key().asString();
-        const auto bridge_port = (*paramIt).asUInt();
-        node_options.append_parameter_override("bridge." + bridge_key, uint16_t(bridge_port));
-        // cout << "bridge." << bridge_key << " = " << bridge_port << endl;
-      }
+        cout << "\t\tNode Name: " << node_name << endl;
+        // cout << item << endl;
 
-      if (!node_type.compare("MICOM"))
-      {
+        std::shared_ptr<cloisim_ros::Base> node = nullptr;
+        rclcpp::NodeOptions node_options(default_node_options);
+
         if (isSingleMode)
         {
-          node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
+          node_options.append_parameter_override("singlemode.robotname", item_name);
+        }
+
+        // store parameters
+        for (auto paramIt = item.begin(); paramIt != item.end(); ++paramIt)
+        {
+          const auto bridge_key = paramIt.key().asString();
+          const auto bridge_port = (*paramIt).asUInt();
+          node_options.append_parameter_override("bridge." + bridge_key, uint16_t(bridge_port));
+          // cout << "bridge." << bridge_key << " = " << bridge_port << endl;
+        }
+
+        if (!node_type.compare("MICOM"))
+        {
+          if (isSingleMode)
+          {
+            node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
+          }
+          else
+          {
+            node = std::make_shared<cloisim_ros::Micom>(node_options, node_name, item_name);
+          }
+        }
+        else if (!node_type.compare("LIDAR") || !node_type.compare("LASER"))
+        {
+          if (isSingleMode)
+          {
+
+            node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name);
+          }
+          else
+          {
+            node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name, item_name);
+          }
+        }
+        else if (!node_type.compare("CAMERA"))
+        {
+          if (isSingleMode)
+          {
+            node = std::make_shared<cloisim_ros::Camera>(node_options, node_name);
+          }
+          else
+          {
+            node = std::make_shared<cloisim_ros::Camera>(node_options, node_name, item_name);
+          }
+        }
+        else if (!node_type.compare("DEPTHCAMERA"))
+        {
+          if (isSingleMode)
+          {
+            node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name);
+          }
+          else
+          {
+            node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name, item_name);
+          }
+        }
+        else if (!node_type.compare("MULTICAMERA"))
+        {
+          if (isSingleMode)
+          {
+            node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name);
+          }
+          else
+          {
+            node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name, item_name);
+          }
+        }
+        else if (!node_type.compare("REALSENSE"))
+        {
+          if (isSingleMode)
+          {
+            node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
+          }
+          else
+          {
+            node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name, item_name);
+          }
+        }
+        else if (!node_type.compare("GPS"))
+        {
+          if (isSingleMode)
+          {
+            node = std::make_shared<cloisim_ros::Gps>(node_options, node_name);
+          }
+          else
+          {
+            node = std::make_shared<cloisim_ros::Gps>(node_options, node_name, item_name);
+          }
+        }
+        else if (!node_type.compare("ELEVATOR"))
+        {
+          node_options.append_parameter_override("model", item_name);
+          node = std::make_shared<cloisim_ros::ElevatorSystem>(node_options, node_name);
+        }
+        else if (!node_type.compare("WORLD"))
+        {
+          node_options.append_parameter_override("model", item_name);
+          node = std::make_shared<cloisim_ros::World>(node_options, node_name);
         }
         else
         {
-          node = std::make_shared<cloisim_ros::Micom>(node_options, node_name, item_name);
+          cout << node_type << " is not supported." << endl;
+          continue;
         }
-      }
-      else if (!node_type.compare("LIDAR") || !node_type.compare("LASER"))
-      {
-        if (isSingleMode)
-        {
 
-          node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name);
-        }
-        else
-        {
-          node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name, item_name);
-        }
+        rclcpp_node_list.push_back(node);
       }
-      else if (!node_type.compare("CAMERA"))
-      {
-        if (isSingleMode)
-        {
-          node = std::make_shared<cloisim_ros::Camera>(node_options, node_name);
-        }
-        else
-        {
-          node = std::make_shared<cloisim_ros::Camera>(node_options, node_name, item_name);
-        }
-      }
-      else if (!node_type.compare("DEPTHCAMERA"))
-      {
-        if (isSingleMode)
-        {
-          node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name);
-        }
-        else
-        {
-          node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name, item_name);
-        }
-      }
-      else if (!node_type.compare("MULTICAMERA"))
-      {
-        if (isSingleMode)
-        {
-          node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name);
-        }
-        else
-        {
-          node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name, item_name);
-        }
-      }
-      else if (!node_type.compare("REALSENSE"))
-      {
-        if (isSingleMode)
-        {
-          node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
-        }
-        else
-        {
-          node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name, item_name);
-        }
-      }
-      else if (!node_type.compare("GPS"))
-      {
-        if (isSingleMode)
-        {
-          node = std::make_shared<cloisim_ros::Gps>(node_options, node_name);
-        }
-        else
-        {
-          node = std::make_shared<cloisim_ros::Gps>(node_options, node_name, item_name);
-        }
-      }
-      else if (!node_type.compare("ELEVATOR"))
-      {
-        node_options.append_parameter_override("model", item_name);
-        node = std::make_shared<cloisim_ros::ElevatorSystem>(node_options, node_name);
-      }
-      else if (!node_type.compare("WORLD"))
-      {
-        node_options.append_parameter_override("model", item_name);
-        node = std::make_shared<cloisim_ros::World>(node_options, node_name);
-      }
-      else
-      {
-        cout << node_type << " is not supported." << endl;
-        continue;
-      }
-
-      node_list.push_back(node);
     }
   }
 
-  for (auto it = node_list.begin(); it != node_list.end(); ++it)
+  for (auto it = rclcpp_node_list.begin(); it != rclcpp_node_list.end(); ++it)
   {
     executor.add_node(*it);
   }
