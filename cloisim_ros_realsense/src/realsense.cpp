@@ -65,16 +65,15 @@ void RealSense::Initialize()
   }
 
   image_transport::ImageTransport it(GetNode());
-
-  for (auto module : module_list_)
+  for (auto module_name : module_list_)
   {
     uint16_t portCamData, portCamInfo;
-    get_parameter_or("bridge." + module + "Data", portCamData, uint16_t(0));
-    get_parameter_or("bridge." + module + "Info", portCamInfo, uint16_t(0));
+    get_parameter_or("bridge." + module_name + "Data", portCamData, uint16_t(0));
+    get_parameter_or("bridge." + module_name + "Info", portCamInfo, uint16_t(0));
 
-    const auto topic_base_name_ = GetPartsName() + "/" + module;
+    const auto topic_base_name_ = GetPartsName() + "/" + module_name;
 
-    const auto hashKeySub = GetMainHashKey() + module;
+    const auto hashKeySub = GetMainHashKey() + module_name;
 
     DBG_SIM_INFO("topic_name:%s, hash Key sub: %s", topic_base_name_.c_str(), hashKeySub.c_str());
 
@@ -83,11 +82,28 @@ void RealSense::Initialize()
     dataPortMap_[bridgeIndex] = portCamData;
     hashKeySubs_[bridgeIndex] = hashKeySub;
 
-    const auto topic_name = (module.find("depth") == string::npos)? "image_raw":"image_rect_raw";
+    const auto topic_name = (module_name.find("depth") == string::npos)? "image_raw":"image_rect_raw";
     pubImages_[bridgeIndex] = it.advertiseCamera(topic_base_name_ + "/" + topic_name, 1);
 
+    // handling parameters for image_transport plugin
+    const auto format_value = get_parameter("format");
+    const auto jpeg_quality_value = get_parameter("jpeg_quality");
+    const auto png_level_value = get_parameter("png_level");
+
+    declare_parameters(module_name,
+                       map<string, string>{
+                           {"format", format_value.as_string()}});
+    declare_parameters(module_name,
+                       map<string, int>{
+                           {"jpeg_quality", jpeg_quality_value.as_int()},
+                           {"png_level", png_level_value.as_int()}});
+
+    undeclare_parameter("format");
+    undeclare_parameter("jpeg_quality");
+    undeclare_parameter("png_level");
+
     sensor_msgs::msg::Image msg_img;
-    msg_img.header.frame_id = module;
+    msg_img.header.frame_id = module_name;
 
     msgImgs_[bridgeIndex] = msg_img;
 
@@ -99,13 +115,13 @@ void RealSense::Initialize()
     if (pBridgeCamInfo != nullptr)
     {
       pBridgeCamInfo->Connect(zmq::Bridge::Mode::CLIENT, portCamInfo, hashKeySub + "Info");
-      const auto transform = GetObjectTransform(pBridgeCamInfo, module);
-      const auto child_frame_id = GetPartsName() + "_camera_" + module + "_frame";
+      const auto transform = GetObjectTransform(pBridgeCamInfo, module_name);
+      const auto child_frame_id = GetPartsName() + "_camera_" + module_name + "_frame";
       SetupStaticTf2(transform, child_frame_id, header_frame_id);
 
       cameraInfoManager_[bridgeIndex] = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
       const auto camSensorMsg = GetCameraSensorMessage(pBridgeCamInfo);
-      SetCameraInfoInManager(cameraInfoManager_[bridgeIndex], camSensorMsg, module);
+      SetCameraInfoInManager(cameraInfoManager_[bridgeIndex], camSensorMsg, module_name);
     }
 
     threads_.emplace_back(thread([=]() {
@@ -281,7 +297,7 @@ void RealSense::UpdateData(const uint bridge_index)
   if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0)
   {
     // for only depth sensor(Z16)
-    for (uint i = 0; i < msg_img->data.size(); i += 2)
+    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(short))
     {
       const auto depthDataInUInt16 = (uint16_t)tempImageData[i] << 8 | (uint16_t)tempImageData[i + 1];
       const auto scaledDepthData = (double)depthDataInUInt16 / (double)UINT16_MAX;
@@ -295,7 +311,7 @@ void RealSense::UpdateData(const uint bridge_index)
   else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16SC1) == 0)
   {
     // convert to little-endian
-    for (uint i = 0; i < msg_img->data.size(); i += 2)
+    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(short))
     {
       const auto temp = tempImageData[i + 1];
       tempImageData[i + 1] = tempImageData[i];
@@ -305,7 +321,7 @@ void RealSense::UpdateData(const uint bridge_index)
   else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0)
   {
     // convert to little-endian
-    for (uint i = 0; i < msg_img->data.size(); i += 4)
+    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(float))
     {
       const auto temp3 = tempImageData[i + 3];
       const auto temp2 = tempImageData[i + 2];
