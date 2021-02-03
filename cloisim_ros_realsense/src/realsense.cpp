@@ -297,7 +297,7 @@ void RealSense::UpdateData(const uint bridge_index)
   if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0)
   {
     // for only depth sensor(Z16)
-    for (uint i = 0; i < msg_img->data.size(); i += 2)
+    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(short))
     {
       const auto depthDataInUInt16 = (uint16_t)tempImageData[i] << 8 | (uint16_t)tempImageData[i + 1];
       const auto scaledDepthData = (double)depthDataInUInt16 / (double)UINT16_MAX;
@@ -311,7 +311,7 @@ void RealSense::UpdateData(const uint bridge_index)
   else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16SC1) == 0)
   {
     // convert to little-endian
-    for (uint i = 0; i < msg_img->data.size(); i += 2)
+    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(short))
     {
       const auto temp = tempImageData[i + 1];
       tempImageData[i + 1] = tempImageData[i];
@@ -321,7 +321,7 @@ void RealSense::UpdateData(const uint bridge_index)
   else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0)
   {
     // convert to little-endian
-    for (uint i = 0; i < msg_img->data.size(); i += 4)
+    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(float))
     {
       const auto temp3 = tempImageData[i + 3];
       const auto temp2 = tempImageData[i + 2];
