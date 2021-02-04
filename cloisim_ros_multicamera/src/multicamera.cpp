@@ -62,7 +62,7 @@ void MultiCamera::Initialize()
   }
 
   image_transport::ImageTransport it(GetNode());
-  for (auto frame_id : frame_id_)
+  for (auto frame_id : frame_id_list_)
   {
     const auto transform = GetObjectTransform(pBridgeInfo, frame_id);
     SetupStaticTf2(transform, multicamera_name_ + "_" + frame_id);
@@ -78,13 +78,23 @@ void MultiCamera::Initialize()
 
     pubImages_.push_back(it.advertiseCamera(topic_base_name_ + "/image_raw", 1));
 
-    // TODO: to supress the error log
-    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'format' has already been declared
-    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'png_level' has already been declared
-    // -> Failed to load plugin image_transport/compressed_pub, error string: parameter 'jpeg_quality' has already been declared
+     // handling parameters for image_transport plugin
+    const auto format_value = get_parameter("format");
+    const auto jpeg_quality_value = get_parameter("jpeg_quality");
+    const auto png_level_value = get_parameter("png_level");
+
     undeclare_parameter("format");
-    undeclare_parameter("png_level");
     undeclare_parameter("jpeg_quality");
+    undeclare_parameter("png_level");
+
+    declare_parameters(frame_id,
+                       map<string, string>{
+                           {"format", format_value.as_string()}});
+    declare_parameters(frame_id,
+                       map<string, int>{
+                           {"jpeg_quality", jpeg_quality_value.as_int()},
+                           {"png_level", png_level_value.as_int()}});
+
 
     cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
     const auto camSensorMsg = GetCameraSensorMessage(pBridgeInfo, frame_id);
@@ -129,7 +139,7 @@ void MultiCamera::GetRos2FramesId(zmq::Bridge* const pBridge)
               !param.value().string_value().empty())
           {
             const auto frame_id = param.value().string_value();
-            frame_id_.push_back(frame_id);
+            frame_id_list_.push_back(frame_id);
             DBG_SIM_INFO("frame_id: %s", frame_id.c_str());
           }
         }
