@@ -42,7 +42,7 @@ namespace cloisim_ros
 
     std::string hashKeySub_;
 
-    std::vector<std::string> frame_id_;
+    std::vector<std::string> frame_id_list_;
 
     // buffer from simulation
     cloisim::msgs::ImagesStamped pbBuf_;
