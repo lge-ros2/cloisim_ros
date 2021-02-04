@@ -90,6 +90,10 @@ void RealSense::Initialize()
     const auto jpeg_quality_value = get_parameter("jpeg_quality");
     const auto png_level_value = get_parameter("png_level");
 
+    undeclare_parameter("format");
+    undeclare_parameter("jpeg_quality");
+    undeclare_parameter("png_level");
+
     declare_parameters(module_name,
                        map<string, string>{
                            {"format", format_value.as_string()}});
@@ -97,10 +101,6 @@ void RealSense::Initialize()
                        map<string, int>{
                            {"jpeg_quality", jpeg_quality_value.as_int()},
                            {"png_level", png_level_value.as_int()}});
-
-    undeclare_parameter("format");
-    undeclare_parameter("jpeg_quality");
-    undeclare_parameter("png_level");
 
     sensor_msgs::msg::Image msg_img;
     msg_img.header.frame_id = module_name;
