@@ -167,7 +167,7 @@ void CElevatorSystem::callback_get_called_elevator(
     if (receive_response(response_msg))
     {
       response->result = get_result_from_response_message(response_msg);
-      response->elevator_index = to_string(get_elevator_index_from_response_message(response_msg));
+      response->elevator_index = get_elevator_index_from_response_message(response_msg);
     }
   }
 }
@@ -177,7 +177,7 @@ void CElevatorSystem::callback_get_elevator_information(
     const shared_ptr<GetElevatorInfo::Request> request,
     const shared_ptr<GetElevatorInfo::Response> response)
 {
-  auto message = create_request_message("get_elevator_information", stoi(request->elevator_index));
+  auto message = create_request_message("get_elevator_information", request->elevator_index);
 
   if (send_request(message))
   {
@@ -199,7 +199,7 @@ void CElevatorSystem::callback_select_elevator_floor(
   auto message = create_request_message("select_elevator_floor",
                                             request->current_floor,
                                             request->target_floor,
-                                            stoi(request->elevator_index));
+                                            request->elevator_index);
 
   if (send_request(message))
   {
@@ -216,7 +216,7 @@ void CElevatorSystem::callback_request_door_open(
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
 {
-  auto message = create_request_message("request_door_open", stoi(request->elevator_index));
+  auto message = create_request_message("request_door_open", request->elevator_index);
 
   if (send_request(message))
   {
@@ -233,7 +233,7 @@ void CElevatorSystem::callback_request_door_close(
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
 {
-  auto message = create_request_message("request_door_close", stoi(request->elevator_index));
+  auto message = create_request_message("request_door_close", request->elevator_index);
 
   if (send_request(message))
   {
@@ -250,7 +250,7 @@ void CElevatorSystem::callback_is_door_opened(
     const shared_ptr<RequestDoor::Request> request,
     const shared_ptr<RequestDoor::Response> response)
 {
-  auto message = create_request_message("is_door_opened", stoi(request->elevator_index));
+  auto message = create_request_message("is_door_opened", request->elevator_index);
 
   if (send_request(message))
   {
@@ -292,7 +292,7 @@ msgs::Param CElevatorSystem::create_request_message(
     string service_name,
     string current_floor,
     string target_floor,
-    int elevator_index)
+    string elevator_index)
 {
   msgs::Param newMessage;
   newMessage.set_name(systemName_);
@@ -321,8 +321,8 @@ msgs::Param CElevatorSystem::create_request_message(
   pParam = newMessage.add_children();
   pParam->set_name("elevator_index");
   pVal = pParam->mutable_value();
-  pVal->set_type(msgs::Any::INT32);
-  pVal->set_int_value(elevator_index);
+  pVal->set_type(msgs::Any::STRING);
+  pVal->set_string_value(elevator_index);
 
   return newMessage;
 }
@@ -338,15 +338,15 @@ bool CElevatorSystem::get_result_from_response_message(const msgs::Param &respon
   return result_param.value().bool_value();
 }
 
-int CElevatorSystem::get_elevator_index_from_response_message(const msgs::Param &response_msg)
+string CElevatorSystem::get_elevator_index_from_response_message(const msgs::Param &response_msg)
 {
   auto result_param = response_msg.children(2);
   if (!result_param.IsInitialized() || result_param.name().compare("elevator_index") != 0)
   {
-    return NON_ELEVATOR_INDEX;
+    return "";
   }
 
-  return result_param.value().int_value();
+  return result_param.value().string_value();
 }
 
 string CElevatorSystem::get_current_floor_from_response_message(const msgs::Param &response_msg)

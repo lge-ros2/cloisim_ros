@@ -40,8 +40,6 @@ using namespace gazebo;
 using namespace rclcpp_lifecycle;
 using CallbackReturn = node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-#define NON_ELEVATOR_INDEX -1
-
 class CElevatorSystem : public rclcpp_lifecycle::LifecycleNode
 {
 public:
@@ -110,15 +108,15 @@ private:
                                const std::shared_ptr<ReturnBool::Request> request,
                                const std::shared_ptr<ReturnBool::Response> response);
 
-  msgs::Param create_request_message(std::string service_name, int elevator_index);
+  msgs::Param create_request_message(std::string service_name, std::string elevator_index);
 
   msgs::Param create_request_message(std::string service_name,
                                      std::string current_floor,
                                      std::string target_floor,
-                                     int elevator_index = NON_ELEVATOR_INDEX);
+                                     std::string elevator_index = "");
 
   bool get_result_from_response_message(const msgs::Param &response_msg);
-  int get_elevator_index_from_response_message(const msgs::Param &response_msg);
+  std::string get_elevator_index_from_response_message(const msgs::Param &response_msg);
   std::string get_current_floor_from_response_message(const msgs::Param &response_msg);
   float get_height_from_response_message(const msgs::Param &response_msg);
 
@@ -128,7 +126,7 @@ private:
   bool receive_response(msgs::Param &response_msg);
 };
 
-inline msgs::Param CElevatorSystem::create_request_message(std::string service_name, int elevator_index)
+inline msgs::Param CElevatorSystem::create_request_message(std::string service_name, std::string elevator_index)
 {
   return create_request_message(service_name, "", "", elevator_index);
 }
