@@ -27,35 +27,8 @@
 
 using namespace std;
 
-int main(int argc, char** argv)
+void bringup_cloisim_ros(const Json::Value result_map)
 {
-  const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
-  const auto env_service_port = getenv("CLOISIM_SERVICE_PORT");
-
-  const auto bridge_ip = string((env_bridge_ip == nullptr)? "127.0.0.1": env_bridge_ip);
-  const auto service_port = string((env_service_port == nullptr)? "8080":env_service_port);
-
-  Json::Value result_map;
-
-  auto wsService = new cloisim_ros::WebSocketService(bridge_ip, service_port);
-
-  while (true)
-  {
-    // wsService->SetTarget("cloi1");
-    result_map = wsService->Run();
-
-    if (result_map.size() > 1)
-    {
-      break;
-    }
-
-    static const int waitseconds = 3;
-    cout << "Failed to get all target information " << endl;
-    cout << "Wait " << waitseconds << "sec and retry to get object info.... " << endl;
-    sleep(waitseconds);
-  }
-
-  rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
 
   const auto bringup_param_node = std::make_shared<BringUpParam>();
@@ -212,6 +185,37 @@ int main(int argc, char** argv)
   }
 
   executor.spin();
+}
+
+int main(int argc, char** argv)
+{
+  rclcpp::init(argc, argv);
+
+  const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
+  const auto env_service_port = getenv("CLOISIM_SERVICE_PORT");
+
+  const auto bridge_ip = string((env_bridge_ip == nullptr)? "127.0.0.1": env_bridge_ip);
+  const auto service_port = string((env_service_port == nullptr)? "8080":env_service_port);
+
+  auto wsService = new cloisim_ros::WebSocketService(bridge_ip, service_port);
+
+  while (true)
+  {
+    // wsService->SetTarget("cloi1");
+    const auto result_map = wsService->Run();
+
+    if (result_map.size() > 1)
+    {
+      bringup_cloisim_ros(result_map);
+      break;
+    }
+
+    static const int waitseconds = 3;
+    cout << "Failed to get all target information " << endl;
+    cout << "Wait " << waitseconds << "sec and retry to get object info.... " << endl;
+    sleep(waitseconds);
+  }
+
   rclcpp::shutdown();
 
   return 0;
