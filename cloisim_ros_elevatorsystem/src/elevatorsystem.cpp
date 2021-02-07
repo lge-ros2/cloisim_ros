@@ -166,8 +166,8 @@ void ElevatorSystem::GetElevatorCalled(
       auto result_param = response_msg.children(2);
       if (result_param.IsInitialized())
       {
-        const auto elevator_index = (result_param.name().compare("elevator_index") != 0) ? NON_ELEVATOR_INDEX : result_param.value().int_value();
-        response->elevator_index = to_string(elevator_index);
+        const auto elevator_index = (result_param.name().compare("elevator_index") != 0) ? "":result_param.value().string_value();
+        response->elevator_index = elevator_index;
       }
     }
   }
@@ -178,7 +178,7 @@ void ElevatorSystem::GetElevatorInfo(
     const shared_ptr<srv::GetElevatorInformation::Request> request,
     const shared_ptr<srv::GetElevatorInformation::Response> response)
 {
-  auto message = CreateRequest("get_elevator_information", stoi(request->elevator_index));
+  auto message = CreateRequest("get_elevator_information", request->elevator_index);
 
   string serializedBuffer;
   message.SerializeToString(&serializedBuffer);
@@ -221,7 +221,7 @@ void ElevatorSystem::SelectFloor(
   auto message = CreateRequest("select_elevator_floor",
                                request->current_floor,
                                request->target_floor,
-                               stoi(request->elevator_index));
+                               request->elevator_index);
   string serializedBuffer;
   message.SerializeToString(&serializedBuffer);
 
@@ -244,7 +244,7 @@ void ElevatorSystem::RequestDoorOpen(
     const shared_ptr<srv::RequestDoor::Request> request,
     const shared_ptr<srv::RequestDoor::Response> response)
 {
-  auto message = CreateRequest("request_door_open", stoi(request->elevator_index));
+  auto message = CreateRequest("request_door_open", request->elevator_index);
 
   string serializedBuffer;
   message.SerializeToString(&serializedBuffer);
@@ -268,7 +268,7 @@ void ElevatorSystem::RequestDoorClose(
     const shared_ptr<srv::RequestDoor::Request> request,
     const shared_ptr<srv::RequestDoor::Response> response)
 {
-  auto message = CreateRequest("request_door_close", stoi(request->elevator_index));
+  auto message = CreateRequest("request_door_close", request->elevator_index);
 
   string serializedBuffer;
   message.SerializeToString(&serializedBuffer);
@@ -292,7 +292,7 @@ void ElevatorSystem::IsDoorOpened(
     const shared_ptr<srv::RequestDoor::Request> request,
     const shared_ptr<srv::RequestDoor::Response> response)
 {
-  auto message = CreateRequest("is_door_opened", stoi(request->elevator_index));
+  auto message = CreateRequest("is_door_opened", request->elevator_index);
 
   string serializedBuffer;
   message.SerializeToString(&serializedBuffer);
@@ -341,7 +341,7 @@ msgs::Param ElevatorSystem::CreateRequest(
     const string service_name,
     const string current_floor,
     const string target_floor,
-    const int elevator_index)
+    const string elevator_index)
 {
   msgs::Param newMessage;
   newMessage.set_name(systemName_);
@@ -370,8 +370,8 @@ msgs::Param ElevatorSystem::CreateRequest(
   pParam = newMessage.add_children();
   pParam->set_name("elevator_index");
   pVal = pParam->mutable_value();
-  pVal->set_type(msgs::Any::INT32);
-  pVal->set_int_value(elevator_index);
+  pVal->set_type(msgs::Any::STRING);
+  pVal->set_string_value(elevator_index);
 
   return newMessage;
 }

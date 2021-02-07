@@ -39,8 +39,6 @@ namespace cloisim_ros
     virtual void UpdateData(const uint bridge_index) override { (void)bridge_index; };
 
   private:
-    static const int NON_ELEVATOR_INDEX = -1;
-
     std::string systemName_;
     std::string hashKeySrv_;
 
@@ -95,7 +93,7 @@ namespace cloisim_ros
                           const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Request> /*request*/,
                           const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Response> response);
 
-    cloisim::msgs::Param CreateRequest(const std::string service_name, const int elevator_index)
+    cloisim::msgs::Param CreateRequest(const std::string service_name, const std::string elevator_index)
     {
       return CreateRequest(service_name, "", "", elevator_index);
     }
@@ -103,7 +101,7 @@ namespace cloisim_ros
     cloisim::msgs::Param CreateRequest(const std::string service_name,
                                        const std::string current_floor,
                                        const std::string target_floor,
-                                       const int elevator_index = NON_ELEVATOR_INDEX);
+                                       const std::string elevator_index = "");
 
     bool GetResultFromResponse(const cloisim::msgs::Param &response_msg, const int children_index = 1);
   };
