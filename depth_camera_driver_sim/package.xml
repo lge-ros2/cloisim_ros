@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>depth_camera_driver_sim</name>
-  <version>1.10.1</version>
+  <version>1.10.2</version>
   <description>virtual depth camera driver for simulator</description>
   <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>driver_sim_interfaces</name>
-  <version>1.10.1</version>
+  <version>1.10.2</version>
   <description>driver sim interafces for communication between simulator and driver sim</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
