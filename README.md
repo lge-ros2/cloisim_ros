@@ -27,7 +27,8 @@ colcon build --symlink-install --packages-up-to simdevice_bringup
 Set environment variable.
 
 ```shell
-export SIM_BRIDGE_IP='127.0.0.1'
+export CLOISIM_BRIDGE_IP='127.0.0.1'
+export CLOISIM_SERVICE_PORT=8080
 ```
 
 ### driver sim

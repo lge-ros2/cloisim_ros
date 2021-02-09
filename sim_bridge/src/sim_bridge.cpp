@@ -19,10 +19,10 @@
 
 using namespace std;
 
-#define DEFAULT_SIM_BRIDGE_IP "127.0.0.1"
+#define DEFAULT_CLOISIM_BRIDGE_IP "127.0.0.1"
 
 SimBridge::SimBridge()
-  : simBridgeIP(DEFAULT_SIM_BRIDGE_IP)
+  : simBridgeIP(DEFAULT_CLOISIM_BRIDGE_IP)
   , pCtx_(nullptr)
   , pPub_(nullptr)
   , pSub_(nullptr)
@@ -33,15 +33,15 @@ SimBridge::SimBridge()
   , retryPortRequest_(1700)
   , lastErrMsg("")
 {
-  auto env_sim_bridge_ip = getenv("SIM_BRIDGE_IP");
+  auto env_cloisim_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
 
-  if (env_sim_bridge_ip == nullptr)
+  if (env_cloisim_bridge_ip == nullptr)
   {
-    DBG_SIM_WRN("[SIM_BRIDGE] env for SIM_BRIDGE_IP is null, will use default.");
+    DBG_SIM_WRN("[SIM_BRIDGE] CLOISIM_BRIDGE_IP is null, will use default.");
   }
   else
   {
-    SetSimBridgeAddress(string(env_sim_bridge_ip));
+    SetSimBridgeAddress(string(env_cloisim_bridge_ip));
   }
 
   pCtx_ = zmq_ctx_new();
