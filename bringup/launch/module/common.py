@@ -14,8 +14,8 @@ import time
 from tempfile import NamedTemporaryFile
 from websocket import create_connection
 
-SIM_BIRDGE_IP="127.0.0.1"
-SIM_BRIDGE_SERVICE_PORT=8080
+DEFAULT_BRIDGE_IP="127.0.0.1"
+DEFAULT_BRIDGE_SERVICE_PORT=8080
 
 
 def get_launcher_file_by_device_type(device_type):
@@ -144,11 +144,25 @@ def generate_temp_params_with_ns(_namespace, _node_name, port_maps):
 def connect_to_simulator(_target_model_name):
 
     delay = 3.0
+    BRIDGE_IP_ENV = os.environ.get('CLOISIM_BRIDGE_IP')
+    BRIDGE_SERVICE_PORT_ENV = os.environ.get('CLOISIM_SERVICE_PORT')
+
+    BRIDGE_IP = BRIDGE_IP_ENV
+    BRIDGE_SERVICE_PORT = BRIDGE_SERVICE_PORT_ENV
+
+    if BRIDGE_IP is None:
+        BRIDGE_IP = DEFAULT_BRIDGE_IP
+
+    if BRIDGE_SERVICE_PORT is None:
+        BRIDGE_SERVICE_PORT = str(DEFAULT_BRIDGE_SERVICE_PORT)
 
     while True:
 
         try:
-            ws = create_connection("ws://" + SIM_BIRDGE_IP + ":" + str(SIM_BRIDGE_SERVICE_PORT) + "/control")
+            address = "ws://" + BRIDGE_IP + ":" + BRIDGE_SERVICE_PORT + "/control"
+            # print(address)
+            ws = create_connection(address)
+
             message = "{'command':'device_list', 'filter':'" + _target_model_name + "'}"
             ws.send(message)
             # print("send '%s'" % message)
