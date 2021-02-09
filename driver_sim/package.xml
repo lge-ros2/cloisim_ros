@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>driver_sim</name>
-  <version>1.10.0</version>
+  <version>1.10.1</version>
   <description>driver sim base class for other driver sim</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
