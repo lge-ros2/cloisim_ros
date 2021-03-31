@@ -25,7 +25,6 @@ using namespace cloisim_ros;
 
 World::World(const rclcpp::NodeOptions &options_, const std::string node_name_)
   : Base(node_name_, options_, 1)
-  , throttler_(nullptr)
 {
   Start();
 }
@@ -50,14 +49,7 @@ void World::Initialize()
   hashKeySub_ = model_name + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
 
-  double publish_rate;
-  get_parameter_or("publish_rate", publish_rate, 50.0);
-  DBG_SIM_INFO("publish_rate:%f", publish_rate);
-
-  throttler_ = new Throttler(publish_rate);
-
   auto pBridgeData = GetBridge(0);
-
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Clock");
@@ -71,7 +63,6 @@ void World::Initialize()
 
 void World::Deinitialize()
 {
-  delete throttler_;
 }
 
 void World::UpdateData(const uint bridge_index)
@@ -96,20 +87,15 @@ void World::UpdateData(const uint bridge_index)
       pbBuf_.children_size() == 2)
   {
     const auto simTime = (pbBuf_.children(0).name() != "simTime") ? msgs::Time() : pbBuf_.children(0).value().time_value();
+    // const auto realTime = (pbBuf_.children(1).name() != "realTime") ? msgs::Time() : pbBuf_.children(1).value().time_value();
 
-    const auto realTime = (pbBuf_.children(1).name() != "realTime") ? msgs::Time() : pbBuf_.children(1).value().time_value();
-
-    PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()),
-                   rclcpp::Time(realTime.sec(), realTime.nsec()));
+    PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()));
   }
 }
 
-void World::PublishSimTime(const rclcpp::Time simTime, const rclcpp::Time realTime)
+void World::PublishSimTime(const rclcpp::Time simTime)
 {
-  if (throttler_->IsReady(realTime))
-  {
-    rosgraph_msgs::msg::Clock clock;
-    clock.clock = simTime;
-    clock_pub_->publish(clock);
-  }
+  rosgraph_msgs::msg::Clock clock;
+  clock.clock = simTime;
+  clock_pub_->publish(clock);
 }
