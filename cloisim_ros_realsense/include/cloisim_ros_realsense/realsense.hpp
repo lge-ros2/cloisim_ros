@@ -36,13 +36,7 @@ namespace cloisim_ros
     virtual void Deinitialize() override;
     virtual void UpdateData(const uint bridge_index) override;
 
-    void GetParameters(zmq::Bridge *const pBridge);
     void GetActivatedModules(zmq::Bridge *const pBridge);
-
-  private:
-    double depth_range_min_;
-    double depth_range_max_;
-    int depth_scale_;
 
   private:
     cloisim::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;

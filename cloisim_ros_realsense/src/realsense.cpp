@@ -26,9 +26,6 @@ using namespace cloisim_ros;
 
 RealSense::RealSense(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
     : Base(node_name_, namespace_, options_, 9)
-    , depth_range_min_(0.1)
-    , depth_range_max_(10.0)
-    , depth_scale_(1000)
 {
   Start(false);
 }
@@ -56,7 +53,6 @@ void RealSense::Initialize()
   if (pBridgeInfo != nullptr)
   {
     pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, GetMainHashKey() + "Info");
-    GetParameters(pBridgeInfo);
     GetActivatedModules(pBridgeInfo);
 
     const auto transform = GetObjectTransform(pBridgeInfo);
@@ -150,63 +146,6 @@ void RealSense::Deinitialize()
   }
 }
 
-void RealSense::GetParameters(zmq::Bridge* const pBridge)
-{
-  if (pBridge == nullptr)
-  {
-    return;
-  }
-
-  msgs::Param request_msg;
-  string serializedBuffer;
-  request_msg.set_name("request_realsense_parameters");
-  request_msg.SerializeToString(&serializedBuffer);
-
-  const auto reply = pBridge->RequestReply(serializedBuffer);
-
-  if (reply.size() <= 0)
-  {
-    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply.size());
-  }
-  else
-  {
-    msgs::Param pbParam;
-    if (pbParam.ParseFromString(reply))
-    {
-      if (pbParam.IsInitialized() &&
-          pbParam.name() == "parameters")
-      {
-        for (auto i = 0; i < pbParam.children_size(); i++)
-        {
-          auto param = pbParam.children(i);
-          if (param.name() == "depth_range_min" && param.has_value())
-          {
-            depth_range_min_ = param.value().double_value();
-          }
-          else if (param.name() == "depth_range_max" && param.has_value())
-          {
-            depth_range_max_ = param.value().double_value();
-          }
-          else if (param.name() == "depth_scale" && param.has_value())
-          {
-            depth_scale_ = param.value().int_value();
-          }
-          else
-          {
-            DBG_SIM_WRN("Wrong params %s", param.name().c_str());
-          }
-        }
-      }
-    }
-    else
-    {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
-    }
-
-    DBG_SIM_INFO("depth_range_min: %f, depth_range_max: %f, depth_scale: %d", depth_range_min_, depth_range_max_, depth_scale_);
-  }
-}
-
 void RealSense::GetActivatedModules(zmq::Bridge* const pBridge)
 {
   if (pBridge == nullptr)
@@ -291,45 +230,11 @@ void RealSense::UpdateData(const uint bridge_index)
   sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                          reinterpret_cast<const void *>(pbBuf.image().data().data()));
 
-  // Post processing
-  auto tempImageData = msg_img->data.data();
-
-  if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0)
+  if ((encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0) ||
+      (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16SC1) == 0) ||
+      (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0))
   {
-    // for only depth sensor(Z16)
-    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(short))
-    {
-      const auto depthDataInUInt16 = (uint16_t)tempImageData[i] << 8 | (uint16_t)tempImageData[i + 1];
-      const auto scaledDepthData = (double)depthDataInUInt16 / (double)UINT16_MAX;
-      const auto realDepthRange = (uint16_t)(scaledDepthData * depth_range_max_ * (double)depth_scale_);
-
-      // convert to little-endian
-      tempImageData[i + 1] = (uint8_t)(realDepthRange >> 8);
-      tempImageData[i] = (uint8_t)(realDepthRange);
-    }
-  }
-  else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16SC1) == 0)
-  {
-    // convert to little-endian
-    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(short))
-    {
-      const auto temp = tempImageData[i + 1];
-      tempImageData[i + 1] = tempImageData[i];
-      tempImageData[i] = temp;
-    }
-  }
-  else if (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0)
-  {
-    // convert to little-endian
-    for (ulong i = 0; i < msg_img->data.size(); i += sizeof(float))
-    {
-      const auto temp3 = tempImageData[i + 3];
-      const auto temp2 = tempImageData[i + 2];
-      tempImageData[i + 3] = tempImageData[i];
-      tempImageData[i + 2] = tempImageData[i + 1];
-      tempImageData[i + 1] = temp2;
-      tempImageData[i] = temp3;
-    }
+    msg_img->is_bigendian = true;
   }
 
   // Publish camera info
