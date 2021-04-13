@@ -175,6 +175,7 @@ void bringup_cloisim_ros(const Json::Value result_map)
         }
 
         rclcpp_node_list.push_back(node);
+        usleep(10000);
       }
     }
   }
@@ -182,6 +183,7 @@ void bringup_cloisim_ros(const Json::Value result_map)
   for (auto it = rclcpp_node_list.begin(); it != rclcpp_node_list.end(); ++it)
   {
     executor.add_node(*it);
+    usleep(1000);
   }
 
   executor.spin();
@@ -189,6 +191,8 @@ void bringup_cloisim_ros(const Json::Value result_map)
 
 int main(int argc, char** argv)
 {
+  static const int waitseconds = 3;
+
   rclcpp::init(argc, argv);
 
   const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
@@ -210,9 +214,9 @@ int main(int argc, char** argv)
       break;
     }
 
-    static const int waitseconds = 3;
-    cout << "Failed to get all target information " << endl;
-    cout << "Wait " << waitseconds << "sec and retry to get object info.... " << endl;
+    cout << "Failed to get all target information " << endl
+         << "Wait " << waitseconds << " sec and retry to get object info.... " << endl;
+
     sleep(waitseconds);
   }
 
