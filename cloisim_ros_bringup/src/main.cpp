@@ -207,13 +207,7 @@ int main(int argc, char** argv)
 
   rclcpp::init(argc, argv);
 
-  const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
-  const auto env_service_port = getenv("CLOISIM_SERVICE_PORT");
-
-  const auto bridge_ip = string((env_bridge_ip == nullptr)? "127.0.0.1": env_bridge_ip);
-  const auto service_port = string((env_service_port == nullptr)? "8080":env_service_port);
-
-  auto wsService = new cloisim_ros::WebSocketService(bridge_ip, service_port);
+  auto wsService = new cloisim_ros::WebSocketService();
 
   while (true)
   {

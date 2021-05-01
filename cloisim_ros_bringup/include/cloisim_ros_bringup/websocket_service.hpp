@@ -29,7 +29,9 @@ namespace cloisim_ros
   class WebSocketService
   {
   public:
-    explicit WebSocketService(const string bridge_ip, const string service_port);
+    WebSocketService();
+    WebSocketService(const string service_port);
+    WebSocketService(const string bridge_ip, const string service_port);
 
   private:
     Json::Reader reader;
