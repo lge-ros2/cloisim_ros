@@ -30,39 +30,28 @@ export CLOISIM_BRIDGE_IP='xxx.xxx.xxx.xxx'
 export CLOISIM_SERVICE_PORT=8080
 ```
 
-check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup)
+check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup) for bring-up guide
 
-### Run all cloisim_ros (robot + factory)
-
-strongly recommend to use this method.
+### Run cloisim_ros (robot + world)
 
 #### Turn off single mode(=multi robot mode)
 
-apply namespace for each robot)
+**Strongly recommend to use this method.**
+Apply namespaceas each robot as a multi robot mode
 
 ```shell
-ros2 run cloisim_ros_bringup cloisim_ros_bringup --ros-args -p singlemode:=False
-
-ros2 run cloisim_ros_bringup cloisim_ros_bringup
+ros2 launch cloisim_ros_bringup bringup.launch.py
 ```
 
 or
 
 ```shell
-ros2 launch cloisim_ros_bringup bringup.launch.py
-
 ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=False
 ```
 
 #### Turn on single Mode
 
-will NOT apply namespace for robot and the number of robot must BE single in world environment.
-
-```shell
-ros2 run cloisim_ros_bringup cloisim_ros_bringup --ros-args -p singlemode:=True
-```
-
-or
+It shall NOT be applied namespace for robot and the number of robot must BE single in world environment.
 
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=True
@@ -70,10 +59,10 @@ ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=True
 
 ## Running CLOiSim
 
-it provides a script to run CLOiSim easily.
+It provides a script to run CLOiSim easily.
 
 ```shell
-ros2 launch cloisim_ros_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-1.10.0 world:=lg_seocho.world
+ros2 launch cloisim_ros_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-2.2.0 world:=lg_seocho.world
 ```
 
 ## Using Docker
@@ -89,6 +78,8 @@ docker build -t cloisim_ros .
 ```
 
 ### Running container
+
+You can add possible parameters as described above. ex) target_model or target_parts
 
 ```shell
 docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros

@@ -35,6 +35,8 @@ void bringup_cloisim_ros(const Json::Value result_map)
   executor.add_node(bringup_param_node);
 
   const auto isSingleMode = bringup_param_node->IsSingleMode();
+  const auto targetModel = bringup_param_node->TargetModel();
+  const auto targetParts = bringup_param_node->TargetParts();
 
   rclcpp::NodeOptions default_node_options;
   default_node_options.append_parameter_override("singlemode", bool(isSingleMode));
@@ -46,14 +48,24 @@ void bringup_cloisim_ros(const Json::Value result_map)
     const auto item_name = it.key().asString();
     const auto item_list = (*it);
 
-    cout << "Item Name: " << item_name << endl;
+    if (!targetModel.empty() && targetModel.compare(item_name) != 0)
+    {
+      continue;
+    }
+
+    cout << "Item Name(Target Model): " << item_name << endl;
 
     for (auto it2 = item_list.begin(); it2 != item_list.end(); ++it2)
     {
       const auto node_type = it2.key().asString();
       const auto node_list = (*it2);
 
-      cout << "\tNode Type: " << node_type << endl;
+      if (!targetParts.empty() && targetParts.compare(node_type) != 0)
+      {
+        continue;
+      }
+
+      cout << "\tNode Type(Target Parts): " << node_type << endl;
 
       for (auto it3 = node_list.begin(); it3 != node_list.end(); ++it3)
       {
