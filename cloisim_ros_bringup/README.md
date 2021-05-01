@@ -8,8 +8,5 @@ ROS2 Run
 
 ROS2 Launcher
 
-- ros2 launch cloisim_ros_bringup cloisim_and_factory.launch.py
-- ros2 launch cloisim_ros_bringup cloisim_ros.launch.py
 - ros2 launch cloisim_ros_bringup cloisim.launch.py
-- ros2 launch cloisim_ros_bringup factory.launch.py
-- ros2 launch cloisim_ros_bringup robot.launch.py
+- ros2 launch cloisim_ros_bringup bringup.launch.py
