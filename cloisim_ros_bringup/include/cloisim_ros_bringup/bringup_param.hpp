@@ -31,7 +31,7 @@ class BringUpParam : public rclcpp::Node
         , target_model("")
         , target_parts("")
     {
-      get_parameter("singlemode", isSingleMode);
+      get_parameter("single_mode", isSingleMode);
       get_parameter("target_model", target_model);
       get_parameter("target_parts", target_parts);
 

@@ -16,7 +16,7 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
 
-    _singlemode = LaunchConfiguration('singlemode')
+    _single_mode = LaunchConfiguration('single_mode')
     _target_model = LaunchConfiguration('target_model')
     _target_parts = LaunchConfiguration('target_parts')
 
@@ -24,10 +24,10 @@ def generate_launch_description():
         package="cloisim_ros_bringup",
         executable="cloisim_ros_bringup",
         output='screen',
-        parameters=[{'singlemode': _singlemode, 'target_model': _target_model, 'target_parts': _target_parts}])
+        parameters=[{'single_mode': _single_mode, 'target_model': _target_model, 'target_parts': _target_parts}])
 
     declare_launch_argument_sm = DeclareLaunchArgument(
-        'singlemode',
+        'single_mode',
         default_value='False',
         description='whether to use single mode')
 

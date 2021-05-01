@@ -39,7 +39,7 @@ void bringup_cloisim_ros(const Json::Value result_map)
   const auto targetParts = bringup_param_node->TargetParts();
 
   rclcpp::NodeOptions default_node_options;
-  default_node_options.append_parameter_override("singlemode", bool(isSingleMode));
+  default_node_options.append_parameter_override("single_mode", bool(isSingleMode));
 
   std::vector<std::shared_ptr<cloisim_ros::Base>> rclcpp_node_list;
 
@@ -80,7 +80,7 @@ void bringup_cloisim_ros(const Json::Value result_map)
 
         if (isSingleMode)
         {
-          node_options.append_parameter_override("singlemode.robotname", item_name);
+          node_options.append_parameter_override("single_mode.robotname", item_name);
         }
 
         // store parameters

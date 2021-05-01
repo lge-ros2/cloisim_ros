@@ -162,10 +162,10 @@ void Base::CloseBridges()
 string Base::GetRobotName()
 {
   bool isSingleMode;
-  get_parameter("singlemode", isSingleMode);
+  get_parameter("single_mode", isSingleMode);
 
   string robotName;
-  get_parameter("singlemode.robotname", robotName);
+  get_parameter("single_mode.robotname", robotName);
 
   return (isSingleMode) ? robotName : string(get_namespace()).substr(1);
 }

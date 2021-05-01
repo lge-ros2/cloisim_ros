@@ -46,7 +46,7 @@ ros2 launch cloisim_ros_bringup bringup.launch.py
 or
 
 ```shell
-ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=False
+ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=False
 ```
 
 #### Turn on single Mode
@@ -54,7 +54,7 @@ ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=False
 It shall NOT be applied namespace for robot and the number of robot must BE single in world environment.
 
 ```shell
-ros2 launch cloisim_ros_bringup bringup.launch.py singlemode:=True
+ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True
 ```
 
 ## Running CLOiSim
@@ -84,9 +84,9 @@ You can add possible parameters as described above. ex) target_model or target_p
 ```shell
 docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
 
-docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros singlemode:=False
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=False
 
-docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros singlemode:=True
+docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=True
 ```
 
 with default network driver(bridge)
@@ -94,9 +94,9 @@ with default network driver(bridge)
 ```shell
 docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
 
-docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros singlemode:=False
+docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=False
 
-docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros singlemode:=True
+docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=True
 ```
 
 You can set bridge ip using below command.
