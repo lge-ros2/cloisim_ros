@@ -15,6 +15,8 @@
   <depend>rclcpp</depend>
   <depend>cloisim_ros_websocket_service</depend>
 
+  <depend>libjsoncpp-dev</depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

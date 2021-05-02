@@ -34,7 +34,6 @@ find_package(cloisim_ros_realsense REQUIRED)
 find_package(cloisim_ros_gps REQUIRED)
 find_package(cloisim_ros_elevatorsystem REQUIRED)
 find_package(cloisim_ros_world REQUIRED)
-find_package(jsoncpp REQUIRED)
 
 set(dependencies
   rclcpp
@@ -62,10 +61,6 @@ add_executable(
 ament_target_dependencies(
   ${PROJECT_NAME}
   ${dependencies}
-)
-
-target_link_libraries(
-  ${PROJECT_NAME} jsoncpp_lib
 )
 
 ################################################################################

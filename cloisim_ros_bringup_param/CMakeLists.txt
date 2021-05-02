@@ -23,7 +23,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(cloisim_ros_websocket_service REQUIRED)
-
+find_package(jsoncpp REQUIRED)
 
 set(dependencies
   rclcpp
@@ -47,6 +47,10 @@ target_include_directories(
 ament_target_dependencies(
   ${PROJECT_NAME}
   ${dependencies}
+)
+
+target_link_libraries(
+  ${PROJECT_NAME} jsoncpp
 )
 
 ################################################################################
