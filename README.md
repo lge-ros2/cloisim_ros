@@ -79,7 +79,7 @@ docker build -t cloisim_ros .
 
 ### Running container
 
-You can add possible parameters as described above. ex) target_model or target_parts
+You can add possible parameters as described above. ex) target_model, target_parts_type or target_parts_name
 
 ```shell
 docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros

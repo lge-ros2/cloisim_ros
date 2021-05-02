@@ -18,7 +18,8 @@ def generate_launch_description():
 
     _single_mode = LaunchConfiguration('single_mode')
     _target_model = LaunchConfiguration('target_model')
-    _target_parts = LaunchConfiguration('target_parts')
+    _target_parts_type = LaunchConfiguration('target_parts_type')
+    _target_parts_name = LaunchConfiguration('target_parts_name')
     _scan = LaunchConfiguration('scan')
 
     cloisim_ros_cmd = Node(
@@ -26,7 +27,7 @@ def generate_launch_description():
         executable="cloisim_ros_bringup",
         output='screen',
         remappings=[('scan',_scan)],
-        parameters=[{'single_mode': _single_mode, 'target_model': _target_model, 'target_parts': _target_parts}])
+        parameters=[{'single_mode': _single_mode, 'target_model': _target_model, 'target_parts_type': _target_parts_type, 'target_parts_name': _target_parts_name}])
 
     declare_launch_argument_sm = DeclareLaunchArgument(
         'single_mode',
@@ -38,10 +39,15 @@ def generate_launch_description():
         default_value='',
         description='specify the target model you want')
 
-    declare_launch_argument_tp = DeclareLaunchArgument(
-        'target_parts',
+    declare_launch_argument_tpt = DeclareLaunchArgument(
+        'target_parts_type',
         default_value='',
-        description='specify the target parts you want')
+        description='specify the type of target parts you want')
+
+    declare_launch_argument_tpn = DeclareLaunchArgument(
+        'target_parts_name',
+        default_value='',
+        description='specify the name of target parts you want')
 
     declare_launch_argument_sc = DeclareLaunchArgument(
         'scan',
@@ -62,7 +68,8 @@ def generate_launch_description():
     ld.add_action(stdout_log_buf_stream_envvar)
     ld.add_action(declare_launch_argument_sm)
     ld.add_action(declare_launch_argument_tm)
-    ld.add_action(declare_launch_argument_tp)
+    ld.add_action(declare_launch_argument_tpt)
+    ld.add_action(declare_launch_argument_tpn)
     ld.add_action(declare_launch_argument_sc)
     ld.add_action(cloisim_ros_cmd)
 

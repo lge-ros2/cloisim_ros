@@ -29,25 +29,29 @@ class BringUpParam : public rclcpp::Node
                    .allow_undeclared_parameters(false))
         , isSingleMode(false)
         , target_model("")
-        , target_parts("")
+        , target_parts_type("")
+        , target_parts_name("")
     {
       get_parameter("single_mode", isSingleMode);
       get_parameter("target_model", target_model);
-      get_parameter("target_parts", target_parts);
+      get_parameter("target_parts_type", target_parts_type);
+      get_parameter("target_parts_name", target_parts_name);
 
       RCLCPP_INFO_ONCE(this->get_logger(),
-                       "single mode: %d target model:%s target_parts:%s",
-                       isSingleMode, target_model.c_str(), target_parts.c_str());
+                       "single mode: %d target model: %s target_parts_type: %s target_parts_name: %s",
+                       isSingleMode, target_model.c_str(), target_parts_type.c_str(), target_parts_name.c_str());
     };
 
     bool IsSingleMode() const { return isSingleMode; }
     std::string TargetModel() const { return target_model; }
-    std::string TargetParts() const { return target_parts; }
+    std::string TargetPartsType() const { return target_parts_type; }
+    std::string TargetPartsName() const { return target_parts_name; }
 
   private:
     bool isSingleMode;
     std::string target_model;
-    std::string target_parts;
+    std::string target_parts_type;
+    std::string target_parts_name;
 };
 
 #endif

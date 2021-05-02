@@ -41,8 +41,9 @@ Examples
 
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py target_model:=cloi1
-ros2 launch cloisim_ros_bringup bringup.launch.py target_parts:=LASER
-ros2 launch cloisim_ros_bringup bringup.launch.py target_model:=cloi1 target_parts:=LASER
+ros2 launch cloisim_ros_bringup bringup.launch.py target_parts_type:=LASER
+ros2 launch cloisim_ros_bringup bringup.launch.py target_model:=cloi1 target_parts_type:=LASER
+ros2 launch cloisim_ros_bringup bringup.launch.py target_model:=cloi1 target_parts_type:=LASER target_parts_name:=lidar
 ```
 
 ### Turn on single Mode
