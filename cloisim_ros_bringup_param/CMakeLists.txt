@@ -22,11 +22,9 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(cloisim_ros_websocket_service REQUIRED)
 
 set(dependencies
   rclcpp
-  cloisim_ros_websocket_service
 )
 
 ################################################################################
