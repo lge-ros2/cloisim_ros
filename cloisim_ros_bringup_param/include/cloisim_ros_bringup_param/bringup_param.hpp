@@ -30,12 +30,17 @@ namespace cloisim_ros
     const int waitingSeconds = 3;
 
   public:
-    BringUpParam(const std::string basename = "cloisim_ros");
+    BringUpParam(const string basename = "cloisim_ros");
 
     bool IsSingleMode() const { return isSingleMode; }
-    std::string TargetModel() const { return target_model; }
-    std::string TargetPartsType() const { return target_parts_type; }
-    std::string TargetPartsName() const { return target_parts_name; }
+    string TargetModel() const { return target_model; }
+    string TargetPartsType() const { return target_parts_type; }
+    string TargetPartsName() const { return target_parts_name; }
+
+    void IsSingleMode(const bool value) { isSingleMode = value; }
+    void TargetModel(const string value) { target_model = value; }
+    void TargetPartsType(const string value) { target_parts_type = value; }
+    void TargetPartsName(const string value) { target_parts_name = value; }
 
     Json::Value GetBringUpList(const bool filterByParameters = false);
 
@@ -43,11 +48,14 @@ namespace cloisim_ros
 
   private:
     bool isSingleMode;
-    std::string target_model;
-    std::string target_parts_type;
-    std::string target_parts_name;
+    string target_model;
+    string target_parts_type;
+    string target_parts_name;
 
     WebSocketService *wsService;
+
+  private:
+    Json::Value GetFilteredListByParameters(const Json::Value result);
   };
 }
 #endif

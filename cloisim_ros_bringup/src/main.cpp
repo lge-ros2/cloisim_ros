@@ -161,7 +161,7 @@ void bringup_target_parts_by_type(const Json::Value node_list, const string node
   for (auto it3 = node_list.begin(); it3 != node_list.end(); ++it3)
   {
     const auto node_name = it3.key().asString();
-    const auto item = node_list[node_name];
+    const auto item = (*it3);
 
     if (!targetPartsName.empty() && targetPartsName.compare(node_name) != 0)
     {
@@ -197,8 +197,6 @@ void bringup_target_model(const Json::Value item_list, const string item_name, c
 
 void bringup_cloisim_ros(const Json::Value result_map, const string target_model, const string target_parts_type, const string target_parts_name)
 {
-  g_default_node_options.append_parameter_override("single_mode", bool(g_isSingleMode));
-
   for (auto it = result_map.begin(); it != result_map.end(); it++)
   {
     const auto item_name = it.key().asString();
@@ -227,11 +225,11 @@ int main(int argc, char** argv)
   const auto targetPartsType = bringup_param_node->TargetPartsType();
   const auto targetPartsName = bringup_param_node->TargetPartsName();
 
+  g_default_node_options.append_parameter_override("single_mode", bool(g_isSingleMode));
+
   const auto result_map = bringup_param_node->GetBringUpList();
   if (!result_map.empty())
   {
-    cout << "resultMap" << endl;
-
     bringup_cloisim_ros(result_map, targetModel, targetPartsType, targetPartsName);
     for (auto it = g_rclcpp_node_list.begin(); it != g_rclcpp_node_list.end(); ++it)
     {

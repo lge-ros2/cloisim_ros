@@ -38,6 +38,33 @@ BringUpParam::BringUpParam(const std::string basename)
   wsService = new WebSocketService();
 }
 
+Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
+{
+  Json::Value root;
+  // cout << result_map << endl;
+  for (auto it = result.begin(); it != result.end(); it++)
+  {
+    const auto node_namespace = it.key().asString();
+    const auto item_list = (*it);
+    // cout << node_namespace <<  endl;
+
+    for (auto it2 = item_list.begin(); it2 != item_list.end(); ++it2)
+    {
+      const auto node_type = it2.key().asString();
+      const auto node_list = (*it2);
+
+      // cout << "\t" << node_type << ", " << endl;
+      if (target_parts_type.compare(node_type) == 0)
+      {
+        root[node_namespace] = node_list;
+        return root;
+      }
+    }
+  }
+
+  return root;
+}
+
 Json::Value BringUpParam::GetBringUpList(const bool filterByParameters)
 {
   Json::Reader reader;
@@ -51,12 +78,11 @@ Json::Value BringUpParam::GetBringUpList(const bool filterByParameters)
     reader.parse(payload, root, false);
 
     const auto result_map = root["result"];
-
     if (result_map.size() > 1)
     {
       if (filterByParameters)
       {
-        return result_map;
+        return GetFilteredListByParameters(result_map);
       }
       else
       {
