@@ -72,4 +72,9 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(
+  TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

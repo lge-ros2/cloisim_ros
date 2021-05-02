@@ -29,7 +29,7 @@ set(Protobuf_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/${PROTOBUF_MSGS_DIRECTORY})
 set(protobuf_msgs)
 foreach(file ${PROTOBUF_DEFINITION_FILES})
   get_filename_component(PROTOBUF_FILE ${file} NAME_WLE)
-  message("Generate ${PROTOBUF_FILE}.proto")
+  message(STATUS "Generate ${PROTOBUF_FILE}.proto")
   set(protobuf_msgs ${protobuf_msgs} ${PROJECT_SOURCE_DIR}/${PROTOBUF_MSGS_DIRECTORY}/${PROTOBUF_FILE}.proto)
 endforeach()
 
