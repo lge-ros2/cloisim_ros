@@ -1,3 +1,3 @@
 # CLOiSim-ROS interfaces
 
-define protobuf message format
+define protobuf message format.
