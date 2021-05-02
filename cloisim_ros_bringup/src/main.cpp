@@ -31,7 +31,7 @@ void bringup_cloisim_ros(const Json::Value result_map)
 {
   rclcpp::executors::MultiThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<BringUpParam>();
+  const auto bringup_param_node = std::make_shared<BringUpParam>("cloisim_ros_bringup");
   executor.add_node(bringup_param_node);
 
   const auto isSingleMode = bringup_param_node->IsSingleMode();

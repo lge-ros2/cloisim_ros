@@ -22,8 +22,8 @@
 class BringUpParam : public rclcpp::Node
 {
   public:
-    BringUpParam()
-        : Node("cloisim_ros_bringup_param",
+    BringUpParam(const std::string basename = "cloisim_ros")
+        : Node(basename + "_param",
                rclcpp::NodeOptions()
                    .automatically_declare_parameters_from_overrides(true)
                    .allow_undeclared_parameters(false))
