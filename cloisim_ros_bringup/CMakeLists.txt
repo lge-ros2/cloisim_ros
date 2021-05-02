@@ -39,7 +39,6 @@ find_package(jsoncpp REQUIRED)
 set(dependencies
   rclcpp
   cloisim_ros_bringup_param
-  cloisim_ros_websocket_service
   cloisim_ros_camera
   cloisim_ros_micom
   cloisim_ros_lidar

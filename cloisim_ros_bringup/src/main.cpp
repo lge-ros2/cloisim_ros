@@ -12,7 +12,6 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include <cloisim_ros_websocket_service/websocket_service.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <cloisim_ros_multicamera/multicamera.hpp>
 #include <cloisim_ros_depthcamera/depthcamera.hpp>
@@ -23,7 +22,6 @@
 #include <cloisim_ros_elevatorsystem/elevatorsystem.hpp>
 #include <cloisim_ros_world/world.hpp>
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
-#include <jsoncpp/json/json.h>
 
 using namespace std;
 
@@ -43,24 +41,12 @@ inline static bool isWorldSpecific(const string node_type)
   return (!node_type.compare("ELEVATOR") || !node_type.compare("WORLD"));
 }
 
-static void StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
-{
-  // store parameters
-  for (auto paramIt = item.begin(); paramIt != item.end(); ++paramIt)
-  {
-    const auto bridge_key = paramIt.key().asString();
-    const auto bridge_port = (*paramIt).asUInt();
-    node_options.append_parameter_override("bridge." + bridge_key, uint16_t(bridge_port));
-    // cout << "bridge." << bridge_key << " = " << bridge_port << endl;
-  }
-}
-
 void bringup_target_parts_by_name(const Json::Value item, const string node_type, const string model_name, const string node_name)
 {
     std::shared_ptr<cloisim_ros::Base> node = nullptr;
     rclcpp::NodeOptions node_options(g_default_node_options);
 
-    StoreBridgeInfosAsParameters(item, node_options);
+    cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(item, node_options);
 
     if (isRobotSpecific(node_type))
     {
@@ -230,10 +216,7 @@ void bringup_cloisim_ros(const Json::Value result_map, const string target_model
 
 int main(int argc, char** argv)
 {
-  static const int waitseconds = 3;
-
   rclcpp::init(argc, argv);
-
   rclcpp::executors::MultiThreadedExecutor executor;
 
   const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_bringup");
@@ -244,37 +227,25 @@ int main(int argc, char** argv)
   const auto targetPartsType = bringup_param_node->TargetPartsType();
   const auto targetPartsName = bringup_param_node->TargetPartsName();
 
-  auto wsService = new cloisim_ros::WebSocketService();
-
-  Json::Reader reader;
-  Json::Value root;
-  while (true)
+  const auto result_map = bringup_param_node->GetBringUpList();
+  if (!result_map.empty())
   {
-    // wsService->SetTarget("cloi1");
-    const auto payload = wsService->Run();
+    cout << "resultMap" << endl;
 
-    reader.parse(payload, root, false);
-    const auto result_map = root["result"];
-
-    if (result_map.size() > 1)
+    bringup_cloisim_ros(result_map, targetModel, targetPartsType, targetPartsName);
+    for (auto it = g_rclcpp_node_list.begin(); it != g_rclcpp_node_list.end(); ++it)
     {
-      bringup_cloisim_ros(result_map, targetModel, targetPartsType, targetPartsName);
-      break;
+      executor.add_node(*it);
+      usleep(1000);
     }
 
-    cout << "Failed to get all target information " << endl
-         << "Wait " << waitseconds << " sec and retry to get object info.... " << endl;
-
-    sleep(waitseconds);
+    executor.spin();
   }
-
-  for (auto it = g_rclcpp_node_list.begin(); it != g_rclcpp_node_list.end(); ++it)
+  else
   {
-    executor.add_node(*it);
-    usleep(1000);
+    cout << " >>>>> Failed to get bringup list!! Check CLOiSim status first!!!" << endl;
   }
 
-  executor.spin();
   rclcpp::shutdown();
 
   return 0;
