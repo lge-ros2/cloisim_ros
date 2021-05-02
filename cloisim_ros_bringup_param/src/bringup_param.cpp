@@ -56,7 +56,14 @@ Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
       // cout << "\t" << node_type << ", " << endl;
       if (target_parts_type.compare(node_type) == 0)
       {
-        root[node_namespace] = node_list;
+        const auto node_name = node_list.begin().key().asString();
+        // cout << target_parts_name << ", node_name: " << node_name << endl;
+
+        if (target_parts_name.empty() || (!target_parts_name.empty() && target_parts_name.compare(node_name) == 0))
+          root[node_namespace] = node_list;
+        else
+          root[node_namespace] = Json::Value();
+
         return root;
       }
     }
@@ -102,11 +109,14 @@ Json::Value BringUpParam::GetBringUpList(const bool filterByParameters)
 
 void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
 {
-  for (auto paramIt = item.begin(); paramIt != item.end(); ++paramIt)
+  if (!item.isNull() )
   {
-    const auto bridge_key = paramIt.key().asString();
-    const auto bridge_port = (*paramIt).asUInt();
-    node_options.append_parameter_override("bridge." + bridge_key, uint16_t(bridge_port));
-    // cout << "bridge." << bridge_key << " = " << bridge_port << endl;
+    for (auto paramIt = item.begin(); paramIt != item.end(); ++paramIt)
+    {
+      const auto bridge_key = paramIt.key().asString();
+      const auto bridge_port = (*paramIt).asUInt();
+      node_options.append_parameter_override("bridge." + bridge_key, uint16_t(bridge_port));
+      // cout << "bridge." << bridge_key << " = " << bridge_port << endl;
+    }
   }
 }
