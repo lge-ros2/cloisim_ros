@@ -22,8 +22,7 @@
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_elevatorsystem/elevatorsystem.hpp>
 #include <cloisim_ros_world/world.hpp>
-
-#include "cloisim_ros_bringup/bringup_param.hpp"
+#include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 using namespace std;
 
@@ -213,7 +212,7 @@ void bringup_cloisim_ros(const Json::Value result_map)
 {
   rclcpp::executors::MultiThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<BringUpParam>("cloisim_ros_bringup");
+  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_bringup");
   executor.add_node(bringup_param_node);
 
   g_isSingleMode = bringup_param_node->IsSingleMode();

@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_bringup)
+project(cloisim_ros_bringup_param)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -22,41 +22,25 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(cloisim_ros_bringup_param REQUIRED)
 find_package(cloisim_ros_websocket_service REQUIRED)
-find_package(cloisim_ros_camera REQUIRED)
-find_package(cloisim_ros_micom REQUIRED)
-find_package(cloisim_ros_lidar REQUIRED)
-find_package(cloisim_ros_camera REQUIRED)
-find_package(cloisim_ros_depthcamera REQUIRED)
-find_package(cloisim_ros_multicamera REQUIRED)
-find_package(cloisim_ros_realsense REQUIRED)
-find_package(cloisim_ros_gps REQUIRED)
-find_package(cloisim_ros_elevatorsystem REQUIRED)
-find_package(cloisim_ros_world REQUIRED)
 
 set(dependencies
   rclcpp
-  cloisim_ros_bringup_param
   cloisim_ros_websocket_service
-  cloisim_ros_camera
-  cloisim_ros_micom
-  cloisim_ros_lidar
-  cloisim_ros_camera
-  cloisim_ros_depthcamera
-  cloisim_ros_multicamera
-  cloisim_ros_realsense
-  cloisim_ros_gps
-  cloisim_ros_elevatorsystem
-  cloisim_ros_world
 )
 
 ################################################################################
 # Build
 ################################################################################
-add_executable(
-  ${PROJECT_NAME}
-  src/main.cpp
+add_library(
+  ${PROJECT_NAME} SHARED
+  src/bringup_param.cpp
+)
+
+target_include_directories(
+  ${PROJECT_NAME} PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
 ament_target_dependencies(
@@ -68,8 +52,19 @@ ament_target_dependencies(
 # Install
 ################################################################################
 install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
+  DIRECTORY include/
+  DESTINATION include
 )
+
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include
+)
+
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(${dependencies})
 
 ament_package()
