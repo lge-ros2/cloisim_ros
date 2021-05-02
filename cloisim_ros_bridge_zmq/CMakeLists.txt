@@ -20,11 +20,10 @@ endif()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
+find_package(PkgConfig)
+pkg_check_modules(PC_ZMQ QUIET zmq)
 
-set(dependencies
-  zmq
-  protobuf
-)
+find_library(ZMQ_LIBRARY NAMES zmq PATHS ${PC_ZMQ_LIBRARY_DIRS})
 
 ################################################################################
 # Build
@@ -41,8 +40,8 @@ target_include_directories(
 )
 
 target_link_libraries(
-  ${PROJECT_NAME} PUBLIC
-  ${dependencies}
+  ${PROJECT_NAME}
+  ${ZMQ_LIBRARY}
 )
 
 ################################################################################
@@ -62,6 +61,6 @@ install(
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${depecloisim_msgsndencies})
+ament_export_dependencies(${dependencies})
 
 ament_package()
