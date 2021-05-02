@@ -83,9 +83,11 @@ You can add possible parameters as described above. ex) target_model or target_p
 
 ```shell
 docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
+```
 
-docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=False
+or
 
+```shell
 docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=True
 ```
 
@@ -93,9 +95,11 @@ with default network driver(bridge)
 
 ```shell
 docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
+```
 
-docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=False
+or
 
+```shell
 docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=True
 ```
 
@@ -103,7 +107,6 @@ You can set bridge ip using below command.
 
 ```shell
 echo $(ip addr show dev docker0 | grep "inet" | awk 'NR==1{print $2}' | cut -d'/' -f 1)
-
 docker run -it --rm -e CLOISIM_BRIDGE_IP=`echo $(ip addr show dev docker0 | grep "inet" | awk 'NR==1{print $2}' | cut -d'/' -f 1)` -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
 ```
 
