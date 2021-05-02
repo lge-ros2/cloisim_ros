@@ -23,6 +23,7 @@
 #include <cloisim_ros_elevatorsystem/elevatorsystem.hpp>
 #include <cloisim_ros_world/world.hpp>
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
+#include <jsoncpp/json/json.h>
 
 using namespace std;
 
@@ -208,8 +209,31 @@ void bringup_target_model(const Json::Value item_list, const string item_name, c
    }
 }
 
-void bringup_cloisim_ros(const Json::Value result_map)
+void bringup_cloisim_ros(const Json::Value result_map, const string target_model, const string target_parts_type, const string target_parts_name)
 {
+  g_default_node_options.append_parameter_override("single_mode", bool(g_isSingleMode));
+
+  for (auto it = result_map.begin(); it != result_map.end(); it++)
+  {
+    const auto item_name = it.key().asString();
+    const auto item_list = (*it);
+
+    if (!target_model.empty() && target_model.compare(item_name) != 0)
+    {
+      continue;
+    }
+
+    bringup_target_model(item_list, item_name, target_parts_type, target_parts_name);
+  }
+
+}
+
+int main(int argc, char** argv)
+{
+  static const int waitseconds = 3;
+
+  rclcpp::init(argc, argv);
+
   rclcpp::executors::MultiThreadedExecutor executor;
 
   const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_bringup");
@@ -220,46 +244,21 @@ void bringup_cloisim_ros(const Json::Value result_map)
   const auto targetPartsType = bringup_param_node->TargetPartsType();
   const auto targetPartsName = bringup_param_node->TargetPartsName();
 
-  g_default_node_options.append_parameter_override("single_mode", bool(g_isSingleMode));
-
-  for (auto it = result_map.begin(); it != result_map.end(); it++)
-  {
-    const auto item_name = it.key().asString();
-    const auto item_list = (*it);
-
-    if (!targetModel.empty() && targetModel.compare(item_name) != 0)
-    {
-      continue;
-    }
-
-    bringup_target_model(item_list, item_name, targetPartsType, targetPartsName);
-  }
-
-  for (auto it = g_rclcpp_node_list.begin(); it != g_rclcpp_node_list.end(); ++it)
-  {
-    executor.add_node(*it);
-    usleep(1000);
-  }
-
-  executor.spin();
-}
-
-int main(int argc, char** argv)
-{
-  static const int waitseconds = 3;
-
-  rclcpp::init(argc, argv);
-
   auto wsService = new cloisim_ros::WebSocketService();
 
+  Json::Reader reader;
+  Json::Value root;
   while (true)
   {
     // wsService->SetTarget("cloi1");
-    const auto result_map = wsService->Run();
+    const auto payload = wsService->Run();
+
+    reader.parse(payload, root, false);
+    const auto result_map = root["result"];
 
     if (result_map.size() > 1)
     {
-      bringup_cloisim_ros(result_map);
+      bringup_cloisim_ros(result_map, targetModel, targetPartsType, targetPartsName);
       break;
     }
 
@@ -269,6 +268,13 @@ int main(int argc, char** argv)
     sleep(waitseconds);
   }
 
+  for (auto it = g_rclcpp_node_list.begin(); it != g_rclcpp_node_list.end(); ++it)
+  {
+    executor.add_node(*it);
+    usleep(1000);
+  }
+
+  executor.spin();
   rclcpp::shutdown();
 
   return 0;

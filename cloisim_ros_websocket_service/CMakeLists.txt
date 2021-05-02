@@ -20,12 +20,7 @@ endif()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
-find_package(jsoncpp REQUIRED)
 find_package(websocketpp REQUIRED)
-
-set(dependencies
-  jsoncpp
-)
 
 ################################################################################
 # Build
@@ -39,11 +34,6 @@ target_include_directories(
   ${PROJECT_NAME} PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(
-  ${PROJECT_NAME} PUBLIC
-  ${dependencies}
 )
 
 ################################################################################
@@ -63,6 +53,5 @@ install(
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${dependencies})
 
 ament_package()
