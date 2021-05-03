@@ -51,86 +51,56 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
     if (isRobotSpecific(node_type))
     {
       if (g_isSingleMode)
-      {
         node_options.append_parameter_override("single_mode.robotname", model_name);
-      }
 
       if (!node_type.compare("MICOM"))
       {
         if (g_isSingleMode)
-        {
           node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
-        }
         else
-        {
           node = std::make_shared<cloisim_ros::Micom>(node_options, node_name, model_name);
-        }
       }
       else if (!node_type.compare("LIDAR") || !node_type.compare("LASER"))
       {
         if (g_isSingleMode)
-        {
           node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name);
-        }
         else
-        {
           node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name, model_name);
-        }
       }
       else if (!node_type.compare("CAMERA"))
       {
         if (g_isSingleMode)
-        {
           node = std::make_shared<cloisim_ros::Camera>(node_options, node_name);
-        }
         else
-        {
           node = std::make_shared<cloisim_ros::Camera>(node_options, node_name, model_name);
-        }
       }
       else if (!node_type.compare("DEPTHCAMERA"))
       {
         if (g_isSingleMode)
-        {
           node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name);
-        }
         else
-        {
           node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name, model_name);
-        }
       }
       else if (!node_type.compare("MULTICAMERA"))
       {
         if (g_isSingleMode)
-        {
           node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name);
-        }
         else
-        {
           node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name, model_name);
-        }
       }
       else if (!node_type.compare("REALSENSE"))
       {
         if (g_isSingleMode)
-        {
           node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
-        }
         else
-        {
           node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name, model_name);
-        }
       }
       else if (!node_type.compare("GPS"))
       {
         if (g_isSingleMode)
-        {
           node = std::make_shared<cloisim_ros::Gps>(node_options, node_name);
-        }
         else
-        {
           node = std::make_shared<cloisim_ros::Gps>(node_options, node_name, model_name);
-        }
       }
     }
     else if (isWorldSpecific(node_type))
