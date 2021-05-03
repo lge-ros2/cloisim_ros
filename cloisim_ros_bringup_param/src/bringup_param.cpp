@@ -139,6 +139,10 @@ void BringUpParam::StoreFilteredInfoAsParameters(const Json::Value item, rclcpp:
   // std::cout << bridge_infos << std::endl;
 
   node_options.append_parameter_override("single_mode", IsSingleMode());
+
+  if (IsSingleMode())
+    node_options.append_parameter_override("single_mode.robotname", model_name);
+
   node_options.append_parameter_override("model", TargetModel());
 
   cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(bridge_infos, node_options);
