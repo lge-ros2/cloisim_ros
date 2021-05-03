@@ -22,10 +22,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(elevator_system_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
+find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
   elevator_system_msgs
   cloisim_ros_base
+  cloisim_ros_bringup_param
 )
 
 ################################################################################
@@ -80,6 +82,5 @@ install(
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${dependencies})
-
 
 ament_package()
