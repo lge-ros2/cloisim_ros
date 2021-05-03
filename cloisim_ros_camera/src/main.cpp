@@ -37,7 +37,6 @@ int main(int argc, char** argv)
     const auto model_name = bringup_param_node->TargetModel();
     const auto node_name = bringup_param_node->TargetPartsName();
 
-    std::cout << model_name << ", " << node_name << ", " << isSingleMode << std::endl;
     if (isSingleMode)
       node = std::make_shared<cloisim_ros::Camera>(node_options, node_name);
     else
