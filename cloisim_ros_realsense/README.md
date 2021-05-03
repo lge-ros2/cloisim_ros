@@ -1,5 +1,7 @@
 # CLOiSim-ROS Realsense
 
+support ros remapping, --ros-args -r /test:=test
+
 ```shell
 ros2 run cloisim_ros_realsense cloisim_ros_realsense
 ```

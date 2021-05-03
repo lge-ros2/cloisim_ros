@@ -1,5 +1,7 @@
 # CLOiSim-ROS Lidar
 
+support ros remapping, --ros-args -r /test:=test
+
 ```shell
 ros2 run cloisim_ros_lidar cloisim_ros_lidar
 ```

@@ -1,5 +1,7 @@
 # CLOiSim-ROS GPS
 
+support ros remapping, --ros-args -r /test:=test
+
 Currently noise model is not applied yet.
 
 ```shell

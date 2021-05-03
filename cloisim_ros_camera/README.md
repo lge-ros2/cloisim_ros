@@ -1,5 +1,7 @@
 # CLOiSim-ROS Camera
 
+support ros remapping, --ros-args -r /test:=test
+
 ```shell
 ros2 run cloisim_ros_camera cloisim_ros_camera
 ```

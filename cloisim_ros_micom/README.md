@@ -2,6 +2,8 @@
 
 Control Wheel and update odometry info through micom.
 
+support ros remapping, --ros-args -r /test:=test
+
 ```shell
 ros2 run cloisim_ros_micom cloisim_ros_micom
 ```

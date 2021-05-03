@@ -1,5 +1,7 @@
 # CLOiSim-ROS Depth Camera
 
+support ros remapping, --ros-args -r /test:=test
+
 ```shell
 ros2 run cloisim_ros_depthcamera cloisim_ros_depthcamera
 ```
