@@ -120,3 +120,23 @@ void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::
     }
   }
 }
+
+string BringUpParam::StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
+{
+  // std::cout<< item << std::endl;
+  const auto model_name = item.begin().key().asString();
+
+  const auto isResultEmpty = item[model_name].empty();
+  const auto first_iteration = (isResultEmpty) ? Json::ValueConstIterator() : item[model_name].begin();
+
+  const auto node_name = (isResultEmpty) ? TargetPartsName() : first_iteration.key().asString();
+  const auto bridge_infos = (isResultEmpty) ? Json::Value() : *first_iteration;
+  // std::cout << "model_name: " << model_name << std::endl;
+  // std::cout << "node_name: " << node_name << std::endl;
+  // std::cout << bridge_infos << std::endl;
+
+  node_options.append_parameter_override("model", (TargetModel().empty()) ? model_name : TargetModel());
+  cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(bridge_infos, node_options);
+
+  return node_name;
+}
