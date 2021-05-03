@@ -14,6 +14,7 @@
  */
 
 #include "cloisim_ros_realsense/realsense.hpp"
+#include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 int main(int argc, char** argv)
 {
