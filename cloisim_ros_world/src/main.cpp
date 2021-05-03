@@ -32,7 +32,8 @@ int main(int argc, char** argv)
   if (!filtered_result.empty())
   {
     rclcpp::NodeOptions node_options;
-    const auto node_name = bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
+    bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
+    const auto node_name = bringup_param_node->TargetPartsName();
     node = std::make_shared<cloisim_ros::World>(node_options, node_name);
   }
 

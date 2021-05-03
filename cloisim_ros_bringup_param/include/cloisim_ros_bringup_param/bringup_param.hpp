@@ -44,7 +44,7 @@ namespace cloisim_ros
 
     Json::Value GetBringUpList(const bool filterByParameters = false);
 
-    string StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
+    void StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
 
     static void StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
 
