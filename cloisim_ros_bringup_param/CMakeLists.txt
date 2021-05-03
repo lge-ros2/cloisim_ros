@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_bridge_zmq)
+project(cloisim_ros_bringup_param)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -20,17 +20,22 @@ endif()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
-find_package(PkgConfig)
-pkg_check_modules(PC_ZMQ QUIET zmq)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(cloisim_ros_websocket_service REQUIRED)
+find_package(jsoncpp REQUIRED)
 
-find_library(ZMQ_LIBRARY NAMES zmq PATHS ${PC_ZMQ_LIBRARY_DIRS})
+set(dependencies
+  rclcpp
+  cloisim_ros_websocket_service
+)
 
 ################################################################################
 # Build
 ################################################################################
 add_library(
   ${PROJECT_NAME} SHARED
-  src/bridge.cpp
+  src/bringup_param.cpp
 )
 
 target_include_directories(
@@ -39,9 +44,13 @@ target_include_directories(
   $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(
+ament_target_dependencies(
   ${PROJECT_NAME}
-  ${ZMQ_LIBRARY}
+  ${dependencies}
+)
+
+target_link_libraries(
+  ${PROJECT_NAME} jsoncpp
 )
 
 ################################################################################

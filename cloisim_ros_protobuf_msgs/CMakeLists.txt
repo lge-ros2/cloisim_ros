@@ -12,14 +12,9 @@ endif()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
+find_package(Protobuf REQUIRED)
 
-set(PROTOBUF_MESSAGES_NAME "cloisim_msgs")
-set(PROTOBUF_INPUT_DIRECTORY "msgs")
-set(PROTOBUF_OUTPUT_INCLUDE_DIRECTORY "include/${PROTOBUF_MESSAGES_NAME}")
-set(PROTOBUF_OUTPUT_SOURCE_DIRECTORY "src/${PROTOBUF_MESSAGES_NAME}")
-
-file(MAKE_DIRECTORY "${PROTOBUF_OUTPUT_INCLUDE_DIRECTORY}")
-file(MAKE_DIRECTORY "${PROTOBUF_OUTPUT_SOURCE_DIRECTORY}")
+set(PROTOBUF_MSGS_DIRECTORY "msgs")
 
 # file(GLOB PROTOBUF_DEFINITION_FILES "${PROTOBUF_INPUT_DIRECTORY}/*.proto")
 list(APPEND PROTOBUF_DEFINITION_FILES "any;param;param_v;color")
@@ -28,23 +23,26 @@ list(APPEND PROTOBUF_DEFINITION_FILES "imu;image;images_stamped;image_stamped;ca
 list(APPEND PROTOBUF_DEFINITION_FILES "laserscan;laserscan_stamped")
 list(APPEND PROTOBUF_DEFINITION_FILES "micom;battery;pointcloud;gps")
 
+set(PROTOBUF_IMPORT_DIRS)
+set(Protobuf_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/${PROTOBUF_MSGS_DIRECTORY})
+
+set(protobuf_msgs)
 foreach(file ${PROTOBUF_DEFINITION_FILES})
   get_filename_component(PROTOBUF_FILE ${file} NAME_WLE)
-  set(PROTOBUF_COMMAND "protoc --proto_path=${PROTOBUF_INPUT_DIRECTORY} --cpp_out=${PROTOBUF_OUTPUT_INCLUDE_DIRECTORY} ${PROTOBUF_FILE}.proto")
-  execute_process(COMMAND bash -c ${PROTOBUF_COMMAND} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULTS_VARIABLE proto_result)
-  # message("Generate ${PROTOBUF_FILE}.proto -> result: ${proto_result}")
-  file(RENAME ${PROTOBUF_OUTPUT_INCLUDE_DIRECTORY}/${PROTOBUF_FILE}.pb.cc ${PROTOBUF_OUTPUT_SOURCE_DIRECTORY}/${PROTOBUF_FILE}.pb.cc)
+  message(STATUS "Generate ${PROTOBUF_FILE}.proto")
+  set(protobuf_msgs ${protobuf_msgs} ${PROJECT_SOURCE_DIR}/${PROTOBUF_MSGS_DIRECTORY}/${PROTOBUF_FILE}.proto)
 endforeach()
+
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${protobuf_msgs})
+# message(${protobuf_msgs})
+# message("\n${PROTO_SRCS}\n ${PROTO_HDRS}\n")
 
 ################################################################################
 # Build
 ################################################################################
-file(GLOB CLOISIM_MSGS_SRCS
-  ./src/${PROTOBUF_MESSAGES_NAME}/*.pb.cc)
-
 add_library(
   ${PROJECT_NAME} SHARED
-  ${CLOISIM_MSGS_SRCS}
+  ${PROTO_SRCS}
 )
 
 target_include_directories(
@@ -53,12 +51,17 @@ target_include_directories(
   $<INSTALL_INTERFACE:include/${PROTOBUF_MESSAGES_NAME}>
 )
 
+target_link_libraries(
+  ${PROJECT_NAME} PUBLIC
+  ${PROTOBUF_LIBRARIES}
+)
+
 ################################################################################
 # Install
 ################################################################################
 install(
-  DIRECTORY include/
-  DESTINATION include
+  FILES ${PROTO_HDRS}
+  DESTINATION include/cloisim_msgs
 )
 
 install(
@@ -66,10 +69,8 @@ install(
   EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${dependencies})
 
 ament_package()

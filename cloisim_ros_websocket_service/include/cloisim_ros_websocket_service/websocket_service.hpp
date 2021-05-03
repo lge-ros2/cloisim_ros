@@ -18,8 +18,6 @@
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 
-#include <jsoncpp/json/json.h>
-
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 
 namespace cloisim_ros
@@ -29,16 +27,16 @@ namespace cloisim_ros
   class WebSocketService
   {
   public:
-    explicit WebSocketService(const string bridge_ip, const string service_port);
+    WebSocketService();
+    WebSocketService(const string service_port);
+    WebSocketService(const string bridge_ip, const string service_port);
 
   private:
-    Json::Reader reader;
-
     string uri;
     client c; // Create a client endpoint
 
     string target_filter;
-    Json::Value result;
+    string payload;
 
   private:
     void on_message(websocketpp::connection_hdl hdl, client::message_ptr msg);
@@ -50,7 +48,7 @@ namespace cloisim_ros
       target_filter = target;
     }
 
-    Json::Value Run();
+    string Run();
   };
 }
 

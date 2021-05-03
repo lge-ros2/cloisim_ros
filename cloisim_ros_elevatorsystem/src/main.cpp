@@ -14,6 +14,7 @@
  */
 
 #include "cloisim_ros_elevatorsystem/elevatorsystem.hpp"
+#include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 using namespace std::literals;
 
@@ -25,9 +26,31 @@ int main(int argc, char *argv[])
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<cloisim_ros::ElevatorSystem>();
-  rclcpp::sleep_for(5000ms);
-  rclcpp::spin(node->get_node_base_interface());
+  rclcpp::executors::SingleThreadedExecutor executor;
+  rclcpp::sleep_for(1000ms);
+
+  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_elevatorsystem");
+  executor.add_node(bringup_param_node);
+  bringup_param_node->IsSingleMode(true);
+  bringup_param_node->TargetPartsType("ELEVATOR");
+
+  const auto filtered_result = bringup_param_node->GetBringUpList(true);
+
+  std::shared_ptr<cloisim_ros::Base> node = nullptr;
+  if (!filtered_result.empty())
+  {
+    rclcpp::NodeOptions node_options;
+    bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
+    const auto node_name = bringup_param_node->TargetPartsName();
+    node = std::make_shared<cloisim_ros::ElevatorSystem>(node_options, node_name);
+  }
+
+  if (node != nullptr)
+  {
+    executor.add_node(node);
+  }
+
+  executor.spin();
   rclcpp::shutdown();
 
   return 0;

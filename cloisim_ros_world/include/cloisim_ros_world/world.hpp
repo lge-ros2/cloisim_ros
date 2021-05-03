@@ -22,8 +22,6 @@
 
 namespace cloisim_ros
 {
-  class Throttler;
-
   class World : public Base
   {
   public:

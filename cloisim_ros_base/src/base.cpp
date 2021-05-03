@@ -38,9 +38,9 @@ Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeO
     : Node(node_name_,
            namespace_,
            rclcpp::NodeOptions(options_)
-               .arguments(vector<string>{"--ros-args",  "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"})
+               .automatically_declare_parameters_from_overrides(true)
                .append_parameter_override("use_sim_time", true)
-               .automatically_declare_parameters_from_overrides(true))
+               .arguments(vector<string>{"--ros-args", "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"}))
     , m_bRunThread(false)
     , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
@@ -162,10 +162,10 @@ void Base::CloseBridges()
 string Base::GetRobotName()
 {
   bool isSingleMode;
-  get_parameter("singlemode", isSingleMode);
+  get_parameter("single_mode", isSingleMode);
 
   string robotName;
-  get_parameter("singlemode.robotname", robotName);
+  get_parameter("single_mode.robotname", robotName);
 
   return (isSingleMode) ? robotName : string(get_namespace()).substr(1);
 }

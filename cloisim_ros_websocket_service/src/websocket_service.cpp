@@ -12,10 +12,25 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include <cloisim_ros_bringup/websocket_service.hpp>
+#include "cloisim_ros_websocket_service/websocket_service.hpp"
 
 using namespace cloisim_ros;
-using namespace std;
+
+WebSocketService::WebSocketService()
+{
+  const auto env_service_port = getenv("CLOISIM_SERVICE_PORT");
+  const auto service_port = string((env_service_port == nullptr) ? "8080" : env_service_port);
+
+  new (this) WebSocketService(service_port);
+}
+
+WebSocketService::WebSocketService(const string service_port)
+{
+  const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
+  const auto bridge_ip = string((env_bridge_ip == nullptr) ? "127.0.0.1" : env_bridge_ip);
+
+  new (this) WebSocketService(bridge_ip, service_port);
+}
 
 WebSocketService::WebSocketService(const string bridge_ip, const string service_port)
 {
@@ -41,13 +56,7 @@ WebSocketService::WebSocketService(const string bridge_ip, const string service_
 void WebSocketService::on_message(websocketpp::connection_hdl hdl, client::message_ptr msg)
 {
   // cout << "DUMP: " << msg->get_payload() << endl;
-  const auto payload = msg->get_payload();
-
-  Json::Value root;
-  reader.parse(payload, root, false);
-
-  result = root["result"];
-
+  payload = msg->get_payload();
   c.close(hdl, websocketpp::close::status::going_away, "");
   // cout << "close" << endl;
 }
@@ -60,7 +69,7 @@ void WebSocketService::on_open(websocketpp::connection_hdl hdl)
   c.send(hdl, request_msg, websocketpp::frame::opcode::value::TEXT);
 }
 
-Json::Value WebSocketService::Run()
+string WebSocketService::Run()
 {
   try
   {
@@ -91,5 +100,5 @@ Json::Value WebSocketService::Run()
 
   // cout << result << endl << result.size() << endl;
 
-  return result;
+  return payload;
 }

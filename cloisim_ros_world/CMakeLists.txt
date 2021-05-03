@@ -22,10 +22,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
+find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
   rosgraph_msgs
-  cloisim_ros_base)
+  cloisim_ros_base
+  cloisim_ros_bringup_param
+)
 
 ################################################################################
 # Build
@@ -49,6 +52,12 @@ ament_target_dependencies(
 add_executable(
   ${PROJECT_NAME}
   src/main.cpp
+)
+
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(

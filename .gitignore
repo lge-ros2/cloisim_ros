@@ -35,10 +35,5 @@ tags
 # Persistent undo
 [._]*.un~
 
-
-# to ignore generated code
-*/include/cloisim_msgs/*
-*/src/cloisim_msgs/*
-
 # COLCON custom files
 COLCON_IGNORE

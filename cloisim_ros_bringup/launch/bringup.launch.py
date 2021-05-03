@@ -16,18 +16,43 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
 
-    _singlemode = LaunchConfiguration('singlemode')
+    _single_mode = LaunchConfiguration('single_mode')
+    _target_model = LaunchConfiguration('target_model')
+    _target_parts_type = LaunchConfiguration('target_parts_type')
+    _target_parts_name = LaunchConfiguration('target_parts_name')
+    _scan = LaunchConfiguration('scan')
 
     cloisim_ros_cmd = Node(
         package="cloisim_ros_bringup",
         executable="cloisim_ros_bringup",
         output='screen',
-        parameters=[{'singlemode': _singlemode}])
+        remappings=[('scan',_scan)],
+        parameters=[{'single_mode': _single_mode, 'target_model': _target_model, 'target_parts_type': _target_parts_type, 'target_parts_name': _target_parts_name}])
 
-    declare_launch_argument = DeclareLaunchArgument(
-        'singlemode',
+    declare_launch_argument_sm = DeclareLaunchArgument(
+        'single_mode',
         default_value='False',
         description='whether to use single mode')
+
+    declare_launch_argument_tm = DeclareLaunchArgument(
+        'target_model',
+        default_value='',
+        description='specify the target model you want')
+
+    declare_launch_argument_tpt = DeclareLaunchArgument(
+        'target_parts_type',
+        default_value='',
+        description='specify the type of target parts you want')
+
+    declare_launch_argument_tpn = DeclareLaunchArgument(
+        'target_parts_name',
+        default_value='',
+        description='specify the name of target parts you want')
+
+    declare_launch_argument_sc = DeclareLaunchArgument(
+        'scan',
+        default_value='scan',
+        description='specify scan topic you want')
 
     stdout_log_use_stdout_envvar = SetEnvironmentVariable(
         'RCUTILS_LOGGING_USE_STDOUT', '1')
@@ -41,7 +66,11 @@ def generate_launch_description():
      # Set environment variables
     ld.add_action(stdout_log_use_stdout_envvar)
     ld.add_action(stdout_log_buf_stream_envvar)
-    ld.add_action(declare_launch_argument)
+    ld.add_action(declare_launch_argument_sm)
+    ld.add_action(declare_launch_argument_tm)
+    ld.add_action(declare_launch_argument_tpt)
+    ld.add_action(declare_launch_argument_tpn)
+    ld.add_action(declare_launch_argument_sc)
     ld.add_action(cloisim_ros_cmd)
 
     return ld

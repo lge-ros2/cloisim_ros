@@ -22,8 +22,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(websocketpp REQUIRED)
-find_package(jsoncpp REQUIRED)
+find_package(cloisim_ros_bringup_param REQUIRED)
+find_package(cloisim_ros_websocket_service REQUIRED)
 find_package(cloisim_ros_camera REQUIRED)
 find_package(cloisim_ros_micom REQUIRED)
 find_package(cloisim_ros_lidar REQUIRED)
@@ -37,7 +37,7 @@ find_package(cloisim_ros_world REQUIRED)
 
 set(dependencies
   rclcpp
-  websocketpp
+  cloisim_ros_bringup_param
   cloisim_ros_camera
   cloisim_ros_micom
   cloisim_ros_lidar
@@ -55,24 +55,12 @@ set(dependencies
 ################################################################################
 add_executable(
   ${PROJECT_NAME}
-  src/websocket_service.cpp
   src/main.cpp
-)
-
-target_include_directories(
-  ${PROJECT_NAME} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
 )
 
 ament_target_dependencies(
   ${PROJECT_NAME}
   ${dependencies}
-)
-
-target_link_libraries(
-  ${PROJECT_NAME}
-  jsoncpp
 )
 
 ################################################################################
@@ -81,11 +69,6 @@ target_link_libraries(
 install(
   DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
-)
-
-install(
-  DIRECTORY include/
-  DESTINATION include
 )
 
 install(
