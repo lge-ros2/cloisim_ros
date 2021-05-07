@@ -18,7 +18,7 @@ set(PROTOBUF_MSGS_DIRECTORY "msgs")
 
 # file(GLOB PROTOBUF_DEFINITION_FILES "${PROTOBUF_INPUT_DIRECTORY}/*.proto")
 list(APPEND PROTOBUF_DEFINITION_FILES "any;param;param_v;color")
-list(APPEND PROTOBUF_DEFINITION_FILES "time;vector2d;vector3d;quaternion;pose")
+list(APPEND PROTOBUF_DEFINITION_FILES "header;time;vector2d;vector3d;quaternion;pose;twist")
 list(APPEND PROTOBUF_DEFINITION_FILES "imu;image;images_stamped;image_stamped;camerasensor;distortion")
 list(APPEND PROTOBUF_DEFINITION_FILES "laserscan;laserscan_stamped")
 list(APPEND PROTOBUF_DEFINITION_FILES "micom;battery;pointcloud;gps")
