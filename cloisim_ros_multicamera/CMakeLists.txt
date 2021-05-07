@@ -24,12 +24,14 @@ find_package(sensor_msgs REQUIRED)
 find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
+find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
   sensor_msgs
   camera_info_manager
   image_transport
   cloisim_ros_base
+  cloisim_ros_bringup_param
 )
 
 ################################################################################

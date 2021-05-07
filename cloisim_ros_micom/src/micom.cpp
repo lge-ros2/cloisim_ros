@@ -17,9 +17,9 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <cloisim_msgs/param.pb.h>
+#include <cloisim_msgs/twist.pb.h>
 
 // #define LOGGING_PERIOD 1000
-#define ENABLE_TR_VELOCITY true
 
 using namespace std;
 using namespace chrono_literals;
@@ -34,8 +34,6 @@ Micom::Micom(const rclcpp::NodeOptions &options_, const string node_name_, const
     , wheel_base(0.0)
     , wheel_radius(0.0)
     , base_link_name_("base_link")
-    , use_pub_(true)
-    , use_sub_(true)
 {
   Start();
 }
@@ -76,15 +74,8 @@ void Micom::Initialize()
 
   if (pBridgeData != nullptr)
   {
-    if (use_sub_)
-    {
-      pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx_, hashKeySub_);
-    }
-
-    if (use_pub_)
-    {
-      pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx_, hashKeyPub_);
-    }
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx_, hashKeySub_);
+    pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx_, hashKeyPub_);
   }
 
   if (pBridgeInfo != nullptr)
@@ -261,74 +252,37 @@ void Micom::ResetOdometryCallback(
     const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
     std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/)
 {
-  const auto msgBuf = MakeCommandMessage("reset_odometry");
-  MicomWrite(msgBuf.data(), msgBuf.size());
-}
+  auto pBridgeInfo = GetBridge(1);
+  if (pBridgeInfo != nullptr)
+  {
+    msgs::Param request_msg;
+    string serializedBuffer;
+    request_msg.set_name("reset_odometry");
+    request_msg.SerializeToString(&serializedBuffer);
 
-string Micom::MakeCommandMessage(const string command)
-{
-  msgs::Param writeBuf;
-  writeBuf.set_name("command");
-  auto pVal = writeBuf.mutable_value();
-  pVal->set_type(msgs::Any::STRING);
-  pVal->set_string_value(command);
-
-  string message = "";
-  writeBuf.SerializeToString(&message);
-  return message;
+    const auto reply = pBridgeInfo->RequestReply(serializedBuffer);
+  }
 }
 
 string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
-  auto vel_lin = msg->linear.x;  // m/s
-  auto vel_rot = msg->angular.z; // rad/s
+  msgs::Twist twistBuf;  // m/s and ad/s
+  twistBuf.mutable_linear()->set_x(msg->linear.x);
+  twistBuf.mutable_linear()->set_y(msg->linear.y);
+  twistBuf.mutable_linear()->set_z(msg->linear.z);
+  twistBuf.mutable_angular()->set_x(msg->angular.x);
+  twistBuf.mutable_angular()->set_y(msg->angular.y);
+  twistBuf.mutable_angular()->set_z(msg->angular.z);
 
-  msgs::Param writeBuf;
-  msgs::Any *pVal;
-
-  writeBuf.set_name("control");
-  pVal = writeBuf.mutable_value();
-  pVal->set_type(msgs::Any::INT32);
-
-#if ENABLE_TR_VELOCITY
-  pVal->set_int_value(0);
-
-  auto const pLinearVel = writeBuf.add_children();
-  pLinearVel->set_name("LinearVelocity");
-  pVal = pLinearVel->mutable_value();
-  pVal->set_type(msgs::Any::DOUBLE);
-  pVal->set_double_value(vel_lin);
-
-  auto const pAngularVel = writeBuf.add_children();
-  pAngularVel->set_name("AngularVelocity");
-  pVal = pAngularVel->mutable_value();
-  pVal->set_type(msgs::Any::DOUBLE);
-  pVal->set_double_value(vel_rot);
-#else
   // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f * 1000.0) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f * 1000.0) / 2.0));
-  const auto vel_rot_wheel = (0.5f * vel_rot * wheel_base);
-  auto lin_vel_left_wheel = vel_lin - vel_rot_wheel; // m/s
-  auto lin_vel_right_wheel = vel_lin + vel_rot_wheel; // m/s
+  // const auto vel_rot_wheel = (0.5f * vel_rot * wheel_base);
+  // auto lin_vel_left_wheel = vel_lin - vel_rot_wheel; // m/s
+  // auto lin_vel_right_wheel = vel_lin + vel_rot_wheel; // m/s
 
-  pVal->set_int_value(1);
-
-  auto const pLinearVel = writeBuf.add_children();
-  pLinearVel->set_name("LeftWheelVelocity");
-  pVal = pLinearVel->mutable_value();
-  pVal->set_type(msgs::Any::DOUBLE);
-  pVal->set_double_value(lin_vel_left_wheel);
-
-  auto const pAngularVel = writeBuf.add_children();
-  pAngularVel->set_name("RightWheelVelocity");
-  pVal = pAngularVel->mutable_value();
-  pVal->set_type(msgs::Any::DOUBLE);
-  pVal->set_double_value(lin_vel_right_wheel);
-#endif
-
-  string message = "";
-  writeBuf.SerializeToString(&message);
+  string message;
+  twistBuf.SerializeToString(&message);
   return message;
 }
 

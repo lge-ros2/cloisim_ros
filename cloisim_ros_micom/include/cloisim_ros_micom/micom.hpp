@@ -47,7 +47,6 @@ namespace cloisim_ros
         const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
         std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/);
 
-    std::string MakeCommandMessage(const std::string command);
     std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
 
     bool CalculateOdometry(const rclcpp::Duration duration, const double _wheel_angular_vel_left, const double _wheel_angular_vel_right, const double _theta);
@@ -67,9 +66,6 @@ namespace cloisim_ros
     double wheel_base;
     double wheel_radius;
     std::string base_link_name_;
-
-    bool use_pub_;
-    bool use_sub_;
 
     // Micom msgs
     cloisim::msgs::Micom pbBufMicom_;
