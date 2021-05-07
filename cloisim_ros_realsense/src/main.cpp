@@ -1,7 +1,8 @@
 /**
  *  @file   main.cpp
- *  @date   2021-01-14
+ *  @date   2021-05-07
  *  @author Sungkyu Kang
+ *  @author Hyunseok Yang
  *  @brief
  *        ROS2 realsense class for simulator
  *  @remark
@@ -19,8 +20,36 @@
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<cloisim_ros::RealSense>();
-  rclcpp::spin(node->get_node_base_interface());
+  rclcpp::executors::SingleThreadedExecutor executor;
+
+  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_realsense");
+  bringup_param_node->TargetPartsType("REALSENSE");
+  executor.add_node(bringup_param_node);
+
+  const auto filtered_result = bringup_param_node->GetBringUpList(true);
+
+  std::shared_ptr<cloisim_ros::Base> node = nullptr;
+  if (!filtered_result.empty())
+  {
+    rclcpp::NodeOptions node_options;
+    bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
+
+    const auto isSingleMode = bringup_param_node->IsSingleMode();
+    const auto model_name = bringup_param_node->TargetModel();
+    const auto node_name = bringup_param_node->TargetPartsName();
+
+    if (isSingleMode)
+      node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
+    else
+      node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name, model_name);
+  }
+
+  if (node != nullptr)
+  {
+    executor.add_node(node);
+  }
+
+  executor.spin();
   rclcpp::shutdown();
   return 0;
 }
