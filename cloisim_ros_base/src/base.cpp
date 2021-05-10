@@ -335,12 +335,14 @@ void Base::SetupStaticTf2(const msgs::Pose transform, const string child_frame_i
   AddStaticTf2(static_tf);
 }
 
-msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const cloisim::msgs::Param request_message)
+msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string request_message)
 {
-  msgs::Param reply_message;
+  msgs::Param reply;
 
   string serialized_request_data;
-  request_message.SerializeToString(&serialized_request_data);
+  msgs::Param request;
+  request.set_name(request_message);
+  request.SerializeToString(&serialized_request_data);
 
   const auto serialized_reply_data = pBridge->RequestReply(serialized_request_data);
 
@@ -350,13 +352,13 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const cloisim:
   }
   else
   {
-    if (reply_message.ParseFromString(serialized_reply_data) == false)
+    if (reply.ParseFromString(serialized_reply_data) == false)
     {
       DBG_SIM_ERR("Faild to parse serialized buffer, pBuffer(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
     }
   }
 
-  return reply_message;
+  return reply;
 }
 
 msgs::Pose Base::IdentityPose()
