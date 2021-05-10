@@ -154,43 +154,29 @@ void RealSense::GetActivatedModules(zmq::Bridge* const pBridge)
   }
 
   string moduleListStr;
+  const auto reply = RequestReplyMessage(pBridge, "request_module_list");
 
-  msgs::Param request_msg;
-  string serializedBuffer;
-  request_msg.set_name("request_module_list");
-  request_msg.SerializeToString(&serializedBuffer);
-
-  const auto reply = pBridge->RequestReply(serializedBuffer);
-
-  if (reply.size() <= 0)
+  if (reply.ByteSize() <= 0)
   {
-    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply.size());
+    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply.ByteSize());
   }
   else
   {
-    msgs::Param pbParam;
-    if (pbParam.ParseFromString(reply))
+    if (reply.IsInitialized() &&
+        reply.name() == "activated_modules")
     {
-      if (pbParam.IsInitialized() &&
-          pbParam.name() == "activated_modules")
+      for (auto i = 0; i < reply.children_size(); i++)
       {
-        for (auto i = 0; i < pbParam.children_size(); i++)
-        {
-          auto param = pbParam.children(i);
+        auto param = reply.children(i);
         if (param.name() == "module" && param.has_value() &&
             param.value().type() == msgs::Any_ValueType_STRING &&
             !param.value().string_value().empty())
-          {
-            const auto module = param.value().string_value();
-            module_list_.push_back(module);
-            moduleListStr.append(module + ", ");
-          }
+        {
+          const auto module = param.value().string_value();
+          module_list_.push_back(module);
+          moduleListStr.append(module + ", ");
         }
       }
-    }
-    else
-    {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 
