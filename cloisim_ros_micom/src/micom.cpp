@@ -134,41 +134,32 @@ void Micom::GetWeelInfo(zmq::Bridge* const pBridge)
     return;
   }
 
-  msgs::Param request_msg;
-  string serializedBuffer;
-  request_msg.set_name("request_wheel_info");
-  request_msg.SerializeToString(&serializedBuffer);
+  const auto reply = RequestReplyMessage(pBridge, "request_wheel_info");
 
-  const auto reply = pBridge->RequestReply(serializedBuffer);
-
-  if (reply.size() <= 0)
+  if (reply.ByteSize() <= 0)
   {
-    DBG_SIM_ERR("Faild to get wheel info, length(%ld)", reply.size());
+    DBG_SIM_ERR("Faild to get wheel info, length(%ld)", reply.ByteSize());
   }
   else
   {
-    msgs::Param pbParam;
-    if (pbParam.ParseFromString(reply))
+    if (reply.IsInitialized() &&
+        reply.name() == "wheelInfo")
     {
-      if (pbParam.IsInitialized() &&
-          pbParam.name() == "wheelInfo")
+      auto baseParam = reply.children(0);
+      if (baseParam.name() == "base" && baseParam.has_value())
       {
-        auto baseParam = pbParam.children(0);
-        if (baseParam.name() == "base" && baseParam.has_value())
-        {
-          wheel_base = baseParam.value().double_value();
-        }
+        wheel_base = baseParam.value().double_value();
+      }
 
-        auto sizeParam = pbParam.children(1);
-        if (sizeParam.name() == "radius" && sizeParam.has_value())
-        {
-          wheel_radius = sizeParam.value().double_value();
-        }
+      auto sizeParam = reply.children(1);
+      if (sizeParam.name() == "radius" && sizeParam.has_value())
+      {
+        wheel_radius = sizeParam.value().double_value();
       }
     }
     else
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
+      DBG_SIM_ERR("Faild to Parsing Proto buffer length(%ld)", reply.ByteSize());
     }
   }
 
@@ -183,30 +174,18 @@ void Micom::GetTransformNameInfo(zmq::Bridge* const pBridge)
     return;
   }
 
-  msgs::Param request_msg;
-  string serializedBuffer;
+  const auto reply = RequestReplyMessage(pBridge, "request_ros2");
 
-  request_msg.set_name("request_ros2");
-  request_msg.SerializeToString(&serializedBuffer);
-
-  const auto reply = pBridge->RequestReply(serializedBuffer);
-
-  if (reply.size() <= 0)
+  if (reply.ByteSize() <= 0)
   {
-    DBG_SIM_ERR("Faild to get transform name info, length(%ld)", reply.size());
+    DBG_SIM_ERR("Faild to get transform name info, length(%ld)", reply.ByteSize());
   }
   else
   {
-    msgs::Param pbParam;
-    if (pbParam.ParseFromString(reply) == false)
+    if (reply.IsInitialized() &&
+        reply.name() == "ros2")
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
-    }
-
-    if (pbParam.IsInitialized() &&
-        pbParam.name() == "ros2")
-    {
-      auto baseParam = pbParam.children(0);
+      auto baseParam = reply.children(0);
       if (baseParam.IsInitialized() &&
           baseParam.name() == "transform_name")
       {
@@ -253,15 +232,11 @@ void Micom::ResetOdometryCallback(
     std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/)
 {
   auto pBridgeInfo = GetBridge(1);
-  if (pBridgeInfo != nullptr)
+  if (pBridgeInfo == nullptr)
   {
-    msgs::Param request_msg;
-    string serializedBuffer;
-    request_msg.set_name("reset_odometry");
-    request_msg.SerializeToString(&serializedBuffer);
-
-    const auto reply = pBridgeInfo->RequestReply(serializedBuffer);
+    return;
   }
+  RequestReplyMessage(pBridgeInfo, "reset_odometry");
 }
 
 string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
