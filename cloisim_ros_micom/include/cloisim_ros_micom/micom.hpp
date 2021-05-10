@@ -63,7 +63,7 @@ namespace cloisim_ros
 
     std::map<std::string, std::string> target_transform_name;
 
-    double wheel_base;
+    double wheel_tread;
     double wheel_radius;
     std::string base_link_name_;
 

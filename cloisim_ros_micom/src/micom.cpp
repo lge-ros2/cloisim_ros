@@ -31,7 +31,7 @@ Micom::Micom(const rclcpp::NodeOptions &options_, const string node_name_, const
     : Base(node_name_, namespace_, options_, 2)
     , hashKeyPub_("")
     , hashKeySub_("")
-    , wheel_base(0.0)
+    , wheel_tread(0.0)
     , wheel_radius(0.0)
     , base_link_name_("base_link")
 {
@@ -145,16 +145,16 @@ void Micom::GetWeelInfo(zmq::Bridge* const pBridge)
     if (reply.IsInitialized() &&
         reply.name() == "wheelInfo")
     {
-      auto baseParam = reply.children(0);
-      if (baseParam.name() == "base" && baseParam.has_value())
+      auto param0 = reply.children(0);
+      if (param0.name() == "tread" && param0.has_value())
       {
-        wheel_base = baseParam.value().double_value();
+        wheel_tread = param0.value().double_value();
       }
 
-      auto sizeParam = reply.children(1);
-      if (sizeParam.name() == "radius" && sizeParam.has_value())
+      auto param1 = reply.children(1);
+      if (param1.name() == "radius" && param1.has_value())
       {
-        wheel_radius = sizeParam.value().double_value();
+        wheel_radius = param1.value().double_value();
       }
     }
     else
@@ -163,7 +163,7 @@ void Micom::GetWeelInfo(zmq::Bridge* const pBridge)
     }
   }
 
-  DBG_SIM_INFO("wheel.base:%f m", wheel_base);
+  DBG_SIM_INFO("wheel.tread:%f m", wheel_tread);
   DBG_SIM_INFO("wheel.radius:%f m", wheel_radius);
 }
 
@@ -252,7 +252,7 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f * 1000.0) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f * 1000.0) / 2.0));
-  // const auto vel_rot_wheel = (0.5f * vel_rot * wheel_base);
+  // const auto vel_rot_wheel = (0.5f * vel_rot * wheel_tread);
   // auto lin_vel_left_wheel = vel_lin - vel_rot_wheel; // m/s
   // auto lin_vel_right_wheel = vel_lin + vel_rot_wheel; // m/s
 
