@@ -31,7 +31,7 @@ Micom::Micom(const rclcpp::NodeOptions &options_, const string node_name_, const
     : Base(node_name_, namespace_, options_, 2)
     , hashKeyPub_("")
     , hashKeySub_("")
-    , wheel_base(0.0)
+    , wheel_tread(0.0)
     , wheel_radius(0.0)
     , base_link_name_("base_link")
 {
@@ -134,45 +134,36 @@ void Micom::GetWeelInfo(zmq::Bridge* const pBridge)
     return;
   }
 
-  msgs::Param request_msg;
-  string serializedBuffer;
-  request_msg.set_name("request_wheel_info");
-  request_msg.SerializeToString(&serializedBuffer);
+  const auto reply = RequestReplyMessage(pBridge, "request_wheel_info");
 
-  const auto reply = pBridge->RequestReply(serializedBuffer);
-
-  if (reply.size() <= 0)
+  if (reply.ByteSize() <= 0)
   {
-    DBG_SIM_ERR("Faild to get wheel info, length(%ld)", reply.size());
+    DBG_SIM_ERR("Faild to get wheel info, length(%ld)", reply.ByteSize());
   }
   else
   {
-    msgs::Param pbParam;
-    if (pbParam.ParseFromString(reply))
+    if (reply.IsInitialized() &&
+        reply.name() == "wheelInfo")
     {
-      if (pbParam.IsInitialized() &&
-          pbParam.name() == "wheelInfo")
+      auto param0 = reply.children(0);
+      if (param0.name() == "tread" && param0.has_value())
       {
-        auto baseParam = pbParam.children(0);
-        if (baseParam.name() == "base" && baseParam.has_value())
-        {
-          wheel_base = baseParam.value().double_value();
-        }
+        wheel_tread = param0.value().double_value();
+      }
 
-        auto sizeParam = pbParam.children(1);
-        if (sizeParam.name() == "radius" && sizeParam.has_value())
-        {
-          wheel_radius = sizeParam.value().double_value();
-        }
+      auto param1 = reply.children(1);
+      if (param1.name() == "radius" && param1.has_value())
+      {
+        wheel_radius = param1.value().double_value();
       }
     }
     else
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
+      DBG_SIM_ERR("Faild to Parsing Proto buffer length(%ld)", reply.ByteSize());
     }
   }
 
-  DBG_SIM_INFO("wheel.base:%f m", wheel_base);
+  DBG_SIM_INFO("wheel.tread:%f m", wheel_tread);
   DBG_SIM_INFO("wheel.radius:%f m", wheel_radius);
 }
 
@@ -183,30 +174,18 @@ void Micom::GetTransformNameInfo(zmq::Bridge* const pBridge)
     return;
   }
 
-  msgs::Param request_msg;
-  string serializedBuffer;
+  const auto reply = RequestReplyMessage(pBridge, "request_ros2");
 
-  request_msg.set_name("request_ros2");
-  request_msg.SerializeToString(&serializedBuffer);
-
-  const auto reply = pBridge->RequestReply(serializedBuffer);
-
-  if (reply.size() <= 0)
+  if (reply.ByteSize() <= 0)
   {
-    DBG_SIM_ERR("Faild to get transform name info, length(%ld)", reply.size());
+    DBG_SIM_ERR("Faild to get transform name info, length(%ld)", reply.ByteSize());
   }
   else
   {
-    msgs::Param pbParam;
-    if (pbParam.ParseFromString(reply) == false)
+    if (reply.IsInitialized() &&
+        reply.name() == "ros2")
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
-    }
-
-    if (pbParam.IsInitialized() &&
-        pbParam.name() == "ros2")
-    {
-      auto baseParam = pbParam.children(0);
+      auto baseParam = reply.children(0);
       if (baseParam.IsInitialized() &&
           baseParam.name() == "transform_name")
       {
@@ -253,20 +232,16 @@ void Micom::ResetOdometryCallback(
     std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/)
 {
   auto pBridgeInfo = GetBridge(1);
-  if (pBridgeInfo != nullptr)
+  if (pBridgeInfo == nullptr)
   {
-    msgs::Param request_msg;
-    string serializedBuffer;
-    request_msg.set_name("reset_odometry");
-    request_msg.SerializeToString(&serializedBuffer);
-
-    const auto reply = pBridgeInfo->RequestReply(serializedBuffer);
+    return;
   }
+  RequestReplyMessage(pBridgeInfo, "reset_odometry");
 }
 
 string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
-  msgs::Twist twistBuf;  // m/s and ad/s
+  msgs::Twist twistBuf;  // m/s and rad/s
   twistBuf.mutable_linear()->set_x(msg->linear.x);
   twistBuf.mutable_linear()->set_y(msg->linear.y);
   twistBuf.mutable_linear()->set_z(msg->linear.z);
@@ -277,7 +252,7 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f * 1000.0) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f * 1000.0) / 2.0));
-  // const auto vel_rot_wheel = (0.5f * vel_rot * wheel_base);
+  // const auto vel_rot_wheel = (0.5f * vel_rot * wheel_tread);
   // auto lin_vel_left_wheel = vel_lin - vel_rot_wheel; // m/s
   // auto lin_vel_right_wheel = vel_lin + vel_rot_wheel; // m/s
 

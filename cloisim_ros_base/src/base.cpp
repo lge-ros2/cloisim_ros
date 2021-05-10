@@ -186,37 +186,19 @@ msgs::Pose Base::GetObjectTransform(zmq::Bridge* const pBridge, const string tar
     return transform;
   }
 
-  msgs::Param request_msg;
-  request_msg.set_name("request_transform");
+  const auto reply = RequestReplyMessage(pBridge, "request_transform", target_name);
 
-  auto pVal = request_msg.mutable_value();
-  pVal->set_type(msgs::Any::STRING);
-  pVal->set_string_value(target_name);
-
-  string request;
-  request_msg.SerializeToString(&request);
-
-  const auto reply = pBridge->RequestReply(request);
-
-  if (reply.size() <= 0)
+  if (reply.ByteSize() <= 0)
   {
-    DBG_SIM_ERR("Faild to get object transform, length(%ld)", reply.size());
+    DBG_SIM_ERR("Faild to get object transform, length(%ld)", reply.ByteSize());
   }
   else
   {
-    msgs::Param reply_msg;
-    if (reply_msg.ParseFromString(reply))
+    if (reply.IsInitialized() &&
+        reply.name() == "transform" &&
+        reply.has_value())
     {
-      if (reply_msg.IsInitialized() &&
-          reply_msg.name() == "transform" &&
-          reply_msg.has_value())
-      {
-        transform.CopyFrom(reply_msg.value().pose3d_value());
-      }
-    }
-    else
-    {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
+      transform.CopyFrom(reply.value().pose3d_value());
     }
   }
 
@@ -230,34 +212,18 @@ void Base::GetRos2Parameter(zmq::Bridge* const pBridge)
     return;
   }
 
-  msgs::Param request_msg;
-  string serializedBuffer;
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
+  const auto reply = RequestReplyMessage(pBridge, "request_ros2");
 
-  request_msg.set_name("request_ros2");
-  request_msg.SerializeToString(&serializedBuffer);
-
-  pBridge->Send(serializedBuffer.data(), serializedBuffer.size());
-
-  const auto succeeded = pBridge->Receive(&pBuffer, bufferLength);
-
-  if (!succeeded || bufferLength < 0)
+  if (reply.ByteSize() <= 0)
   {
-    DBG_SIM_ERR("Faild to get ROS2 common info, length(%d)", bufferLength);
+    DBG_SIM_ERR("Faild to get ROS2 common info, length(%ld)", reply.ByteSize());
   }
   else
   {
-    msgs::Param pbParam;
-    if (pbParam.ParseFromArray(pBuffer, bufferLength) == false)
+    if (reply.IsInitialized() &&
+        reply.name() == "ros2")
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%d)", pBuffer, bufferLength);
-    }
-
-    if (pbParam.IsInitialized() &&
-        pbParam.name() == "ros2")
-    {
-      auto param0 = pbParam.children(0);
+      auto param0 = reply.children(0);
       if (param0.name() == "topic_name" && param0.has_value() &&
           param0.value().type() == msgs::Any_ValueType_STRING &&
           !param0.value().string_value().empty())
@@ -265,7 +231,7 @@ void Base::GetRos2Parameter(zmq::Bridge* const pBridge)
         topic_name_ = param0.value().string_value();
       }
 
-      auto param1 = pbParam.children(1);
+      auto param1 = reply.children(1);
       if (param1.name() == "frame_id" && param1.has_value() &&
           param1.value().type() == msgs::Any_ValueType_STRING &&
           !param1.value().string_value().empty())
@@ -335,12 +301,22 @@ void Base::SetupStaticTf2(const msgs::Pose transform, const string child_frame_i
   AddStaticTf2(static_tf);
 }
 
-msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const cloisim::msgs::Param request_message)
+msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string request_message, const string request_value)
 {
-  msgs::Param reply_message;
+  msgs::Param reply;
 
   string serialized_request_data;
-  request_message.SerializeToString(&serialized_request_data);
+  msgs::Param request;
+  request.set_name(request_message);
+
+  if (!request_value.empty())
+  {
+    auto pVal = request.mutable_value();
+    pVal->set_type(cloisim::msgs::Any::STRING);
+    pVal->set_string_value(request_value);
+  }
+
+  request.SerializeToString(&serialized_request_data);
 
   const auto serialized_reply_data = pBridge->RequestReply(serialized_request_data);
 
@@ -350,13 +326,13 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const cloisim:
   }
   else
   {
-    if (reply_message.ParseFromString(serialized_reply_data) == false)
+    if (reply.ParseFromString(serialized_reply_data) == false)
     {
       DBG_SIM_ERR("Faild to parse serialized buffer, pBuffer(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
     }
   }
 
-  return reply_message;
+  return reply;
 }
 
 msgs::Pose Base::IdentityPose()

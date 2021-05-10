@@ -98,6 +98,12 @@ bool Bridge::Setup(const unsigned char mode)
 
 bool Bridge::SetupCommon(void* const targetSocket)
 {
+  if (zmq_setsockopt(targetSocket, ZMQ_CONNECT_TIMEOUT, &connect_timeout, sizeof(connect_timeout)))
+  {
+    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    return false;
+  }
+
   if (zmq_setsockopt(targetSocket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min, sizeof(reconnect_ivl_min)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
