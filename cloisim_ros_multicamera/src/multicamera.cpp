@@ -119,10 +119,7 @@ void MultiCamera::GetRos2FramesId(zmq::Bridge* const pBridge)
     return;
   }
 
-  msgs::Param request_msg;
-  request_msg.set_name("request_ros2");
-
-  msgs::Param reply_msg = RequestReplyMessage(pBridge, request_msg);
+  msgs::Param reply_msg = RequestReplyMessage(pBridge, "request_ros2");
 
   if (reply_msg.IsInitialized())
   {
