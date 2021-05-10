@@ -335,13 +335,21 @@ void Base::SetupStaticTf2(const msgs::Pose transform, const string child_frame_i
   AddStaticTf2(static_tf);
 }
 
-msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string request_message)
+msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string request_message, const string request_value)
 {
   msgs::Param reply;
 
   string serialized_request_data;
   msgs::Param request;
   request.set_name(request_message);
+
+  if (!request_value.empty())
+  {
+    auto pVal = request.mutable_value();
+    pVal->set_type(cloisim::msgs::Any::STRING);
+    pVal->set_string_value(request_value);
+  }
+
   request.SerializeToString(&serialized_request_data);
 
   const auto serialized_reply_data = pBridge->RequestReply(serialized_request_data);

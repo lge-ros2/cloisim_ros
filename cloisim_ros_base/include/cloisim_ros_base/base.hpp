@@ -82,7 +82,7 @@ namespace cloisim_ros
     bool GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
 
   public:
-    static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const pBridge, const std::string request_message);
+    static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const pBridge, const std::string request_message, const std::string request_value = "");
     static cloisim::msgs::Pose IdentityPose();
 
   private:
