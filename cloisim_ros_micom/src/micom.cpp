@@ -241,7 +241,7 @@ void Micom::ResetOdometryCallback(
 
 string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
-  msgs::Twist twistBuf;  // m/s and ad/s
+  msgs::Twist twistBuf;  // m/s and rad/s
   twistBuf.mutable_linear()->set_x(msg->linear.x);
   twistBuf.mutable_linear()->set_y(msg->linear.y);
   twistBuf.mutable_linear()->set_z(msg->linear.z);
