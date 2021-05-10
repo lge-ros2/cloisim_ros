@@ -58,6 +58,7 @@ namespace cloisim_ros
       const uint8_t tagSize = 8; // The size of zmq packet header tag
 
       const int keepOnlyLastMsg = 1;
+      const int connect_timeout = 0;
       const int reconnect_ivl_min = 1000;
       const int reconnect_ivl_max = 5000;
       const int lingerPeriod = 0;
