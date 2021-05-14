@@ -223,24 +223,27 @@ void Base::GetRos2Parameter(zmq::Bridge* const pBridge)
     if (reply.IsInitialized() &&
         reply.name() == "ros2")
     {
-      auto param0 = reply.children(0);
-      if (param0.name() == "topic_name" && param0.has_value() &&
-          param0.value().type() == msgs::Any_ValueType_STRING &&
-          !param0.value().string_value().empty())
+      for (auto i = 0; i < reply.children_size(); i++)
       {
-        topic_name_ = param0.value().string_value();
-      }
+        const auto param = reply.children(i);
+        const auto paramValue = (param.has_value() && param.value().type() == msgs::Any_ValueType_STRING) ? param.value().string_value() : "";
 
-      auto param1 = reply.children(1);
-      if (param1.name() == "frame_id" && param1.has_value() &&
-          param1.value().type() == msgs::Any_ValueType_STRING &&
-          !param1.value().string_value().empty())
-      {
-        frame_id_ = param1.value().string_value();
+        if (param.name() == "topic_name")
+        {
+          topic_name_ = paramValue;
+          if (!paramValue.empty())
+          {
+            DBG_SIM_INFO("topic_name: %s", topic_name_.c_str());
+          }
+        }
+        else if (param.name() == "frame_id")
+        {
+          frame_id_list_.push_back(paramValue);
+          DBG_SIM_INFO("frame_id: %s", paramValue.c_str());
+        }
       }
     }
 
-    DBG_SIM_INFO("topic_name: %s, frame_id: %s", topic_name_.c_str(), frame_id_.c_str());
   }
 }
 
@@ -346,4 +349,9 @@ msgs::Pose Base::IdentityPose()
   identityTransform.mutable_orientation()->set_z(0.0);
   identityTransform.mutable_orientation()->set_w(1.0);
   return identityTransform;
+}
+
+string Base::GetFrameId(const string default_frame_id)
+{
+  return (frame_id_list_.size() == 0) ? default_frame_id : frame_id_list_.back();
 }

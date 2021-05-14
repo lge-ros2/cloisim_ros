@@ -81,6 +81,8 @@ namespace cloisim_ros
 
     bool GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
 
+    std::string GetFrameId(const std::string default_frame_id = "base_link");
+
   public:
     static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const pBridge, const std::string request_message, const std::string request_value = "");
     static cloisim::msgs::Pose IdentityPose();
@@ -108,8 +110,9 @@ namespace cloisim_ros
   protected:
     rclcpp::Time m_simTime;
 
+    // for ros2 default parameters
     std::string topic_name_;
-    std::string frame_id_;
+    std::vector<std::string> frame_id_list_;
   };
 }
 #endif

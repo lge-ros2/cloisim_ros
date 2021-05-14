@@ -35,14 +35,10 @@ namespace cloisim_ros
     virtual void Deinitialize() override;
     virtual void UpdateData(const uint bridge_index) override;
 
-    void GetRos2FramesId(zmq::Bridge *const pBridge);
-
   private:
     std::string multicamera_name_;
 
     std::string hashKeySub_;
-
-    std::vector<std::string> frame_id_list_;
 
     // buffer from simulation
     cloisim::msgs::ImagesStamped pbBuf_;

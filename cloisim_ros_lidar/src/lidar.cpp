@@ -28,7 +28,6 @@ Lidar::Lidar(const rclcpp::NodeOptions &options_, const string node_name_, const
     , pubPC2(nullptr)
 {
   topic_name_ = "scan";
-  frame_id_ = "base_scan";
 
   Start();
 }
@@ -61,6 +60,7 @@ void Lidar::Initialize()
   }
 
   auto output_type = string("LaserScan");
+  frame_id = GetFrameId("base_scan");
   if (pBridgeInfo != nullptr)
   {
     pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeySub_ + "Info");
@@ -68,7 +68,7 @@ void Lidar::Initialize()
     GetRos2Parameter(pBridgeInfo);
 
     const auto transform = GetObjectTransform(pBridgeInfo);
-    SetupStaticTf2(transform, frame_id_);
+    SetupStaticTf2(transform, frame_id);
 
     output_type = GetOutputType(pBridgeInfo);
   }
@@ -175,7 +175,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
 
   // Fill header
   msg_pc2.header.stamp = m_simTime;
-  msg_pc2.header.frame_id = frame_id_;
+  msg_pc2.header.frame_id = frame_id;
 
   // Cache values that are repeatedly used
   const auto beam_count = pbBuf_.scan().count();
@@ -266,7 +266,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
 void Lidar::UpdateLaserData(const double min_intensity)
 {
   msg_laser.header.stamp = m_simTime;
-  msg_laser.header.frame_id = frame_id_;
+  msg_laser.header.frame_id = frame_id;
 
   msg_laser.angle_min = pbBuf_.scan().angle_min();
   msg_laser.angle_max = pbBuf_.scan().angle_max();

@@ -58,7 +58,7 @@ void MultiCamera::Initialize()
   {
     pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeySub_ + "Info");
 
-    GetRos2FramesId(pBridgeInfo);
+    GetRos2Parameter(pBridgeInfo);
   }
 
   image_transport::ImageTransport it(GetNode());
@@ -95,7 +95,6 @@ void MultiCamera::Initialize()
                            {"jpeg_quality", jpeg_quality_value.as_int()},
                            {"png_level", png_level_value.as_int()}});
 
-
     cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
     const auto camSensorMsg = GetCameraSensorMessage(pBridgeInfo, frame_id);
     SetCameraInfoInManager(cameraInfoManager.back(), camSensorMsg, frame_id);
@@ -109,39 +108,6 @@ void MultiCamera::Deinitialize()
   for (auto pub : pubImages_)
   {
     pub.shutdown();
-  }
-}
-
-void MultiCamera::GetRos2FramesId(zmq::Bridge* const pBridge)
-{
-  if (pBridge == nullptr)
-  {
-    return;
-  }
-
-  msgs::Param reply_msg = RequestReplyMessage(pBridge, "request_ros2");
-
-  if (reply_msg.IsInitialized())
-  {
-    if (reply_msg.name() == "ros2")
-    {
-      auto baseParam = reply_msg.children(0);
-      if (baseParam.name() == "frames_id")
-      {
-        for (auto i = 0; i < baseParam.children_size(); i++)
-        {
-          auto param = baseParam.children(i);
-          if (param.name() == "frame_id" && param.has_value() &&
-              param.value().type() == msgs::Any_ValueType_STRING &&
-              !param.value().string_value().empty())
-          {
-            const auto frame_id = param.value().string_value();
-            frame_id_list_.push_back(frame_id);
-            DBG_SIM_INFO("frame_id: %s", frame_id.c_str());
-          }
-        }
-      }
-    }
   }
 }
 
@@ -167,7 +133,6 @@ void MultiCamera::UpdateData(const uint bridge_index)
   for (auto i = 0; i < pbBuf_.image_size(); i++)
   {
     auto img = &pbBuf_.image(i);
-
     const auto encoding_arg = GetImageEncondingType(img->pixel_format());
     const uint32_t cols_arg = img->width();
     const uint32_t rows_arg = img->height();
@@ -181,7 +146,6 @@ void MultiCamera::UpdateData(const uint bridge_index)
     // Publish camera info
     auto camera_info_msg = cameraInfoManager[i]->getCameraInfo();
     camera_info_msg.header.stamp = m_simTime;
-
     pubImages_.at(i).publish(*msg_img, camera_info_msg);
   }
 }

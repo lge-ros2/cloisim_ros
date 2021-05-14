@@ -47,6 +47,8 @@ namespace cloisim_ros
     // key for connection
     std::string hashKeySub_;
 
+    std::string frame_id;
+
     // buffer from simulation
     cloisim::msgs::LaserScanStamped pbBuf_;
 

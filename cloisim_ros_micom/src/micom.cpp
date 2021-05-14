@@ -174,7 +174,7 @@ void Micom::GetTransformNameInfo(zmq::Bridge* const pBridge)
     return;
   }
 
-  const auto reply = RequestReplyMessage(pBridge, "request_ros2");
+  const auto reply = RequestReplyMessage(pBridge, "request_transform_name");
 
   if (reply.ByteSize() <= 0)
   {

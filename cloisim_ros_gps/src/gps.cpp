@@ -23,7 +23,6 @@ Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name_, const str
     : Base(node_name_, namespace_, options_, 2)
 {
   topic_name_ = "navsatfix";
-  frame_id_ = "gps";
 
   Start();
 }
@@ -48,7 +47,8 @@ void Gps::Initialize()
   DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
 
   // Get frame for message
-  msg_navsat.header.frame_id = frame_id_;
+  const auto frame_id = GetFrameId();
+  msg_navsat.header.frame_id = frame_id;
 
   // Fill covariances
   // TODO: need to applying noise
@@ -76,7 +76,7 @@ void Gps::Initialize()
     GetRos2Parameter(pBridgeInfo);
 
     const auto transform = GetObjectTransform(pBridgeInfo);
-    SetupStaticTf2(transform, frame_id_ + "_link");
+    SetupStaticTf2(transform, frame_id + "_link");
   }
 
   // ROS2 Publisher

@@ -25,6 +25,7 @@ using namespace cloisim_ros;
 Camera::Camera(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
     : Base(node_name_, namespace_, options_, 2)
 {
+  topic_name_ = "camera";
   Start();
 }
 
@@ -41,9 +42,6 @@ Camera::~Camera()
 
 void Camera::Initialize()
 {
-  topic_name_ = "camera";
-  frame_id_ = "camera_link";
-
   uint16_t portInfo, portData;;
   get_parameter_or("bridge.Data", portData, uint16_t(0));
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
@@ -59,6 +57,7 @@ void Camera::Initialize()
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
   }
 
+  const auto frame_id = GetFrameId("camera_link");
   if (pBridgeInfo != nullptr)
   {
     pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeySub_ + "Info");
@@ -66,14 +65,14 @@ void Camera::Initialize()
     GetRos2Parameter(pBridgeInfo);
 
     const auto transform = GetObjectTransform(pBridgeInfo);
-    SetupStaticTf2(transform, frame_id_ + "_link");
+    SetupStaticTf2(transform, frame_id + "_link");
 
     cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(pBridgeInfo);
-    SetCameraInfoInManager(cameraInfoManager, camSensorMsg, frame_id_);
+    SetCameraInfoInManager(cameraInfoManager, camSensorMsg, frame_id);
   }
 
-  msg_img.header.frame_id = frame_id_;
+  msg_img.header.frame_id = frame_id;
 
   const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
 
