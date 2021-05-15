@@ -1,0 +1,101 @@
+/**
+ *  @file   cloisim_ros_world.cpp
+ *  @date   2021-01-14
+ *  @author Hyunseok Yang
+ *  @brief
+ *        ROS2 node for controlling unity simulation
+ *  @remark
+ *        Gazebonity
+ *  @copyright
+ *      LGE Advanced Robotics Laboratory
+ *      Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
+ *      All Rights are Reserved.
+ *
+ *      SPDX-License-Identifier: MIT
+ */
+
+#include "cloisim_ros_groundtruth/ground_truth.hpp"
+#include <cloisim_msgs/param.pb.h>
+#include <cloisim_msgs/any.pb.h>
+#include <cloisim_msgs/time.pb.h>
+
+using namespace std;
+using namespace cloisim;
+using namespace cloisim_ros;
+
+GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name_)
+  : Base(node_name_, options_, 1)
+{
+  Start();
+}
+
+GroundTruth::GroundTruth()
+  : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_groundtruth")
+{
+}
+
+GroundTruth::~GroundTruth()
+{
+  Stop();
+}
+
+void GroundTruth::Initialize()
+{
+  string model_name;
+  uint16_t portData;
+  get_parameter_or("model", model_name, string("GroundTruth"));
+  get_parameter_or("bridge.data", portData, uint16_t(0));
+
+  hashKeySub_ = model_name + GetPartsName();
+  DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
+
+  auto pBridgeData = GetBridge(0);
+  if (pBridgeData != nullptr)
+  {
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Clock");
+  }
+
+  // Offer transient local durability on the clock topic so that if publishing is infrequent,
+  // late subscribers can receive the previously published message(s).
+  clock_pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock",
+                                                           rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+}
+
+void GroundTruth::Deinitialize()
+{
+}
+
+void GroundTruth::UpdateData(const uint bridge_index)
+{
+  void *pBuffer = nullptr;
+  int bufferLength = 0;
+
+  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
+  if (!succeeded || bufferLength < 0)
+  {
+    return;
+  }
+
+  if (!pbBuf_.ParseFromArray(pBuffer, bufferLength))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
+    return;
+  }
+
+  if (pbBuf_.name() == "timeInfo" &&
+      pbBuf_.value().type() == msgs::Any::NONE &&
+      pbBuf_.children_size() == 2)
+  {
+    const auto simTime = (pbBuf_.children(0).name() != "simTime") ? msgs::Time() : pbBuf_.children(0).value().time_value();
+    // const auto realTime = (pbBuf_.children(1).name() != "realTime") ? msgs::Time() : pbBuf_.children(1).value().time_value();
+
+    PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()));
+  }
+}
+
+void GroundTruth::PublishSimTime(const rclcpp::Time simTime)
+{
+  rosgraph_msgs::msg::Clock clock;
+  clock.clock = simTime;
+  clock_pub_->publish(clock);
+}
