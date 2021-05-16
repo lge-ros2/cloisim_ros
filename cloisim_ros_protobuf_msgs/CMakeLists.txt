@@ -4,9 +4,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(cloisim_ros_protobuf_msgs)
 
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
+cloisim_ros_package()
 
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
@@ -22,6 +21,9 @@ list(APPEND PROTOBUF_DEFINITION_FILES "header;time;vector2d;vector3d;quaternion;
 list(APPEND PROTOBUF_DEFINITION_FILES "imu;image;images_stamped;image_stamped;camerasensor;distortion")
 list(APPEND PROTOBUF_DEFINITION_FILES "laserscan;laserscan_stamped")
 list(APPEND PROTOBUF_DEFINITION_FILES "micom;battery;pointcloud;gps")
+list(APPEND PROTOBUF_DEFINITION_FILES "world_stats;log_playback_stats")
+list(APPEND PROTOBUF_DEFINITION_FILES "perception;perception_v")
+list(APPEND PROTOBUF_DEFINITION_FILES "request;response")
 
 set(PROTOBUF_IMPORT_DIRS)
 set(Protobuf_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/${PROTOBUF_MSGS_DIRECTORY})

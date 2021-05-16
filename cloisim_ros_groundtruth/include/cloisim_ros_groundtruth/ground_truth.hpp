@@ -1,5 +1,5 @@
 /**
- *  @file   cloisim_ros_world.hpp
+ *  @file   cloisim_ros_groundtruth.hpp
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
@@ -14,35 +14,37 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_WORLD_HPP_
-#define _CLOISIM_ROS_WORLD_HPP_
+#ifndef _CLOISIM_ROS_GROUNDTRUTH_HPP_
+#define _CLOISIM_ROS_GROUNDTRUTH_HPP_
 
 #include <cloisim_ros_base/base.hpp>
-#include <cloisim_msgs/world_stats.pb.h>
-#include <rosgraph_msgs/msg/clock.hpp>
+#include <cloisim_msgs/perception_v.pb.h>
+#include <perception_msgs/msg/object_array.hpp>
 
 namespace cloisim_ros
 {
-  class World : public Base
+  class GroundTruth : public Base
   {
   public:
-    explicit World(const rclcpp::NodeOptions &options_, const std::string node_name_);
-    explicit World();
-    virtual ~World();
+    explicit GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name_);
+    explicit GroundTruth();
+    virtual ~GroundTruth();
 
   private:
     virtual void Initialize() override;
     virtual void Deinitialize() override;
     virtual void UpdateData(const uint bridge_index) override;
 
-    void PublishSimTime(const rclcpp::Time simTime);
+    void UpdatePerceptionData();
 
   private:
     std::string hashKeySub_;
 
-    cloisim::msgs::WorldStatistics pbBuf;
+    cloisim::msgs::Perception_V pbBuf;
 
-    rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr clock_pub_;
+    perception_msgs::msg::ObjectArray msg;
+
+    rclcpp::Publisher<perception_msgs::msg::ObjectArray>::SharedPtr pub;
   };
 }
 #endif

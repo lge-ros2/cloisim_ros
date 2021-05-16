@@ -87,14 +87,7 @@ Json::Value BringUpParam::GetBringUpList(const bool filterByParameters)
     const auto result_map = root["result"];
     if (result_map.size() > 1)
     {
-      if (filterByParameters)
-      {
-        return GetFilteredListByParameters(result_map);
-      }
-      else
-      {
-        return result_map;
-      }
+      return (filterByParameters)? GetFilteredListByParameters(result_map):result_map;
     }
 
     cout << "Failed to get all target information " << endl

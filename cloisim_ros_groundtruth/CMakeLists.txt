@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_camera)
+project(cloisim_ros_groundtruth)
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
@@ -11,16 +11,12 @@ cloisim_ros_package()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(camera_info_manager REQUIRED)
-find_package(image_transport REQUIRED)
+find_package(perception_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
-  sensor_msgs
-  camera_info_manager
-  image_transport
+  perception_msgs
   cloisim_ros_base
   cloisim_ros_bringup_param
 )
@@ -28,8 +24,9 @@ set(dependencies
 ################################################################################
 # Build
 ################################################################################
-add_library(${PROJECT_NAME}_core SHARED
-  src/camera.cpp
+add_library(
+  ${PROJECT_NAME}_core SHARED
+  src/ground_truth.cpp
 )
 
 target_include_directories(
@@ -46,6 +43,12 @@ ament_target_dependencies(
 add_executable(
   ${PROJECT_NAME}
   src/main.cpp
+)
+
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(

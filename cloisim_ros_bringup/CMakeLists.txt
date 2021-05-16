@@ -4,17 +4,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(cloisim_ros_bringup)
 
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -fstack-protector -O2)
-endif()
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
+cloisim_ros_package()
 
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
@@ -33,6 +24,7 @@ find_package(cloisim_ros_multicamera REQUIRED)
 find_package(cloisim_ros_realsense REQUIRED)
 find_package(cloisim_ros_gps REQUIRED)
 find_package(cloisim_ros_elevatorsystem REQUIRED)
+find_package(cloisim_ros_groundtruth REQUIRED)
 find_package(cloisim_ros_world REQUIRED)
 
 set(dependencies
@@ -47,6 +39,7 @@ set(dependencies
   cloisim_ros_realsense
   cloisim_ros_gps
   cloisim_ros_elevatorsystem
+  cloisim_ros_groundtruth
   cloisim_ros_world
 )
 

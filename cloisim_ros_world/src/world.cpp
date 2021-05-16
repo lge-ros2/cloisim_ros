@@ -76,21 +76,16 @@ void World::UpdateData(const uint bridge_index)
     return;
   }
 
-  if (!pbBuf_.ParseFromArray(pBuffer, bufferLength))
+  if (!pbBuf.ParseFromArray(pBuffer, bufferLength))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
     return;
   }
 
-  if (pbBuf_.name() == "timeInfo" &&
-      pbBuf_.value().type() == msgs::Any::NONE &&
-      pbBuf_.children_size() == 2)
-  {
-    const auto simTime = (pbBuf_.children(0).name() != "simTime") ? msgs::Time() : pbBuf_.children(0).value().time_value();
-    // const auto realTime = (pbBuf_.children(1).name() != "realTime") ? msgs::Time() : pbBuf_.children(1).value().time_value();
-
-    PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()));
-  }
+  const auto simTime = pbBuf.sim_time();
+  const auto realTime = pbBuf.real_time();
+  (void)realTime;
+  PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()));
 }
 
 void World::PublishSimTime(const rclcpp::Time simTime)

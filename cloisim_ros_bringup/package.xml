@@ -27,6 +27,7 @@
   <depend>cloisim_ros_realsense</depend>
   <depend>cloisim_ros_gps</depend>
   <depend>cloisim_ros_elevatorsystem</depend>
+  <depend>cloisim_ros_groundtruth</depend>
   <depend>cloisim_ros_world</depend>
 
   <test_depend>launch</test_depend>

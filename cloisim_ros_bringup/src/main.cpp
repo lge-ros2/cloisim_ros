@@ -21,6 +21,7 @@
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_elevatorsystem/elevatorsystem.hpp>
 #include <cloisim_ros_world/world.hpp>
+#include <cloisim_ros_groundtruth/ground_truth.hpp>
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 using namespace std;
@@ -38,7 +39,7 @@ inline static bool isRobotSpecific(const string node_type)
 
 inline static bool isWorldSpecific(const string node_type)
 {
-  return (!node_type.compare("ELEVATOR") || !node_type.compare("WORLD"));
+  return (!node_type.compare("ELEVATOR") || !node_type.compare("WORLD") || !node_type.compare("GROUNDTRUTH"));
 }
 
 void bringup_target_parts_by_name(const Json::Value item, const string node_type, const string model_name, const string node_name)
@@ -106,6 +107,7 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
     else if (isWorldSpecific(node_type))
     {
       node_options.append_parameter_override("model", model_name);
+
       if (!node_type.compare("ELEVATOR"))
       {
         node = std::make_shared<cloisim_ros::ElevatorSystem>(node_options, node_name);
@@ -113,6 +115,10 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       else if (!node_type.compare("WORLD"))
       {
         node = std::make_shared<cloisim_ros::World>(node_options, node_name);
+      }
+      else if (!node_type.compare("GROUNDTRUTH"))
+      {
+        node = std::make_shared<cloisim_ros::GroundTruth>(node_options, node_name);
       }
     }
     else

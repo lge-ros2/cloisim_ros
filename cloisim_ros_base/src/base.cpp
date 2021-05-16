@@ -13,7 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include <cloisim_ros_base/base.hpp>
+#include "cloisim_ros_base/base.hpp"
+#include "cloisim_ros_base/helper.h"
 
 using namespace std;
 using namespace cloisim;
@@ -112,13 +113,8 @@ void Base::SetupStaticTf2Message(const cloisim::msgs::Pose transform, const stri
   geometry_msgs::msg::TransformStamped msg_tf;
   msg_tf.header.frame_id = parent_frame_id;
   msg_tf.child_frame_id = child_frame_id;
-  msg_tf.transform.translation.x = transform.position().x();
-  msg_tf.transform.translation.y = transform.position().y();
-  msg_tf.transform.translation.z = transform.position().z();
-  msg_tf.transform.rotation.x = transform.orientation().x();
-  msg_tf.transform.rotation.y = transform.orientation().y();
-  msg_tf.transform.rotation.z = transform.orientation().z();
-  msg_tf.transform.rotation.w = transform.orientation().w();
+  SetVector3MessageToGeometry(transform.position(), msg_tf.transform.translation);
+  SetQuaternionMessageToGeometry(transform.orientation(), msg_tf.transform.rotation);
 
   AddStaticTf2(msg_tf);
 }
@@ -274,13 +270,8 @@ void Base::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const msgs::
 {
   target_msg.header.frame_id = header_frame_id;
   target_msg.child_frame_id = child_frame_id;
-  target_msg.transform.translation.x = transform.position().x();
-  target_msg.transform.translation.y = transform.position().y();
-  target_msg.transform.translation.z = transform.position().z();
-  target_msg.transform.rotation.x = transform.orientation().x();
-  target_msg.transform.rotation.y = transform.orientation().y();
-  target_msg.transform.rotation.z = transform.orientation().z();
-  target_msg.transform.rotation.w = transform.orientation().w();
+  SetVector3MessageToGeometry(transform.position(), target_msg.transform.translation);
+  SetQuaternionMessageToGeometry(transform.orientation(), target_msg.transform.rotation);
 }
 
 void Base::SetupStaticTf2(const string child_frame_id, const string header_frame_id)
@@ -293,13 +284,8 @@ void Base::SetupStaticTf2(const msgs::Pose transform, const string child_frame_i
   geometry_msgs::msg::TransformStamped static_tf;
   static_tf.header.frame_id = header_frame_id;
   static_tf.child_frame_id = child_frame_id;
-  static_tf.transform.translation.x = transform.position().x();
-  static_tf.transform.translation.y = transform.position().y();
-  static_tf.transform.translation.z = transform.position().z();
-  static_tf.transform.rotation.x = transform.orientation().x();
-  static_tf.transform.rotation.y = transform.orientation().y();
-  static_tf.transform.rotation.z = transform.orientation().z();
-  static_tf.transform.rotation.w = transform.orientation().w();
+  SetVector3MessageToGeometry(transform.position(), static_tf.transform.translation);
+  SetQuaternionMessageToGeometry(transform.orientation(), static_tf.transform.rotation);
 
   AddStaticTf2(static_tf);
 }

@@ -14,6 +14,7 @@
  */
 
 #include "cloisim_ros_micom/micom.hpp"
+#include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <cloisim_msgs/param.pb.h>
@@ -348,22 +349,13 @@ void Micom::UpdateOdom()
   last_rad_[1] += wheel_r_circum;
 
   msg_odom_.header.stamp = m_simTime;
-  msg_odom_.pose.pose.position.x = pbBufMicom_.odom().pose().x();
-  msg_odom_.pose.pose.position.y = pbBufMicom_.odom().pose().y();
-  msg_odom_.pose.pose.position.z = 0.0;
+  SetVector3MessageToGeometry(pbBufMicom_.odom().pose(), msg_odom_.pose.pose.position);
+  SetVector3MessageToGeometry(pbBufMicom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
+  SetVector3MessageToGeometry(pbBufMicom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
 
-  msg_odom_.twist.twist.linear.x = pbBufMicom_.odom().twist_linear().x();
-  msg_odom_.twist.twist.angular.z = pbBufMicom_.odom().twist_angular().z();
-
-  geometry_msgs::msg::Quaternion *q_msg;
   tf2::Quaternion q;
-
   q.setRPY(0.0, 0.0, pbBufMicom_.odom().pose().z());
-  q_msg = &msg_odom_.pose.pose.orientation;
-  q_msg->x = q.x();
-  q_msg->y = q.y();
-  q_msg->z = q.z();
-  q_msg->w = q.w();
+  SetQuaternionMessageToGeometry(q, msg_odom_.pose.pose.orientation);
 
   // static int cnt = 0;
   // if (cnt++ % LOGGING_PERIOD == 0)
@@ -383,20 +375,12 @@ void Micom::UpdateOdom()
 
   wheel_left_tf_.header.stamp = msg_odom_.header.stamp;
   q.setRPY(orig_left_wheel_rot_[0], last_rad_[0], orig_left_wheel_rot_[2]);
-  q_msg = &wheel_left_tf_.transform.rotation;
-  q_msg->x = q.x();
-  q_msg->y = q.y();
-  q_msg->z = q.z();
-  q_msg->w = q.w();
+  SetQuaternionMessageToGeometry(q, wheel_left_tf_.transform.rotation);
   AddTf2(wheel_left_tf_);
 
   wheel_right_tf_.header.stamp = msg_odom_.header.stamp;
   q.setRPY(orig_right_wheel_rot_[0], last_rad_[1], orig_right_wheel_rot_[2]);
-  q_msg = &wheel_right_tf_.transform.rotation;
-  q_msg->x = q.x();
-  q_msg->y = q.y();
-  q_msg->z = q.z();
-  q_msg->w = q.w();
+  SetQuaternionMessageToGeometry(q, wheel_right_tf_.transform.rotation);
   AddTf2(wheel_right_tf_);
 }
 
@@ -404,10 +388,7 @@ void Micom::UpdateImu()
 {
   msg_imu_.header.stamp = m_simTime;
 
-  msg_imu_.orientation.x = pbBufMicom_.imu().orientation().x();
-  msg_imu_.orientation.y = pbBufMicom_.imu().orientation().y();
-  msg_imu_.orientation.z = pbBufMicom_.imu().orientation().z();
-  msg_imu_.orientation.w = pbBufMicom_.imu().orientation().w();
+  SetQuaternionMessageToGeometry(pbBufMicom_.imu().orientation(), msg_imu_.orientation);\
 
    // Fill covariances
   msg_imu_.orientation_covariance[0] = 0.0;
@@ -420,9 +401,7 @@ void Micom::UpdateImu()
   msg_imu_.orientation_covariance[7] = 0.0;
   msg_imu_.orientation_covariance[8] = 0.0;
 
-  msg_imu_.angular_velocity.x = pbBufMicom_.imu().angular_velocity().x();
-  msg_imu_.angular_velocity.y = pbBufMicom_.imu().angular_velocity().y();
-  msg_imu_.angular_velocity.z = pbBufMicom_.imu().angular_velocity().z();
+  SetVector3MessageToGeometry(pbBufMicom_.imu().angular_velocity(), msg_imu_.angular_velocity);
 
   msg_imu_.angular_velocity_covariance[0] = 0.0;
   msg_imu_.angular_velocity_covariance[1] = 0.0;
@@ -434,9 +413,7 @@ void Micom::UpdateImu()
   msg_imu_.angular_velocity_covariance[7] = 0.0;
   msg_imu_.angular_velocity_covariance[8] = 0.0;
 
-  msg_imu_.linear_acceleration.x = pbBufMicom_.imu().linear_acceleration().x();
-  msg_imu_.linear_acceleration.y = pbBufMicom_.imu().linear_acceleration().y();
-  msg_imu_.linear_acceleration.z = pbBufMicom_.imu().linear_acceleration().z();
+  SetVector3MessageToGeometry(pbBufMicom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
 
   msg_imu_.linear_acceleration_covariance[0] = 0.0;
   msg_imu_.linear_acceleration_covariance[1] = 0.0;
