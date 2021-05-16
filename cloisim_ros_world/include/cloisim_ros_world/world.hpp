@@ -18,6 +18,7 @@
 #define _CLOISIM_ROS_WORLD_HPP_
 
 #include <cloisim_ros_base/base.hpp>
+#include <cloisim_msgs/world_stats.pb.h>
 #include <rosgraph_msgs/msg/clock.hpp>
 
 namespace cloisim_ros
@@ -39,7 +40,7 @@ namespace cloisim_ros
   private:
     std::string hashKeySub_;
 
-    cloisim::msgs::Param pbBuf_;
+    cloisim::msgs::WorldStatistics pbBuf;
 
     rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr clock_pub_;
   };
