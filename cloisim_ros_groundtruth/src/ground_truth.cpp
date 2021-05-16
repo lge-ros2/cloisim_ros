@@ -15,9 +15,7 @@
  */
 
 #include "cloisim_ros_groundtruth/ground_truth.hpp"
-#include <cloisim_msgs/param.pb.h>
-#include <cloisim_msgs/any.pb.h>
-#include <cloisim_msgs/time.pb.h>
+#include <cloisim_ros_base/helper.h>
 
 using namespace std;
 using namespace cloisim;
@@ -44,7 +42,7 @@ void GroundTruth::Initialize()
   string model_name;
   uint16_t portData;
   get_parameter_or("model", model_name, string("GroundTruth"));
-  get_parameter_or("bridge.data", portData, uint16_t(0));
+  get_parameter_or("bridge.Data", portData, uint16_t(0));
 
   hashKeySub_ = model_name + GetPartsName();
   DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
@@ -52,13 +50,10 @@ void GroundTruth::Initialize()
   auto pBridgeData = GetBridge(0);
   if (pBridgeData != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Clock");
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
   }
 
-  // Offer transient local durability on the clock topic so that if publishing is infrequent,
-  // late subscribers can receive the previously published message(s).
-  clock_pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock",
-                                                           rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+  pub = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 }
 
 void GroundTruth::Deinitialize()
@@ -76,26 +71,44 @@ void GroundTruth::UpdateData(const uint bridge_index)
     return;
   }
 
-  if (!pbBuf_.ParseFromArray(pBuffer, bufferLength))
+  if (!pbBuf.ParseFromArray(pBuffer, bufferLength))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
     return;
   }
 
-  if (pbBuf_.name() == "timeInfo" &&
-      pbBuf_.value().type() == msgs::Any::NONE &&
-      pbBuf_.children_size() == 2)
-  {
-    const auto simTime = (pbBuf_.children(0).name() != "simTime") ? msgs::Time() : pbBuf_.children(0).value().time_value();
-    // const auto realTime = (pbBuf_.children(1).name() != "realTime") ? msgs::Time() : pbBuf_.children(1).value().time_value();
+  m_simTime = rclcpp::Time(pbBuf.header().stamp().sec(), pbBuf.header().stamp().nsec());
 
-    PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()));
-  }
+  UpdatePerceptionData();
+
+  pub->publish(msg);
 }
 
-void GroundTruth::PublishSimTime(const rclcpp::Time simTime)
+void GroundTruth::UpdatePerceptionData()
 {
-  rosgraph_msgs::msg::Clock clock;
-  clock.clock = simTime;
-  clock_pub_->publish(clock);
+  msg.header.stamp = m_simTime;
+
+  msg.objects.clear();
+
+  for (auto i = 0; i < pbBuf.perception_size(); i++)
+  {
+    const auto perception = pbBuf.perception(i);
+
+    auto object_pose_msg = perception_msgs::msg::ObjectPose();
+    object_pose_msg.tracking_id = perception.tracking_id();
+    object_pose_msg.class_id = perception.class_id();
+
+    SetVector3MessageToGeometry(perception.position(), object_pose_msg.position);
+    SetVector3MessageToGeometry(perception.velocity(), object_pose_msg.velocity);
+
+    for (auto it = perception.foot_prints().begin(); it < perception.foot_prints().end(); ++it)
+    {
+      const auto point = *it;
+      geometry_msgs::msg::Point32 point32;
+      SetVector3MessageToGeometry(point, point32);
+      object_pose_msg.foot_prints.push_back(point32);
+    }
+
+    msg.objects.push_back(object_pose_msg);
+  }
 }

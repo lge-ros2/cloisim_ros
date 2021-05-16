@@ -13,8 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_groundtruth/ground_truth.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
+#include "cloisim_ros_groundtruth/ground_truth.hpp"
 
 int main(int argc, char** argv)
 {

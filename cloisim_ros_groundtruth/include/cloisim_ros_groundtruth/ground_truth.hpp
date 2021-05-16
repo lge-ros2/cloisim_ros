@@ -18,7 +18,8 @@
 #define _CLOISIM_ROS_GROUNDTRUTH_HPP_
 
 #include <cloisim_ros_base/base.hpp>
-#include <rosgraph_msgs/msg/clock.hpp>
+#include <cloisim_msgs/perception_v.pb.h>
+#include <perception_msgs/msg/object_array.hpp>
 
 namespace cloisim_ros
 {
@@ -34,14 +35,16 @@ namespace cloisim_ros
     virtual void Deinitialize() override;
     virtual void UpdateData(const uint bridge_index) override;
 
-    void PublishSimTime(const rclcpp::Time simTime);
+    void UpdatePerceptionData();
 
   private:
     std::string hashKeySub_;
 
-    cloisim::msgs::Param pbBuf_;
+    cloisim::msgs::Perception_V pbBuf;
 
-    // rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr clock_pub_;
+    perception_msgs::msg::ObjectArray msg;
+
+    rclcpp::Publisher<perception_msgs::msg::ObjectArray>::SharedPtr pub;
   };
 }
 #endif
