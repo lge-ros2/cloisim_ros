@@ -15,6 +15,7 @@ package cloisim.msgs;
 /// \interface perception_V
 /// \brief Message for perception
 
+import "header.proto";
 import "perception.proto";
 
 message Perception_V
