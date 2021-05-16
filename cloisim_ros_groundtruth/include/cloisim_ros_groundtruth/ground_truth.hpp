@@ -1,6 +1,6 @@
 /**
- *  @file   cloisim_ros_groundtruth.hpp
- *  @date   2021-01-14
+ *  @file   ground_truth.hpp
+ *  @date   2021-05-16
  *  @author Hyunseok Yang
  *  @brief
  *        ROS2 node for controlling unity simulation
