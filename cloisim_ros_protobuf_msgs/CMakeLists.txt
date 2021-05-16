@@ -23,6 +23,8 @@ list(APPEND PROTOBUF_DEFINITION_FILES "imu;image;images_stamped;image_stamped;ca
 list(APPEND PROTOBUF_DEFINITION_FILES "laserscan;laserscan_stamped")
 list(APPEND PROTOBUF_DEFINITION_FILES "micom;battery;pointcloud;gps")
 list(APPEND PROTOBUF_DEFINITION_FILES "world_stats;log_playback_stats")
+list(APPEND PROTOBUF_DEFINITION_FILES "perception;perception_v")
+list(APPEND PROTOBUF_DEFINITION_FILES "request;response")
 
 set(PROTOBUF_IMPORT_DIRS)
 set(Protobuf_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/${PROTOBUF_MSGS_DIRECTORY})
