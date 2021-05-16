@@ -13,7 +13,7 @@
  */
 
 #include "cloisim_ros_realsense/realsense.hpp"
-#include <cloisim_ros_base/helper.h>
+#include <cloisim_ros_base/camera_helper.h>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <tf2/LinearMath/Quaternion.h>

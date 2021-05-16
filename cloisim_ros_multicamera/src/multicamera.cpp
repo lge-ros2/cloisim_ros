@@ -15,7 +15,7 @@
 #include "cloisim_ros_multicamera/multicamera.hpp"
 #include <sensor_msgs/fill_image.hpp>
 #include <tf2/LinearMath/Quaternion.h>
-#include <cloisim_ros_base/helper.h>
+#include <cloisim_ros_base/camera_helper.h>
 #include <cloisim_msgs/param.pb.h>
 
 using namespace std;
