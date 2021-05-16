@@ -4,9 +4,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(cloisim_ros_protobuf_msgs)
 
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
+cloisim_ros_package()
 
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies

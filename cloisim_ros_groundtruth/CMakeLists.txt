@@ -2,30 +2,21 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_world)
+project(cloisim_ros_groundtruth)
 
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -fstack-protector -O2)
-endif()
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
+cloisim_ros_package()
 
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
-find_package(rosgraph_msgs REQUIRED)
+find_package(perception_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
-  rosgraph_msgs
+  perception_msgs
   cloisim_ros_base
   cloisim_ros_bringup_param
 )
@@ -35,7 +26,7 @@ set(dependencies
 ################################################################################
 add_library(
   ${PROJECT_NAME}_core SHARED
-  src/world.cpp
+  src/ground_truth.cpp
 )
 
 target_include_directories(
