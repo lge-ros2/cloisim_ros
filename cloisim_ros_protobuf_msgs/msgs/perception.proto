@@ -23,5 +23,5 @@ message Perception
   required int32 class_id = 2;
   required Vector3d position = 3;
   required Vector3d velocity = 4;
-  repeated Vector3d foot_prints = 5;
+  repeated Vector3d footprints = 5;
 }

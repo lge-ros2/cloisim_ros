@@ -101,12 +101,12 @@ void GroundTruth::UpdatePerceptionData()
     SetVector3MessageToGeometry(perception.position(), object_pose_msg.position);
     SetVector3MessageToGeometry(perception.velocity(), object_pose_msg.velocity);
 
-    for (auto it = perception.foot_prints().begin(); it < perception.foot_prints().end(); ++it)
+    for (auto it = perception.footprints().begin(); it < perception.footprints().end(); ++it)
     {
       const auto point = *it;
       geometry_msgs::msg::Point32 point32;
       SetVector3MessageToGeometry(point, point32);
-      object_pose_msg.foot_prints.push_back(point32);
+      object_pose_msg.footprints.push_back(point32);
     }
 
     msg.objects.push_back(object_pose_msg);
