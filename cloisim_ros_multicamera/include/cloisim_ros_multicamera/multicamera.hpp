@@ -33,24 +33,20 @@ namespace cloisim_ros
   private:
     virtual void Initialize() override;
     virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
+    virtual void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    std::string multicamera_name_;
-
-    std::string hashKeySub_;
-
     // buffer from simulation
-    cloisim::msgs::ImagesStamped pbBuf_;
+    cloisim::msgs::ImagesStamped pbBuf;
 
     // message for ROS2 communictaion
-    std::map<int, sensor_msgs::msg::Image> msgImgs_;
+    std::map<int, sensor_msgs::msg::Image> msgImgs;
 
     // Camera info managers
     std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
 
     // Image publisher
-    std::vector<image_transport::CameraPublisher> pubImages_;
+    std::vector<image_transport::CameraPublisher> pubs;
   };
 }
 #endif
