@@ -32,30 +32,25 @@ namespace cloisim_ros
     virtual ~RealSense();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
+    void Initialize() override;
+    void Deinitialize() override;
+    void UpdatePublishingData(zmq::Bridge* const pBridge, const std::string &buffer) override;
 
     void GetActivatedModules(zmq::Bridge *const pBridge);
 
   private:
     cloisim::msgs::CameraSensor m_pbTmpBufCameraSensorInfo;
 
-    std::vector<std::string> module_list_;
-    std::vector<std::thread> threads_;
-
-    // key for connection
-    std::map<int, uint16_t> dataPortMap_;
-    std::map<int, std::string> hashKeySubs_;
+    std::vector<std::string> activated_modules;
 
     // message for ROS2 communictaion
-    std::map<int, sensor_msgs::msg::Image> msgImgs_;
+    std::map<zmq::Bridge* const, sensor_msgs::msg::Image> msgImgs;
 
     // Camera info managers
-    std::map<int, std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager_;
+    std::map<zmq::Bridge* const, std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManagers;
 
     // Image publisher
-    std::map<int, image_transport::CameraPublisher> pubImages_;
+    std::map<zmq::Bridge* const, image_transport::CameraPublisher> pubs;
   };
 }
 #endif

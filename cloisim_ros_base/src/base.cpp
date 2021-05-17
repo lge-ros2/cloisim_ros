@@ -57,7 +57,7 @@ Base::~Base()
   }
 }
 
-void Base::Start(const bool runSingleDataThread)
+void Base::Start()
 {
   const auto wallTimerPeriod = 0.5s;
   m_bRunThread = true;
@@ -66,14 +66,6 @@ void Base::Start(const bool runSingleDataThread)
   m_static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(m_node_handle);
 
   Initialize();
-
-  // if (runSingleDataThread)
-  // {
-  //   m_thread = thread([=]() {
-  //     while (IsRunThread()) {
-  //       UpdateData();
-  //     }});
-  // }
 
   auto callback_static_tf_pub = [this]() -> void {
     PublishStaticTF();
@@ -166,6 +158,7 @@ void Base::CreatePublisherThread(zmq::Bridge* const pBridge)
 
       const string buffer((const char *)pBuffer, bufferLength);
       UpdatePublishingData(buffer);
+      UpdatePublishingData(pBridge, buffer);
     }
   }));
 }

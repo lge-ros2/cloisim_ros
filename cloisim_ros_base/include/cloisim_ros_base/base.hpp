@@ -39,14 +39,15 @@ namespace cloisim_ros
   protected:
     virtual void Initialize() = 0;
     virtual void Deinitialize() = 0;
-    virtual void UpdatePublishingData(const std::string &buffer) = 0; // Function called at loop thread
+    virtual void UpdatePublishingData(const std::string &buffer) {};
+    virtual void UpdatePublishingData(zmq::Bridge* const pBridge, const std::string &buffer) {};
 
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
     void SetupStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
     void SetupStaticTf2(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
 
-    void Start(const bool runSingleDataThread = true);
+    void Start();
     void Stop();
 
     void SetupStaticTf2Message(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string parent_frame_id = "base_link");
@@ -76,7 +77,7 @@ namespace cloisim_ros
     std::string GetRobotName();
     std::string GetPartsName() { return get_name(); }
     std::string GetMainHashKey() { return GetRobotName() + GetPartsName(); }
-    std::string GetTargetHashKey(const std::string value) { return GetRobotName() + GetPartsName() + value; }
+    std::string GetTargetHashKey(const std::string value) { return GetMainHashKey() + value; }
 
     void PublishTF();
 
