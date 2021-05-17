@@ -85,25 +85,21 @@ void Gps::Initialize()
   }
 }
 
-void Gps::Deinitialize()
-{
-}
-
 void Gps::UpdatePublishingData(const string &buffer)
 {
-  if (!pbGps.ParseFromString(buffer))
+  if (!pbBuf.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  SetSimTime(pbGps.time());
+  SetSimTime(pbBuf.time());
 
   // Fill message with latest sensor data
   msgNavSat.header.stamp = GetSimTime();
-  msgNavSat.latitude = pbGps.latitude_deg();
-  msgNavSat.longitude = pbGps.longitude_deg();
-  msgNavSat.altitude = pbGps.altitude();
+  msgNavSat.latitude = pbBuf.latitude_deg();
+  msgNavSat.longitude = pbBuf.longitude_deg();
+  msgNavSat.altitude = pbBuf.altitude();
 
   pub->publish(msgNavSat);
 }

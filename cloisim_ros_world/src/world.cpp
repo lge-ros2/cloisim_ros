@@ -59,10 +59,6 @@ void World::Initialize()
   }
 }
 
-void World::Deinitialize()
-{
-}
-
 void World::UpdatePublishingData(const string &buffer)
 {
   if (!pbBuf.ParseFromString(buffer))

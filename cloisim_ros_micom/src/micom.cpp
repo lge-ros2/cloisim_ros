@@ -120,10 +120,6 @@ void Micom::Initialize()
   srvResetOdom_ = create_service<std_srvs::srv::Empty>("reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
 }
 
-void Micom::Deinitialize()
-{
-}
-
 void Micom::GetWeelInfo(zmq::Bridge* const pBridge)
 {
   if (pBridge == nullptr)

@@ -34,9 +34,8 @@ namespace cloisim_ros
     virtual ~ElevatorSystem();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdatePublishingData(const std::string &buffer) override { (void)buffer; };
+    void Initialize() override;
+    void Deinitialize() override { };
 
   private:
     std::string systemName;

@@ -30,13 +30,13 @@ namespace cloisim_ros
     ~Gps();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdatePublishingData(const std::string &buffer) override;
+    void Initialize() override;
+    void Deinitialize() override { };
+    void UpdatePublishingData(const std::string &buffer) override;
 
   private:
     // buffer from simulation
-    cloisim::msgs::GPS pbGps;
+    cloisim::msgs::GPS pbBuf;
 
     // message for ROS2 communictaion
     sensor_msgs::msg::NavSatFix msgNavSat;

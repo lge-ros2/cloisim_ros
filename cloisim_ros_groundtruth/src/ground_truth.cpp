@@ -42,21 +42,17 @@ void GroundTruth::Initialize()
   uint16_t portData;
   get_parameter_or("bridge.Data", portData, uint16_t(0));
 
-  const auto hashKeySrv = GetModelName() + GetPartsName() + "Data";
-  DBG_SIM_INFO("hash Key srv: %s", hashKeySrv.c_str());
+  const auto hashKey = GetModelName() + GetPartsName() + "Data";
+  DBG_SIM_INFO("hash Key: %s", hashKey.c_str());
 
   pub = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
-  auto pBridgeData = CreateBridge(hashKeySrv);
+  auto pBridgeData = CreateBridge(hashKey);
   if (pBridgeData != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySrv);
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
     CreatePublisherThread(pBridgeData);
   }
-}
-
-void GroundTruth::Deinitialize()
-{
 }
 
 void GroundTruth::UpdatePublishingData(const string &buffer)

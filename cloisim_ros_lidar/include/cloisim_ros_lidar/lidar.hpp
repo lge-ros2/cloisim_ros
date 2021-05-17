@@ -34,9 +34,9 @@ namespace cloisim_ros
     ~Lidar();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdatePublishingData(const std::string &buffer) override;
+    void Initialize() override;
+    void Deinitialize() override { };
+    void UpdatePublishingData(const std::string &buffer) override;
 
   private:
     std::string GetOutputType(zmq::Bridge* const pBridge);

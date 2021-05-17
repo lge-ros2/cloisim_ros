@@ -92,10 +92,6 @@ void Lidar::Initialize()
   }
 }
 
-void Lidar::Deinitialize()
-{
-}
-
 string Lidar::GetOutputType(zmq::Bridge* const pBridge)
 {
   const auto reply = RequestReplyMessage(pBridge, "request_output_type");

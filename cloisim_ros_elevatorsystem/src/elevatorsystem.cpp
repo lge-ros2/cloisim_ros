@@ -29,7 +29,7 @@ ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string
     , pBridgeControl(nullptr)
     , srvMode_(false)
 {
-  Start(false);
+  Start();
 }
 
 ElevatorSystem::ElevatorSystem()
@@ -95,11 +95,6 @@ void ElevatorSystem::Initialize()
   srvReleaseElevator_ = this->create_service<srv::ReturnBool>(
       nodeName + string("/release_elevator"), BindCallback(ReleaseElevator));
 }
-
-void ElevatorSystem::Deinitialize()
-{
-}
-
 
 void ElevatorSystem::CallElevator(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
