@@ -52,7 +52,6 @@ void ElevatorSystem::Initialize()
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
 
   pBridgeControl = CreateBridge(hashKeySrv);
-
   if (pBridgeControl != nullptr)
   {
     pBridgeControl->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);

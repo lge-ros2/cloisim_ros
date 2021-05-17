@@ -22,7 +22,7 @@ using namespace cloisim;
 using namespace cloisim_ros;
 
 GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name_)
-  : Base(node_name_, options_, 1)
+  : Base(node_name_, options_)
 {
   Start();
 }
@@ -39,45 +39,35 @@ GroundTruth::~GroundTruth()
 
 void GroundTruth::Initialize()
 {
-  string model_name;
   uint16_t portData;
-  get_parameter_or("model", model_name, string("GroundTruth"));
   get_parameter_or("bridge.Data", portData, uint16_t(0));
 
-  hashKeySub_ = model_name + GetPartsName();
-  DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
-
-  auto pBridgeData = GetBridge(0);
-  if (pBridgeData != nullptr)
-  {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
-  }
+  const auto hashKeySrv = GetModelName() + GetPartsName() + "Data";
+  DBG_SIM_INFO("hash Key srv: %s", hashKeySrv.c_str());
 
   pub = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+
+  auto pBridgeData = CreateBridge(hashKeySrv);
+  if (pBridgeData != nullptr)
+  {
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySrv);
+    CreatePublisherThread(pBridgeData);
+  }
 }
 
 void GroundTruth::Deinitialize()
 {
 }
 
-void GroundTruth::UpdateData(const uint bridge_index)
+void GroundTruth::UpdatePublishingData(const string &buffer)
 {
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
-  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
-  if (!succeeded || bufferLength < 0)
+  if (!pbBuf.ParseFromString(buffer))
   {
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  if (!pbBuf.ParseFromArray(pBuffer, bufferLength))
-  {
-    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-    return;
-  }
-
-  m_simTime = rclcpp::Time(pbBuf.header().stamp().sec(), pbBuf.header().stamp().nsec());
+  SetSimTime(pbBuf.header().stamp());
 
   UpdatePerceptionData();
 
@@ -86,7 +76,7 @@ void GroundTruth::UpdateData(const uint bridge_index)
 
 void GroundTruth::UpdatePerceptionData()
 {
-  msg.header.stamp = m_simTime;
+  msg.header.stamp = GetSimTime();
 
   msg.objects.clear();
 
