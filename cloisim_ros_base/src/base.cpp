@@ -20,22 +20,22 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-Base::Base(const string node_name_, const rclcpp::NodeOptions &options_, const int number_of_bridges)
-    : Base(node_name_, "",  rclcpp::NodeOptions(options_), number_of_bridges)
+Base::Base(const string node_name_, const rclcpp::NodeOptions &options_)
+    : Base(node_name_, "",  rclcpp::NodeOptions(options_))
 {
 }
 
-Base::Base(const string node_name_, const int number_of_bridges)
-    : Base(node_name_, "", rclcpp::NodeOptions(), number_of_bridges)
+Base::Base(const string node_name_)
+    : Base(node_name_, "", rclcpp::NodeOptions())
 {
 }
 
-Base::Base(const string node_name_, const string namespace_, const int number_of_bridges)
-    : Base(node_name_, namespace_,  rclcpp::NodeOptions(), number_of_bridges)
+Base::Base(const string node_name_, const string namespace_)
+    : Base(node_name_, namespace_,  rclcpp::NodeOptions())
 {
 }
 
-Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeOptions &options_, const int number_of_bridges)
+Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeOptions &options_)
     : Node(node_name_,
            namespace_,
            rclcpp::NodeOptions(options_)
@@ -45,31 +45,21 @@ Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeO
     , m_bRunThread(false)
     , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
 {
-  SetupBridges(number_of_bridges);
+  // SetupBridges(number_of_bridges);
 }
 
 Base::~Base()
 {
   // DBG_SIM_INFO("Delete");
-  for (auto pBridge : m_bridgeList)
+  for (auto item : m_haskKeyBridgeMap)
   {
-    delete pBridge;
-  }
-}
-
-void Base::SetupBridges(const int number_of_bridges)
-{
-  m_bridgeList.reserve(number_of_bridges);
-
-  for (size_t index = 0; index < m_bridgeList.capacity(); index++)
-  {
-    auto pBridge = new zmq::Bridge();
-    m_bridgeList.push_back(pBridge);
+    delete item.second;
   }
 }
 
 void Base::Start(const bool runSingleDataThread)
 {
+  const auto wallTimerPeriod = 0.5s;
   m_bRunThread = true;
 
   m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(m_node_handle);
@@ -77,30 +67,33 @@ void Base::Start(const bool runSingleDataThread)
 
   Initialize();
 
-  if (runSingleDataThread)
-  {
-    m_thread = thread([=]() {
-      while (IsRunThread()) {
-        UpdateData();
-      }});
-  }
+  // if (runSingleDataThread)
+  // {
+  //   m_thread = thread([=]() {
+  //     while (IsRunThread()) {
+  //       UpdateData();
+  //     }});
+  // }
 
   auto callback_static_tf_pub = [this]() -> void {
     PublishStaticTF();
   };
 
   // ROS2 timer for static tf
-  m_timer = this->create_wall_timer(0.5s, callback_static_tf_pub);
+  m_timer = this->create_wall_timer(wallTimerPeriod, callback_static_tf_pub);
 }
 
 void Base::Stop()
 {
   m_bRunThread = false;
 
-  if (m_thread.joinable())
+  for (auto &thread : m_threads)
   {
-    m_thread.join();
-    // DBG_SIM_INFO("Thread finished");
+    if (thread.joinable())
+    {
+      thread.join();
+      // DBG_SIM_INFO("Thread finished");
+    }
   }
 
   Deinitialize();
@@ -136,23 +129,45 @@ void Base::PublishStaticTF()
   m_static_tf_broadcaster->sendTransform(m_static_tf_list);
 }
 
-zmq::Bridge* Base::GetBridge(const uint bridge_index)
+zmq::Bridge* Base::CreateBridge(const string hashKey)
 {
-  if (bridge_index >= m_bridgeList.capacity())
-  {
-    DBG_SIM_WRN("Wrong bridge index(%d) / total sim bridges(%lu)", bridge_index, m_bridgeList.capacity());
-    return nullptr;
-  }
+  auto pBridge = new zmq::Bridge();
+  m_haskKeyBridgeMap[hashKey] = pBridge;
 
-  return m_bridgeList.at(bridge_index);
+  return pBridge;
+}
+
+zmq::Bridge* Base::GetBridge(const string hashKey)
+{
+  const auto search = m_haskKeyBridgeMap.find(hashKey);
+  return (search != m_haskKeyBridgeMap.end()) ? search->second : nullptr;
 }
 
 void Base::CloseBridges()
 {
-  for (auto pBridge : m_bridgeList)
+  for (auto item : m_haskKeyBridgeMap)
   {
-    pBridge->Disconnect();
+    (item.second)->Disconnect();
   }
+}
+
+void Base::CreatePublisherThread(zmq::Bridge* const pBridge)
+{
+  m_threads.emplace_back(thread([this, pBridge]() {
+    while (IsRunThread())
+    {
+      void *pBuffer = nullptr;
+      int bufferLength = 0;
+      const bool succeeded = GetBufferFromSimulator(pBridge, &pBuffer, bufferLength);
+      if (!succeeded || bufferLength < 0)
+      {
+        continue;
+      }
+
+      const string buffer((const char *)pBuffer, bufferLength);
+      UpdatePublishingData(buffer);
+    }
+  }));
 }
 
 string Base::GetRobotName()
@@ -164,12 +179,6 @@ string Base::GetRobotName()
   get_parameter("single_mode.robotname", robotName);
 
   return (isSingleMode) ? robotName : string(get_namespace()).substr(1);
-}
-
-msgs::Pose Base::GetObjectTransform(const int bridge_index, const string target_name)
-{
-  auto const pBridge = GetBridge(bridge_index);
-  return GetObjectTransform(pBridge, target_name);
 }
 
 msgs::Pose Base::GetObjectTransform(zmq::Bridge* const pBridge, const string target_name)
@@ -243,9 +252,8 @@ void Base::GetRos2Parameter(zmq::Bridge* const pBridge)
   }
 }
 
-bool Base::GetBufferFromSimulator(const uint bridge_index, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode)
+bool Base::GetBufferFromSimulator(zmq::Bridge* const pBridge, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode)
 {
-  auto pBridge = GetBridge(bridge_index);
   if (pBridge == nullptr)
   {
     DBG_SIM_ERR("sim bridge is null!!");
@@ -340,4 +348,9 @@ msgs::Pose Base::IdentityPose()
 string Base::GetFrameId(const string default_frame_id)
 {
   return (frame_id_list_.size() == 0) ? default_frame_id : frame_id_list_.back();
+}
+
+void Base::SetSimTime(const int32_t seconds, const uint32_t nanoseconds)
+{
+  m_simTime = rclcpp::Time(seconds, nanoseconds);
 }
