@@ -33,16 +33,14 @@ namespace cloisim_ros
   private:
     virtual void Initialize() override;
     virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
-
-    void PublishSimTime(const rclcpp::Time simTime);
+    virtual void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    std::string hashKeySub_;
-
     cloisim::msgs::WorldStatistics pbBuf;
 
-    rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr clock_pub_;
+    rosgraph_msgs::msg::Clock msgClock;
+
+    rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub;
   };
 }
 #endif
