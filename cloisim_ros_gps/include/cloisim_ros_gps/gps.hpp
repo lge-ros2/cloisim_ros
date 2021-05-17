@@ -32,20 +32,17 @@ namespace cloisim_ros
   private:
     virtual void Initialize() override;
     virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
+    virtual void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    // key for connection
-    std::string hashKeySub_;
-
     // buffer from simulation
-    cloisim::msgs::GPS pbBuf_;
+    cloisim::msgs::GPS pbGps;
 
     // message for ROS2 communictaion
-    sensor_msgs::msg::NavSatFix msg_navsat;
+    sensor_msgs::msg::NavSatFix msgNavSat;
 
     // Laser publisher
-    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pubNav;
+    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub;
   };
 }
 #endif
