@@ -309,30 +309,33 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string r
 {
   msgs::Param reply;
 
-  string serialized_request_data;
-  msgs::Param request;
-  request.set_name(request_message);
-
-  if (!request_value.empty())
+  if (pBridge != nullptr)
   {
-    auto pVal = request.mutable_value();
-    pVal->set_type(cloisim::msgs::Any::STRING);
-    pVal->set_string_value(request_value);
-  }
+    string serialized_request_data;
+    msgs::Param request;
+    request.set_name(request_message);
 
-  request.SerializeToString(&serialized_request_data);
-
-  const auto serialized_reply_data = pBridge->RequestReply(serialized_request_data);
-
-  if (serialized_reply_data.size() <= 0)
-  {
-    DBG_SIM_ERR("Faild to get reply data, length(%ld)", serialized_reply_data.size());
-  }
-  else
-  {
-    if (reply.ParseFromString(serialized_reply_data) == false)
+    if (!request_value.empty())
     {
-      DBG_SIM_ERR("Faild to parse serialized buffer, pBuffer(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
+      auto pVal = request.mutable_value();
+      pVal->set_type(cloisim::msgs::Any::STRING);
+      pVal->set_string_value(request_value);
+    }
+
+    request.SerializeToString(&serialized_request_data);
+
+    const auto serialized_reply_data = pBridge->RequestReply(serialized_request_data);
+
+    if (serialized_reply_data.size() <= 0)
+    {
+      DBG_SIM_ERR("Faild to get reply data, length(%ld)", serialized_reply_data.size());
+    }
+    else
+    {
+      if (reply.ParseFromString(serialized_reply_data) == false)
+      {
+        DBG_SIM_ERR("Faild to parse serialized buffer, pBuffer(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
+      }
     }
   }
 
@@ -372,7 +375,6 @@ string Base::GetFrameId(const string default_frame_id)
 {
   return (frame_id_list_.size() == 0) ? default_frame_id : frame_id_list_.back();
 }
-
 
 void Base::SetSimTime(const cloisim::msgs::Time &time)
 {

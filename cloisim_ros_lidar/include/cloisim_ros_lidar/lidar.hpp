@@ -36,7 +36,7 @@ namespace cloisim_ros
   private:
     virtual void Initialize() override;
     virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
+    virtual void UpdatePublishingData(const std::string &buffer) override;
 
   private:
     std::string GetOutputType(zmq::Bridge* const pBridge);
@@ -44,17 +44,14 @@ namespace cloisim_ros
     void UpdateLaserData(const double min_intensity = 0.0);
 
   private:
-    // key for connection
-    std::string hashKeySub_;
-
     std::string frame_id;
 
     // buffer from simulation
-    cloisim::msgs::LaserScanStamped pbBuf_;
+    cloisim::msgs::LaserScanStamped pbBuf;
 
     // message for ROS2 communictaion
-    sensor_msgs::msg::LaserScan msg_laser;
-    sensor_msgs::msg::PointCloud2 msg_pc2;
+    sensor_msgs::msg::LaserScan msgLaser;
+    sensor_msgs::msg::PointCloud2 msgPC2;
 
     // Laser publisher
     LaserScanPub pubLaser;
