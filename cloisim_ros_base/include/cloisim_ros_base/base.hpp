@@ -20,6 +20,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <cloisim_ros_bridge_zmq/bridge.hpp>
+#include <cloisim_msgs/time.pb.h>
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/pose.pb.h>
 #include <vector>
@@ -71,6 +72,7 @@ namespace cloisim_ros
 
     void CreatePublisherThread(zmq::Bridge* const pBridge);
 
+    std::string GetModelName();
     std::string GetRobotName();
     std::string GetPartsName() { return get_name(); }
     std::string GetMainHashKey() { return GetRobotName() + GetPartsName(); }
@@ -86,11 +88,13 @@ namespace cloisim_ros
 
     std::string GetFrameId(const std::string default_frame_id = "base_link");
 
+    void SetSimTime(const cloisim::msgs::Time &time);
     void SetSimTime(const int32_t seconds, const uint32_t nanoseconds);
     rclcpp::Time GetSimTime() { return m_simTime; }
 
   public:
     static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const pBridge, const std::string request_message, const std::string request_value = "");
+    static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const pBridge, const cloisim::msgs::Param request_message);
     static cloisim::msgs::Pose IdentityPose();
 
   private:

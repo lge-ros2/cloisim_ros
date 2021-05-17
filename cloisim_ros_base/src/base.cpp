@@ -170,6 +170,13 @@ void Base::CreatePublisherThread(zmq::Bridge* const pBridge)
   }));
 }
 
+string Base::GetModelName()
+{
+  string model_name;
+  get_parameter_or("model", model_name, string(""));
+  return model_name;
+}
+
 string Base::GetRobotName()
 {
   bool isSingleMode;
@@ -332,6 +339,22 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string r
   return reply;
 }
 
+msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const msgs::Param request_message)
+{
+  msgs::Param response_msg;
+
+  string serializedBuffer;
+  request_message.SerializeToString(&serializedBuffer);
+
+  if (pBridge != nullptr)
+  {
+    const auto reply_data = pBridge->RequestReply(serializedBuffer);
+    response_msg.ParseFromString(reply_data);
+  }
+
+  return response_msg;
+}
+
 msgs::Pose Base::IdentityPose()
 {
   msgs::Pose identityTransform;
@@ -348,6 +371,12 @@ msgs::Pose Base::IdentityPose()
 string Base::GetFrameId(const string default_frame_id)
 {
   return (frame_id_list_.size() == 0) ? default_frame_id : frame_id_list_.back();
+}
+
+
+void Base::SetSimTime(const cloisim::msgs::Time &time)
+{
+  SetSimTime(time.sec(), time.nsec());
 }
 
 void Base::SetSimTime(const int32_t seconds, const uint32_t nanoseconds)

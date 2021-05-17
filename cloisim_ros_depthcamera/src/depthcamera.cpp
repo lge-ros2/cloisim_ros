@@ -27,7 +27,6 @@ DepthCamera::DepthCamera(const string node_name_, const string namespace_)
 {
 }
 
-
 DepthCamera::~DepthCamera()
 {
   // DBG_SIM_INFO("Delete");
@@ -48,8 +47,7 @@ void DepthCamera::Deinitialize()
   DBG_SIM_INFO("DepthCamera Deinitialization");
 }
 
-void DepthCamera::UpdateData(const uint bridge_index)
+void DepthCamera::UpdatePublishingData(const string &buffer)
 {
-  (void)bridge_index;
-  Camera::UpdateData();
+  Camera::UpdatePublishingData(buffer);
 }

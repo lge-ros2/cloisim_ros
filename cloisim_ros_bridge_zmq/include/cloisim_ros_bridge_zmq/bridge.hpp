@@ -105,7 +105,7 @@ namespace cloisim_ros
       bool CloseSocket(void*& target);
 
     private:
-      std::string GetBridgeAddress(const uint16_t port)
+      std::string GetAddress(const uint16_t port)
       {
         return std::string((useTCP)? "tcp":"udp") + "://" + bridgeAddr_ + ":" + std::to_string(port);
       }

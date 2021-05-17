@@ -30,7 +30,7 @@ namespace cloisim_ros
   private:
     virtual void Initialize() override;
     virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
+    virtual void UpdatePublishingData(const std::string &buffer) override;
 
   private:
     // Camera info publisher
