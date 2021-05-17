@@ -36,11 +36,10 @@ namespace cloisim_ros
   private:
     virtual void Initialize() override;
     virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override { (void)bridge_index; };
+    virtual void UpdatePublishingData(const std::string &buffer) override { (void)buffer; };
 
   private:
-    std::string systemName_;
-    std::string hashKeySrv_;
+    std::string systemName;
 
     zmq::Bridge *pBridgeControl;
 

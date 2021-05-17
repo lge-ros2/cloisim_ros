@@ -24,8 +24,8 @@ using namespace elevator_system_msgs;
 #define BindCallback(func) bind(&ElevatorSystem::func, this, _1, _2, _3)
 
 ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string node_name_)
-    : Base(node_name_, options_, 1)
-    , systemName_("ElevatorSystem")
+    : Base(node_name_, options_)
+    , systemName("ElevatorSystem")
     , pBridgeControl(nullptr)
     , srvMode_(false)
 {
@@ -33,7 +33,7 @@ ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string
 }
 
 ElevatorSystem::ElevatorSystem()
-    : ElevatorSystem(rclcpp::NodeOptions(), "cloisim_ros_world")
+    : ElevatorSystem(rclcpp::NodeOptions(), "cloisim_ros_elevatorsystem")
 {
 }
 
@@ -44,40 +44,27 @@ ElevatorSystem::~ElevatorSystem()
 
 void ElevatorSystem::Initialize()
 {
-  string modelName;
-  get_parameter_or("model", modelName, string("SeochoTower"));
-
   const auto nodeName = GetPartsName();
-  hashKeySrv_ = modelName + nodeName;
-  DBG_SIM_INFO("hash Key srv: %s", hashKeySrv_.c_str());
+  const auto hashKeySrv = GetModelName() + nodeName + "Control";
+  DBG_SIM_INFO("hash Key srv: %s", hashKeySrv.c_str());
 
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
 
-  pBridgeControl = GetBridge(0);
+  pBridgeControl = CreateBridge(hashKeySrv);
 
   if (pBridgeControl != nullptr)
   {
-    pBridgeControl->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv_ + "Control");
+    pBridgeControl->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);
 
-    msgs::Param newRequest;
-    newRequest.set_name("request_system_name");
-
-    string serializedBuffer;
-    newRequest.SerializeToString(&serializedBuffer);
-
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
-
-    msgs::Param response;
-    response.ParseFromString(reply_data);
-
-    if (response.IsInitialized())
+    const auto reply = RequestReplyMessage(pBridgeControl, "request_system_name");
+    if (reply.IsInitialized())
     {
-      if (response.name().compare("request_system_name") == 0 &&
-          response.value().type() == msgs::Any_ValueType_STRING &&
-          !response.value().string_value().empty())
+      if (reply.name().compare("request_system_name") == 0 &&
+          reply.value().type() == msgs::Any_ValueType_STRING &&
+          !reply.value().string_value().empty())
       {
-        systemName_ = response.value().string_value();
+        systemName = reply.value().string_value();
       }
     }
   }
@@ -114,29 +101,20 @@ void ElevatorSystem::Deinitialize()
 {
 }
 
+
 void ElevatorSystem::CallElevator(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
     const shared_ptr<srv::CallElevator::Request> request,
     const shared_ptr<srv::CallElevator::Response> response)
 {
-  auto message = CreateRequest("call_elevator",
+  const auto message = CreateRequest("call_elevator",
                                request->current_floor,
                                request->target_floor);
 
-  string serializedBuffer;
-  message.SerializeToString(&serializedBuffer);
-
-  if (pBridgeControl != nullptr)
+  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  if (reply.IsInitialized())
   {
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
-
-    msgs::Param response_msg;
-    response_msg.ParseFromString(reply_data);
-
-    if (response_msg.IsInitialized())
-    {
-      response->result = GetResultFromResponse(response_msg);
-    }
+    response->result = GetResultFromResponse(reply);
   }
 }
 
@@ -149,27 +127,17 @@ void ElevatorSystem::GetElevatorCalled(
                                request->current_floor,
                                request->target_floor);
 
-  string serializedBuffer;
-  message.SerializeToString(&serializedBuffer);
-
-  if (pBridgeControl != nullptr)
+  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  if (reply.IsInitialized())
   {
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
+      response->result = GetResultFromResponse(reply);
 
-    msgs::Param response_msg;
-    response_msg.ParseFromString(reply_data);
-
-    if (response_msg.IsInitialized())
-    {
-      response->result = GetResultFromResponse(response_msg);
-
-      auto result_param = response_msg.children(2);
+      const auto result_param = reply.children(2);
       if (result_param.IsInitialized())
       {
         const auto elevator_index = (result_param.name().compare("elevator_index") != 0) ? "":result_param.value().string_value();
         response->elevator_index = elevator_index;
       }
-    }
   }
 }
 
@@ -180,35 +148,25 @@ void ElevatorSystem::GetElevatorInfo(
 {
   auto message = CreateRequest("get_elevator_information", request->elevator_index);
 
-  string serializedBuffer;
-  message.SerializeToString(&serializedBuffer);
-
-  if (pBridgeControl != nullptr)
+  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  if (reply.IsInitialized())
   {
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
+    msgs::Param result_param;
 
-    msgs::Param response_msg;
-    response_msg.ParseFromString(reply_data);
+    response->result = GetResultFromResponse(reply);
 
-    if (response_msg.IsInitialized())
+    result_param = reply.children(3);
+    if (result_param.IsInitialized())
     {
-      msgs::Param result_param;
+      const auto current_floor = (result_param.name().compare("current_floor") != 0) ? "" : result_param.value().string_value();
+      response->current_floor = current_floor;
+    }
 
-      response->result = GetResultFromResponse(response_msg);
-
-      result_param = response_msg.children(3);
-      if (result_param.IsInitialized())
-      {
-        const auto current_floor = (result_param.name().compare("current_floor") != 0) ? "" : result_param.value().string_value();
-        response->current_floor = current_floor;
-      }
-
-      result_param = response_msg.children(4);
-      if (result_param.IsInitialized())
-      {
-        const auto height = (float)((result_param.name().compare("height") != 0) ? 0.0 : result_param.value().double_value());
-        response->height = height;
-      }
+    result_param = reply.children(4);
+    if (result_param.IsInitialized())
+    {
+      const auto height = (float)((result_param.name().compare("height") != 0) ? 0.0 : result_param.value().double_value());
+      response->height = height;
     }
   }
 }
@@ -222,20 +180,11 @@ void ElevatorSystem::SelectFloor(
                                request->current_floor,
                                request->target_floor,
                                request->elevator_index);
-  string serializedBuffer;
-  message.SerializeToString(&serializedBuffer);
 
-  if (pBridgeControl != nullptr)
+  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  if (reply.IsInitialized())
   {
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
-
-    msgs::Param response_msg;
-    response_msg.ParseFromString(reply_data);
-
-    if (response_msg.IsInitialized())
-    {
-      response->result = GetResultFromResponse(response_msg);
-    }
+    response->result = GetResultFromResponse(reply);
   }
 }
 
@@ -246,20 +195,10 @@ void ElevatorSystem::RequestDoorOpen(
 {
   auto message = CreateRequest("request_door_open", request->elevator_index);
 
-  string serializedBuffer;
-  message.SerializeToString(&serializedBuffer);
-
-  if (pBridgeControl != nullptr)
+  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  if (reply.IsInitialized())
   {
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
-
-    msgs::Param response_msg;
-    response_msg.ParseFromString(reply_data);
-
-    if (response_msg.IsInitialized())
-    {
-      response->result = GetResultFromResponse(response_msg);
-    }
+    response->result = GetResultFromResponse(reply);
   }
 }
 
@@ -270,20 +209,10 @@ void ElevatorSystem::RequestDoorClose(
 {
   auto message = CreateRequest("request_door_close", request->elevator_index);
 
-  string serializedBuffer;
-  message.SerializeToString(&serializedBuffer);
-
-  if (pBridgeControl != nullptr)
+  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  if (reply.IsInitialized())
   {
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
-
-    msgs::Param response_msg;
-    response_msg.ParseFromString(reply_data);
-
-    if (response_msg.IsInitialized())
-    {
-      response->result = GetResultFromResponse(response_msg);
-    }
+    response->result = GetResultFromResponse(reply);
   }
 }
 
@@ -294,20 +223,10 @@ void ElevatorSystem::IsDoorOpened(
 {
   auto message = CreateRequest("is_door_opened", request->elevator_index);
 
-  string serializedBuffer;
-  message.SerializeToString(&serializedBuffer);
-
-  if (pBridgeControl != nullptr)
+  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  if (reply.IsInitialized())
   {
-    const auto reply_data = pBridgeControl->RequestReply(serializedBuffer);
-
-    msgs::Param response_msg;
-    response_msg.ParseFromString(reply_data);
-
-    if (response_msg.IsInitialized())
-    {
-      response->result = GetResultFromResponse(response_msg);
-    }
+    response->result = GetResultFromResponse(reply);
   }
 }
 
@@ -344,7 +263,7 @@ msgs::Param ElevatorSystem::CreateRequest(
     const string elevator_index)
 {
   msgs::Param newMessage;
-  newMessage.set_name(systemName_);
+  newMessage.set_name(systemName);
 
   msgs::Param *pParam;
   msgs::Any *pVal;
