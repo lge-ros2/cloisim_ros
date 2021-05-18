@@ -15,13 +15,16 @@ package cloisim.msgs;
 /// \interface Perception
 /// \brief Message for perception
 
+import "header.proto";
 import "vector3d.proto";
 
 message Perception
 {
-  required int32 tracking_id = 1;
-  required int32 class_id = 2;
-  required Vector3d position = 3;
-  required Vector3d velocity = 4;
-  repeated Vector3d footprints = 5;
+  required Header header = 1;
+  required int32 tracking_id = 2;
+  required int32 class_id = 3;
+  required Vector3d position = 4;
+  required Vector3d velocity = 5;
+  required Vector3d size = 6;
+  repeated Vector3d footprint = 7;
 }

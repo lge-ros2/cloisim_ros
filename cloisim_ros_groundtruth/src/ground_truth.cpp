@@ -78,23 +78,26 @@ void GroundTruth::UpdatePerceptionData()
 
   for (auto i = 0; i < pb_buf_.perception_size(); i++)
   {
-    const auto perception = pb_buf_.perception(i);
+    const auto pb_perception = pb_buf_.perception(i);
 
-    auto object_pose_msg = perception_msgs::msg::ObjectPose();
-    object_pose_msg.tracking_id = perception.tracking_id();
-    object_pose_msg.class_id = perception.class_id();
+    auto object_info_msg = perception_msgs::msg::ObjectInfo();
+    const auto perception_time =  pb_perception.header().stamp();
+    object_info_msg.header.stamp = rclcpp::Time(perception_time.sec(), perception_time.nsec());
+    object_info_msg.tracking_id = pb_perception.tracking_id();
+    object_info_msg.class_id = pb_perception.class_id();
 
-    SetVector3MessageToGeometry(perception.position(), object_pose_msg.position);
-    SetVector3MessageToGeometry(perception.velocity(), object_pose_msg.velocity);
+    SetVector3MessageToGeometry(pb_perception.position(), object_info_msg.position);
+    SetVector3MessageToGeometry(pb_perception.velocity(), object_info_msg.velocity);
+    SetVector3MessageToGeometry(pb_perception.size(), object_info_msg.size);
 
-    for (auto it = perception.footprints().begin(); it < perception.footprints().end(); ++it)
+    for (auto it = pb_perception.footprint().begin(); it < pb_perception.footprint().end(); ++it)
     {
       const auto point = *it;
       geometry_msgs::msg::Point32 point32;
       SetVector3MessageToGeometry(point, point32);
-      object_pose_msg.footprints.push_back(point32);
+      object_info_msg.footprint.points.push_back(point32);
     }
 
-    msg_.objects.push_back(object_pose_msg);
+    msg_.objects.push_back(object_info_msg);
   }
 }
