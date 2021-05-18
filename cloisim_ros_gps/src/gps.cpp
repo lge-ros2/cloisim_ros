@@ -19,8 +19,8 @@
 using namespace std;
 using namespace cloisim_ros;
 
-Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
-    : Base(node_name_, namespace_, options_)
+Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+    : Base(node_name, namespace_, options_)
 {
   topic_name_ = "navsatfix";
 
@@ -48,35 +48,35 @@ void Gps::Initialize()
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto pBridgeData = CreateBridge(hashKeyData);
-  auto pBridgeInfo = CreateBridge(hashKeyInfo);
+  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
 
-  if (pBridgeInfo != nullptr)
+  if (info_bridge_ptr != nullptr)
   {
-    pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
+    info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    GetRos2Parameter(pBridgeInfo);
+    GetRos2Parameter(info_bridge_ptr);
 
     // Get frame for message
     const auto frame_id = GetFrameId();
-    msgNavSat.header.frame_id = frame_id;
+    msg_nav_.header.frame_id = frame_id;
 
-    const auto transform = GetObjectTransform(pBridgeInfo);
+    const auto transform = GetObjectTransform(info_bridge_ptr);
     SetupStaticTf2(transform, frame_id + "_link");
   }
 
   // Fill covariances
   // TODO: need to applying noise
-  msgNavSat.position_covariance[0] = 0.0001f;
-  msgNavSat.position_covariance[4] = 0.0001f;
-  msgNavSat.position_covariance[8] = 0.0001f;
-  msgNavSat.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
+  msg_nav_.position_covariance[0] = 0.0001f;
+  msg_nav_.position_covariance[4] = 0.0001f;
+  msg_nav_.position_covariance[8] = 0.0001f;
+  msg_nav_.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
 
   // Fill gps status
-  msgNavSat.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
-  msgNavSat.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
+  msg_nav_.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
+  msg_nav_.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
 
   // ROS2 Publisher
-  pub = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
+  pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
 
   if (pBridgeData != nullptr)
   {
@@ -87,19 +87,19 @@ void Gps::Initialize()
 
 void Gps::UpdatePublishingData(const string &buffer)
 {
-  if (!pbBuf.ParseFromString(buffer))
+  if (!pb_buf_.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  SetSimTime(pbBuf.time());
+  SetSimTime(pb_buf_.time());
 
   // Fill message with latest sensor data
-  msgNavSat.header.stamp = GetSimTime();
-  msgNavSat.latitude = pbBuf.latitude_deg();
-  msgNavSat.longitude = pbBuf.longitude_deg();
-  msgNavSat.altitude = pbBuf.altitude();
+  msg_nav_.header.stamp = GetSimTime();
+  msg_nav_.latitude = pb_buf_.latitude_deg();
+  msg_nav_.longitude = pb_buf_.longitude_deg();
+  msg_nav_.altitude = pb_buf_.altitude();
 
-  pub->publish(msgNavSat);
+  pub_->publish(msg_nav_);
 }

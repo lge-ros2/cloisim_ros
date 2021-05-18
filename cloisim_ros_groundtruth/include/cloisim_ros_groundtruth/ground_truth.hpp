@@ -26,7 +26,7 @@ namespace cloisim_ros
   class GroundTruth : public Base
   {
   public:
-    explicit GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name_);
+    explicit GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name);
     explicit GroundTruth();
     virtual ~GroundTruth();
 
@@ -38,11 +38,11 @@ namespace cloisim_ros
     void UpdatePerceptionData();
 
   private:
-    cloisim::msgs::Perception_V pbBuf;
+    cloisim::msgs::Perception_V pb_buf_;
 
-    perception_msgs::msg::ObjectArray msg;
+    perception_msgs::msg::ObjectArray msg_;
 
-    rclcpp::Publisher<perception_msgs::msg::ObjectArray>::SharedPtr pub;
+    rclcpp::Publisher<perception_msgs::msg::ObjectArray>::SharedPtr pub_;
   };
 }
 #endif

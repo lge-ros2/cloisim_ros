@@ -26,7 +26,7 @@ namespace cloisim_ros
   class MultiCamera : public Base
   {
   public:
-    explicit MultiCamera(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit MultiCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
     explicit MultiCamera(const std::string namespace_ = "");
     virtual ~MultiCamera();
 
@@ -37,16 +37,16 @@ namespace cloisim_ros
 
   private:
     // buffer from simulation
-    cloisim::msgs::ImagesStamped pbBuf;
+    cloisim::msgs::ImagesStamped pb_buf_;
 
     // message for ROS2 communictaion
-    std::map<int, sensor_msgs::msg::Image> msgImgs;
+    std::map<int, sensor_msgs::msg::Image> msg_imgs_;
 
     // Camera info managers
-    std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
+    std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> camera_info_manager_;
 
     // Image publisher
-    std::vector<image_transport::CameraPublisher> pubs;
+    std::vector<image_transport::CameraPublisher> pubs_;
   };
 }
 #endif

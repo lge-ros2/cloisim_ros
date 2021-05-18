@@ -26,7 +26,7 @@ namespace cloisim_ros
   class World : public Base
   {
   public:
-    explicit World(const rclcpp::NodeOptions &options_, const std::string node_name_);
+    explicit World(const rclcpp::NodeOptions &options_, const std::string node_name);
     explicit World();
     virtual ~World();
 
@@ -36,11 +36,11 @@ namespace cloisim_ros
     void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    cloisim::msgs::WorldStatistics pbBuf;
+    cloisim::msgs::WorldStatistics pb_buf_;
 
-    rosgraph_msgs::msg::Clock msgClock;
+    rosgraph_msgs::msg::Clock msg_clock_;
 
-    rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub;
+    rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub_;
   };
 }
 #endif

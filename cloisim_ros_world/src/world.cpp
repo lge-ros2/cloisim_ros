@@ -23,8 +23,8 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-World::World(const rclcpp::NodeOptions &options_, const std::string node_name_)
-  : Base(node_name_, options_)
+World::World(const rclcpp::NodeOptions &options_, const std::string node_name)
+  : Base(node_name, options_)
 {
   Start();
 }
@@ -49,7 +49,7 @@ void World::Initialize()
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
-  pub = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+  pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
   auto pBridgeData = CreateBridge(hashKey);
   if (pBridgeData != nullptr)
@@ -61,15 +61,15 @@ void World::Initialize()
 
 void World::UpdatePublishingData(const string &buffer)
 {
-  if (!pbBuf.ParseFromString(buffer))
+  if (!pb_buf_.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  SetSimTime(pbBuf.sim_time());
-  // const auto realTime = pbBuf.real_time();
+  SetSimTime(pb_buf_.sim_time());
+  // const auto realTime = pb_buf_.real_time();
 
-  msgClock.clock = GetSimTime();
-  pub->publish(msgClock);
+  msg_clock_.clock = GetSimTime();
+  pub_->publish(msg_clock_);
 }

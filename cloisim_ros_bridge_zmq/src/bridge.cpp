@@ -152,7 +152,7 @@ bool Bridge::SetupSubscriber()
     return false;
   }
 
-  if (zmq_setsockopt(pSub_, ZMQ_CONFLATE, &keepOnlyLastMsg, sizeof(keepOnlyLastMsg)))
+  if (zmq_setsockopt(pSub_, ZMQ_CONFLATE, &keep_only_last_msg, sizeof(keep_only_last_msg)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -490,13 +490,13 @@ std::string Bridge::RequestReply(std::string request_data)
   {
     Send(request_data.data(), request_data.size());
 
-    void *pBuffer = nullptr;
+    void *buffer_ptr = nullptr;
     int bufferLength = 0;
-    const auto succeeded = Receive(&pBuffer, bufferLength);
+    const auto succeeded = Receive(&buffer_ptr, bufferLength);
 
     if (succeeded)
     {
-      reply_data.assign(static_cast<char *>(pBuffer), bufferLength);
+      reply_data.assign(static_cast<char *>(buffer_ptr), bufferLength);
     }
     else
     {

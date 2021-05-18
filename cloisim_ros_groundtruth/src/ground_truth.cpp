@@ -21,8 +21,8 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name_)
-  : Base(node_name_, options_)
+GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name)
+  : Base(node_name, options_)
 {
   Start();
 }
@@ -45,7 +45,7 @@ void GroundTruth::Initialize()
   const auto hashKey = GetModelName() + GetPartsName() + "Data";
   DBG_SIM_INFO("hash Key: %s", hashKey.c_str());
 
-  pub = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+  pub_ = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
   auto pBridgeData = CreateBridge(hashKey);
   if (pBridgeData != nullptr)
@@ -57,28 +57,28 @@ void GroundTruth::Initialize()
 
 void GroundTruth::UpdatePublishingData(const string &buffer)
 {
-  if (!pbBuf.ParseFromString(buffer))
+  if (!pb_buf_.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  SetSimTime(pbBuf.header().stamp());
+  SetSimTime(pb_buf_.header().stamp());
 
   UpdatePerceptionData();
 
-  pub->publish(msg);
+  pub_->publish(msg_);
 }
 
 void GroundTruth::UpdatePerceptionData()
 {
-  msg.header.stamp = GetSimTime();
+  msg_.header.stamp = GetSimTime();
 
-  msg.objects.clear();
+  msg_.objects.clear();
 
-  for (auto i = 0; i < pbBuf.perception_size(); i++)
+  for (auto i = 0; i < pb_buf_.perception_size(); i++)
   {
-    const auto perception = pbBuf.perception(i);
+    const auto perception = pb_buf_.perception(i);
 
     auto object_pose_msg = perception_msgs::msg::ObjectPose();
     object_pose_msg.tracking_id = perception.tracking_id();
@@ -95,6 +95,6 @@ void GroundTruth::UpdatePerceptionData()
       object_pose_msg.footprints.push_back(point32);
     }
 
-    msg.objects.push_back(object_pose_msg);
+    msg_.objects.push_back(object_pose_msg);
   }
 }

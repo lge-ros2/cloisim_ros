@@ -20,25 +20,25 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-Base::Base(const string node_name_, const rclcpp::NodeOptions &options_)
-    : Base(node_name_, "",  rclcpp::NodeOptions(options_))
+Base::Base(const string node_name, const rclcpp::NodeOptions &options)
+    : Base(node_name, "",  rclcpp::NodeOptions(options))
 {
 }
 
-Base::Base(const string node_name_)
-    : Base(node_name_, "", rclcpp::NodeOptions())
+Base::Base(const string node_name)
+    : Base(node_name, "", rclcpp::NodeOptions())
 {
 }
 
-Base::Base(const string node_name_, const string namespace_)
-    : Base(node_name_, namespace_,  rclcpp::NodeOptions())
+Base::Base(const string node_name, const string namespace_)
+    : Base(node_name, namespace_,  rclcpp::NodeOptions())
 {
 }
 
-Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeOptions &options_)
-    : Node(node_name_,
+Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOptions &options)
+    : Node(node_name,
            namespace_,
-           rclcpp::NodeOptions(options_)
+           rclcpp::NodeOptions(options)
                .automatically_declare_parameters_from_overrides(true)
                .append_parameter_override("use_sim_time", true)
                .arguments(vector<string>{"--ros-args", "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"}))
@@ -51,7 +51,7 @@ Base::Base(const string node_name_, const string namespace_, const rclcpp::NodeO
 Base::~Base()
 {
   // DBG_SIM_INFO("Delete");
-  for (auto item : m_haskKeyBridgeMap)
+  for (auto item : m_hashkey_bridge_map)
   {
     delete item.second;
   }
@@ -115,7 +115,7 @@ void Base::PublishStaticTF()
   // Update timestamp
   for (auto &_tf : m_static_tf_list)
   {
-    _tf.header.stamp = m_simTime;
+    _tf.header.stamp = m_sim_time;
   }
 
   m_static_tf_broadcaster->sendTransform(m_static_tf_list);
@@ -123,42 +123,42 @@ void Base::PublishStaticTF()
 
 zmq::Bridge* Base::CreateBridge(const string hashKey)
 {
-  auto pBridge = new zmq::Bridge();
-  m_haskKeyBridgeMap[hashKey] = pBridge;
+  auto bridge_ptr = new zmq::Bridge();
+  m_hashkey_bridge_map[hashKey] = bridge_ptr;
 
-  return pBridge;
+  return bridge_ptr;
 }
 
 zmq::Bridge* Base::GetBridge(const string hashKey)
 {
-  const auto search = m_haskKeyBridgeMap.find(hashKey);
-  return (search != m_haskKeyBridgeMap.end()) ? search->second : nullptr;
+  const auto search = m_hashkey_bridge_map.find(hashKey);
+  return (search != m_hashkey_bridge_map.end()) ? search->second : nullptr;
 }
 
 void Base::CloseBridges()
 {
-  for (auto item : m_haskKeyBridgeMap)
+  for (auto item : m_hashkey_bridge_map)
   {
     (item.second)->Disconnect();
   }
 }
 
-void Base::CreatePublisherThread(zmq::Bridge* const pBridge)
+void Base::CreatePublisherThread(zmq::Bridge* const bridge_ptr)
 {
-  m_threads.emplace_back(thread([this, pBridge]() {
+  m_threads.emplace_back(thread([this, bridge_ptr]() {
     while (IsRunThread())
     {
-      void *pBuffer = nullptr;
+      void *buffer_ptr = nullptr;
       int bufferLength = 0;
-      const bool succeeded = GetBufferFromSimulator(pBridge, &pBuffer, bufferLength);
+      const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength);
       if (!succeeded || bufferLength < 0)
       {
         continue;
       }
 
-      const string buffer((const char *)pBuffer, bufferLength);
+      const string buffer((const char *)buffer_ptr, bufferLength);
       UpdatePublishingData(buffer);
-      UpdatePublishingData(pBridge, buffer);
+      UpdatePublishingData(bridge_ptr, buffer);
     }
   }));
 }
@@ -172,26 +172,26 @@ string Base::GetModelName()
 
 string Base::GetRobotName()
 {
-  bool isSingleMode;
-  get_parameter("single_mode", isSingleMode);
+  bool is_single_mode;
+  get_parameter("single_mode", is_single_mode);
 
   string robotName;
   get_parameter("single_mode.robotname", robotName);
 
-  return (isSingleMode) ? robotName : string(get_namespace()).substr(1);
+  return (is_single_mode) ? robotName : string(get_namespace()).substr(1);
 }
 
-msgs::Pose Base::GetObjectTransform(zmq::Bridge* const pBridge, const string target_name)
+msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string target_name)
 {
   msgs::Pose transform;
   transform.Clear();
 
-  if (pBridge == nullptr)
+  if (bridge_ptr == nullptr)
   {
     return transform;
   }
 
-  const auto reply = RequestReplyMessage(pBridge, "request_transform", target_name);
+  const auto reply = RequestReplyMessage(bridge_ptr, "request_transform", target_name);
 
   if (reply.ByteSize() <= 0)
   {
@@ -210,14 +210,14 @@ msgs::Pose Base::GetObjectTransform(zmq::Bridge* const pBridge, const string tar
   return transform;
 }
 
-void Base::GetRos2Parameter(zmq::Bridge* const pBridge)
+void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
 {
-  if (pBridge == nullptr)
+  if (bridge_ptr == nullptr)
   {
     return;
   }
 
-  const auto reply = RequestReplyMessage(pBridge, "request_ros2");
+  const auto reply = RequestReplyMessage(bridge_ptr, "request_ros2");
 
   if (reply.ByteSize() <= 0)
   {
@@ -252,15 +252,15 @@ void Base::GetRos2Parameter(zmq::Bridge* const pBridge)
   }
 }
 
-bool Base::GetBufferFromSimulator(zmq::Bridge* const pBridge, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode)
+bool Base::GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode)
 {
-  if (pBridge == nullptr)
+  if (bridge_ptr == nullptr)
   {
     DBG_SIM_ERR("sim bridge is null!!");
     return false;
   }
 
-  const auto succeeded = pBridge->Receive(ppBbuffer, bufferLength, isNonBlockingMode);
+  const auto succeeded = bridge_ptr->Receive(ppBbuffer, bufferLength, isNonBlockingMode);
   if (!succeeded || bufferLength < 0)
   {
     return false;
@@ -298,11 +298,11 @@ void Base::SetupStaticTf2(const msgs::Pose transform, const string child_frame_i
   AddStaticTf2(static_tf);
 }
 
-msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string request_message, const string request_value)
+msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const string request_message, const string request_value)
 {
   msgs::Param reply;
 
-  if (pBridge != nullptr)
+  if (bridge_ptr != nullptr)
   {
     string serialized_request_data;
     msgs::Param request;
@@ -317,7 +317,7 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string r
 
     request.SerializeToString(&serialized_request_data);
 
-    const auto serialized_reply_data = pBridge->RequestReply(serialized_request_data);
+    const auto serialized_reply_data = bridge_ptr->RequestReply(serialized_request_data);
 
     if (serialized_reply_data.size() <= 0)
     {
@@ -327,7 +327,7 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string r
     {
       if (reply.ParseFromString(serialized_reply_data) == false)
       {
-        DBG_SIM_ERR("Faild to parse serialized buffer, pBuffer(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
+        DBG_SIM_ERR("Faild to parse serialized buffer, buffer_ptr(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
       }
     }
   }
@@ -335,16 +335,16 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const string r
   return reply;
 }
 
-msgs::Param Base::RequestReplyMessage(zmq::Bridge* const pBridge, const msgs::Param request_message)
+msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const msgs::Param request_message)
 {
   msgs::Param response_msg;
 
   string serializedBuffer;
   request_message.SerializeToString(&serializedBuffer);
 
-  if (pBridge != nullptr)
+  if (bridge_ptr != nullptr)
   {
-    const auto reply_data = pBridge->RequestReply(serializedBuffer);
+    const auto reply_data = bridge_ptr->RequestReply(serializedBuffer);
     response_msg.ParseFromString(reply_data);
   }
 
@@ -376,5 +376,5 @@ void Base::SetSimTime(const cloisim::msgs::Time &time)
 
 void Base::SetSimTime(const int32_t seconds, const uint32_t nanoseconds)
 {
-  m_simTime = rclcpp::Time(seconds, nanoseconds);
+  m_sim_time = rclcpp::Time(seconds, nanoseconds);
 }

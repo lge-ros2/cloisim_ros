@@ -29,7 +29,7 @@ namespace cloisim_ros
     using PointCloud2Pub = rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr;
 
   public:
-    explicit Lidar(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit Lidar(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
     explicit Lidar(const std::string namespace_ = "");
     ~Lidar();
 
@@ -39,23 +39,22 @@ namespace cloisim_ros
     void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    std::string GetOutputType(zmq::Bridge* const pBridge);
+    std::string GetOutputType(zmq::Bridge* const bridge_ptr);
     void UpdatePointCloudData(const double min_intensity = 0.0);
     void UpdateLaserData(const double min_intensity = 0.0);
 
   private:
-    std::string frame_id;
 
     // buffer from simulation
-    cloisim::msgs::LaserScanStamped pbBuf;
+    cloisim::msgs::LaserScanStamped pb_buf_;
 
     // message for ROS2 communictaion
-    sensor_msgs::msg::LaserScan msgLaser;
-    sensor_msgs::msg::PointCloud2 msgPC2;
+    sensor_msgs::msg::LaserScan msg_laser_;
+    sensor_msgs::msg::PointCloud2 msg_pc2_;
 
     // Laser publisher
-    LaserScanPub pubLaser;
-    PointCloud2Pub pubPC2;
+    LaserScanPub pub_laser_;
+    PointCloud2Pub pub_pc2_;
   };
 }
 #endif

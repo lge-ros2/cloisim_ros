@@ -23,8 +23,8 @@ namespace cloisim_ros
   class DepthCamera : public Camera
   {
   public:
-    explicit DepthCamera(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
-    explicit DepthCamera(const std::string node_name_ = "cloisim_ros_depthcamera", const std::string namespace_ = "");
+    explicit DepthCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+    explicit DepthCamera(const std::string node_name = "cloisim_ros_depthcamera", const std::string namespace_ = "");
     virtual ~DepthCamera();
 
   private:

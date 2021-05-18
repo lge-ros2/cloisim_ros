@@ -23,11 +23,10 @@ using namespace elevator_system_msgs;
 
 #define BindCallback(func) bind(&ElevatorSystem::func, this, _1, _2, _3)
 
-ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string node_name_)
-    : Base(node_name_, options_)
-    , systemName("ElevatorSystem")
-    , pBridgeControl(nullptr)
-    , srvMode_(false)
+ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string node_name)
+    : Base(node_name, options_)
+    , srv_mode_(false)
+    , control_bridge_ptr(nullptr)
 {
   Start();
 }
@@ -51,19 +50,25 @@ void ElevatorSystem::Initialize()
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
 
-  pBridgeControl = CreateBridge(hashKeySrv);
-  if (pBridgeControl != nullptr)
+  control_bridge_ptr = CreateBridge(hashKeySrv);
+  if (control_bridge_ptr != nullptr)
   {
-    pBridgeControl->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);
+    control_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);
 
-    const auto reply = RequestReplyMessage(pBridgeControl, "request_system_name");
+    const auto reply = RequestReplyMessage(control_bridge_ptr, "request_system_name");
     if (reply.IsInitialized())
     {
       if (reply.name().compare("request_system_name") == 0 &&
           reply.value().type() == msgs::Any_ValueType_STRING &&
           !reply.value().string_value().empty())
       {
-        systemName = reply.value().string_value();
+        const auto system_name = reply.value().string_value();
+
+        request_msg_.set_name(system_name);
+      }
+      else
+      {
+        request_msg_.set_name("ElevatorSystem");
       }
     }
   }
@@ -105,7 +110,7 @@ void ElevatorSystem::CallElevator(
                                request->current_floor,
                                request->target_floor);
 
-  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
     response->result = GetResultFromResponse(reply);
@@ -121,7 +126,7 @@ void ElevatorSystem::GetElevatorCalled(
                                request->current_floor,
                                request->target_floor);
 
-  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
       response->result = GetResultFromResponse(reply);
@@ -142,7 +147,7 @@ void ElevatorSystem::GetElevatorInfo(
 {
   auto message = CreateRequest("get_elevator_information", request->elevator_index);
 
-  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
     msgs::Param result_param;
@@ -175,7 +180,7 @@ void ElevatorSystem::SelectFloor(
                                request->target_floor,
                                request->elevator_index);
 
-  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
     response->result = GetResultFromResponse(reply);
@@ -189,7 +194,7 @@ void ElevatorSystem::RequestDoorOpen(
 {
   auto message = CreateRequest("request_door_open", request->elevator_index);
 
-  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
     response->result = GetResultFromResponse(reply);
@@ -203,7 +208,7 @@ void ElevatorSystem::RequestDoorClose(
 {
   auto message = CreateRequest("request_door_close", request->elevator_index);
 
-  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
     response->result = GetResultFromResponse(reply);
@@ -217,7 +222,7 @@ void ElevatorSystem::IsDoorOpened(
 {
   auto message = CreateRequest("is_door_opened", request->elevator_index);
 
-  const auto reply = RequestReplyMessage(pBridgeControl, message);
+  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
     response->result = GetResultFromResponse(reply);
@@ -229,7 +234,7 @@ void ElevatorSystem::ReserveElevator(
   const shared_ptr<srv::ReturnBool::Request> /*request*/,
   const shared_ptr<srv::ReturnBool::Response> response)
 {
-  response->result = srvMode_;
+  response->result = srv_mode_;
 }
 
 void ElevatorSystem::ReleaseElevator(
@@ -237,7 +242,7 @@ void ElevatorSystem::ReleaseElevator(
   const shared_ptr<srv::ReturnBool::Request> /*request*/,
   const shared_ptr<srv::ReturnBool::Response> response)
 {
-  response->result = srvMode_;
+  response->result = srv_mode_;
 }
 
 /**
@@ -256,37 +261,36 @@ msgs::Param ElevatorSystem::CreateRequest(
     const string target_floor,
     const string elevator_index)
 {
-  msgs::Param newMessage;
-  newMessage.set_name(systemName);
+  request_msg_.clear_children();
 
-  msgs::Param *pParam;
-  msgs::Any *pVal;
+  msgs::Param *param_ptr;
+  msgs::Any *value_ptr;
 
-  pParam = newMessage.add_children();
-  pParam->set_name("service_name");
-  pVal = pParam->mutable_value();
-  pVal->set_type(msgs::Any::STRING);
-  pVal->set_string_value(service_name);
+  param_ptr = request_msg_.add_children();
+  param_ptr->set_name("service_name");
+  value_ptr = param_ptr->mutable_value();
+  value_ptr->set_type(msgs::Any::STRING);
+  value_ptr->set_string_value(service_name);
 
-  pParam = newMessage.add_children();
-  pParam->set_name("current_floor");
-  pVal = pParam->mutable_value();
-  pVal->set_type(msgs::Any::STRING);
-  pVal->set_string_value(current_floor);
+  param_ptr = request_msg_.add_children();
+  param_ptr->set_name("current_floor");
+  value_ptr = param_ptr->mutable_value();
+  value_ptr->set_type(msgs::Any::STRING);
+  value_ptr->set_string_value(current_floor);
 
-  pParam = newMessage.add_children();
-  pParam->set_name("target_floor");
-  pVal = pParam->mutable_value();
-  pVal->set_type(msgs::Any::STRING);
-  pVal->set_string_value(target_floor);
+  param_ptr = request_msg_.add_children();
+  param_ptr->set_name("target_floor");
+  value_ptr = param_ptr->mutable_value();
+  value_ptr->set_type(msgs::Any::STRING);
+  value_ptr->set_string_value(target_floor);
 
-  pParam = newMessage.add_children();
-  pParam->set_name("elevator_index");
-  pVal = pParam->mutable_value();
-  pVal->set_type(msgs::Any::STRING);
-  pVal->set_string_value(elevator_index);
+  param_ptr = request_msg_.add_children();
+  param_ptr->set_name("elevator_index");
+  value_ptr = param_ptr->mutable_value();
+  value_ptr->set_type(msgs::Any::STRING);
+  value_ptr->set_string_value(elevator_index);
 
-  return newMessage;
+  return request_msg_;
 }
 
 bool ElevatorSystem::GetResultFromResponse(const msgs::Param &response_msg, const int children_index)

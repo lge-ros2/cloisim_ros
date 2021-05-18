@@ -23,8 +23,8 @@ using namespace chrono_literals;
 using namespace cloisim_ros;
 using namespace cloisim;
 
-MultiCamera::MultiCamera(const rclcpp::NodeOptions &options_, const string node_name_, const std::string namespace_)
-    : Base(node_name_, namespace_, options_)
+MultiCamera::MultiCamera(const rclcpp::NodeOptions &options_, const string node_name, const std::string namespace_)
+    : Base(node_name, namespace_, options_)
 {
   Start();
 }
@@ -50,18 +50,18 @@ void MultiCamera::Initialize()
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto pBridgeData = CreateBridge(hashKeyData);
-  auto pBridgeInfo = CreateBridge(hashKeyInfo);
+  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
 
-  if (pBridgeInfo != nullptr)
+  if (info_bridge_ptr != nullptr)
   {
-    pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
+    info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    GetRos2Parameter(pBridgeInfo);
+    GetRos2Parameter(info_bridge_ptr);
 
     image_transport::ImageTransport it(GetNode());
     for (auto frame_id : frame_id_list_)
     {
-      const auto transform = GetObjectTransform(pBridgeInfo, frame_id);
+      const auto transform = GetObjectTransform(info_bridge_ptr, frame_id);
       SetupStaticTf2(transform, GetPartsName() + "_" + frame_id);
 
       // Image publisher
@@ -71,9 +71,9 @@ void MultiCamera::Initialize()
       sensor_msgs::msg::Image msg_img;
       msg_img.header.frame_id = frame_id;
 
-      msgImgs[msgImgs.size()] = msg_img;
+      msg_imgs_[msg_imgs_.size()] = msg_img;
 
-      pubs.push_back(it.advertiseCamera(topic_base_name_ + "/image_raw", 1));
+      pubs_.push_back(it.advertiseCamera(topic_base_name_ + "/image_raw", 1));
 
       // handling parameters for image_transport plugin
       const auto format_value = get_parameter("format");
@@ -92,9 +92,9 @@ void MultiCamera::Initialize()
                              {"jpeg_quality", jpeg_quality_value.as_int()},
                              {"png_level", png_level_value.as_int()}});
 
-      cameraInfoManager.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
-      const auto camSensorMsg = GetCameraSensorMessage(pBridgeInfo, frame_id);
-      SetCameraInfoInManager(cameraInfoManager.back(), camSensorMsg, frame_id);
+      camera_info_manager_.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
+      const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr, frame_id);
+      SetCameraInfoInManager(camera_info_manager_.back(), camSensorMsg, frame_id);
     }
 
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
@@ -104,38 +104,38 @@ void MultiCamera::Initialize()
 
 void MultiCamera::Deinitialize()
 {
-  for (auto pub : pubs)
+  for (auto pub_ : pubs_)
   {
-    pub.shutdown();
+    pub_.shutdown();
   }
 }
 
 void MultiCamera::UpdatePublishingData(const string &buffer)
 {
-  if (!pbBuf.ParseFromString(buffer))
+  if (!pb_buf_.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  SetSimTime(pbBuf.time());
+  SetSimTime(pb_buf_.time());
 
-  for (auto i = 0; i < pbBuf.image_size(); i++)
+  for (auto i = 0; i < pb_buf_.image_size(); i++)
   {
-    auto img = &pbBuf.image(i);
+    auto img = &pb_buf_.image(i);
     const auto encoding_arg = GetImageEncondingType(img->pixel_format());
     const uint32_t cols_arg = img->width();
     const uint32_t rows_arg = img->height();
     const uint32_t step_arg = img->step();
 
-    auto const msg_img = &msgImgs[i];
+    auto const msg_img = &msg_imgs_[i];
     msg_img->header.stamp = GetSimTime();
     sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                            reinterpret_cast<const void *>(img->data().data()));
 
     // Publish camera info
-    auto camera_info_msg = cameraInfoManager[i]->getCameraInfo();
+    auto camera_info_msg = camera_info_manager_[i]->getCameraInfo();
     camera_info_msg.header.stamp = GetSimTime();
-    pubs.at(i).publish(*msg_img, camera_info_msg);
+    pubs_.at(i).publish(*msg_img, camera_info_msg);
   }
 }

@@ -27,7 +27,7 @@ namespace cloisim_ros
   class Micom : public Base
   {
   public:
-    explicit Micom(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit Micom(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
     explicit Micom(const std::string namespace_ = "");
     virtual ~Micom();
 
@@ -37,10 +37,9 @@ namespace cloisim_ros
     void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    void GetWeelInfo(zmq::Bridge *const pBridge);
-    void GetTransformNameInfo(zmq::Bridge *const pBridge);
+    void GetTransformNameInfo(zmq::Bridge *const bridge_ptr);
 
-    void MicomWrite(zmq::Bridge* const pBridge, const std::string &buffer);
+    void MicomWrite(zmq::Bridge* const bridge_ptr, const std::string &buffer);
 
     void ResetOdometryCallback(
         const std::shared_ptr<rmw_request_id_t> /*request_header*/,
@@ -56,27 +55,23 @@ namespace cloisim_ros
     void UpdateBattery();
 
   private:
-    cloisim_ros::zmq::Bridge *pBridgeInfo;
+    zmq::Bridge *info_bridge_ptr;
 
     std::map<std::string, std::string> target_transform_name;
 
-    double wheel_tread;
-    double wheel_radius;
-    std::string base_link_name_;
-
     // Micom msgs
-    cloisim::msgs::Micom pbMicom;
+    cloisim::msgs::Micom pb_micom_;
 
     std::array<double, 2> last_rad_ = {0, 0};
 
     // IMU msgs
-    sensor_msgs::msg::Imu msgImu;
+    sensor_msgs::msg::Imu msg_imu_;
 
     // Odometry msgs
     geometry_msgs::msg::TransformStamped odom_tf_;
     geometry_msgs::msg::TransformStamped wheel_left_tf_;
     geometry_msgs::msg::TransformStamped wheel_right_tf_;
-    nav_msgs::msg::Odometry msgOdom;
+    nav_msgs::msg::Odometry msg_odom_;
 
     std::array<double, 3> orig_left_wheel_rot_;
     std::array<double, 3> orig_right_wheel_rot_;
@@ -85,15 +80,15 @@ namespace cloisim_ros
     sensor_msgs::msg::BatteryState msg_battery_;
 
     // ROS2 micom publisher
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pubImu_;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdometry_;
-    rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pubBatteryState_;
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
+    rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
 
     // wheel command subscriber
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMicom_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_micom_;
 
     // reset odometry pose service
-    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srvResetOdom_;
+    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_reset_odom_;
   };
 }
 #endif

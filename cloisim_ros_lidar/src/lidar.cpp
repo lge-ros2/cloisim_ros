@@ -22,10 +22,10 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-Lidar::Lidar(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
-    : Base(node_name_, namespace_, options_)
-    , pubLaser(nullptr)
-    , pubPC2(nullptr)
+Lidar::Lidar(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+    : Base(node_name, namespace_, options_)
+    , pub_laser_(nullptr)
+    , pub_pc2_(nullptr)
 {
   topic_name_ = "scan";
 
@@ -53,32 +53,35 @@ void Lidar::Initialize()
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto pBridgeData = CreateBridge(hashKeyData);
-  auto pBridgeInfo = CreateBridge(hashKeyInfo);
+  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
 
   auto output_type = string("LaserScan");
-  if (pBridgeInfo != nullptr)
+  if (info_bridge_ptr != nullptr)
   {
-    pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
+    info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    GetRos2Parameter(pBridgeInfo);
+    GetRos2Parameter(info_bridge_ptr);
 
-    frame_id = GetFrameId("base_scan");
+    const auto frame_id = GetFrameId("base_scan");
 
-    const auto transform = GetObjectTransform(pBridgeInfo);
+    msg_laser_.header.frame_id = frame_id;
+    msg_pc2_.header.frame_id = frame_id;
+
+    const auto transform = GetObjectTransform(info_bridge_ptr);
     SetupStaticTf2(transform, frame_id);
 
-    output_type = GetOutputType(pBridgeInfo);
+    output_type = GetOutputType(info_bridge_ptr);
   }
 
   // ROS2 Publisher
   if (output_type.compare("LaserScan") == 0)
   {
-    pubLaser = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
+    pub_laser_ = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
 
   }
   else if (output_type.compare("PointCloud2") == 0)
   {
-    pubPC2 = this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
+    pub_pc2_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
   }
   else
   {
@@ -92,9 +95,9 @@ void Lidar::Initialize()
   }
 }
 
-string Lidar::GetOutputType(zmq::Bridge* const pBridge)
+string Lidar::GetOutputType(zmq::Bridge* const bridge_ptr)
 {
-  const auto reply = RequestReplyMessage(pBridge, "request_output_type");
+  const auto reply = RequestReplyMessage(bridge_ptr, "request_output_type");
 
   if (reply.IsInitialized() &&
       (reply.name().compare("output_type") == 0) &&
@@ -109,44 +112,42 @@ string Lidar::GetOutputType(zmq::Bridge* const pBridge)
   return "";
 }
 
-
 void Lidar::UpdatePublishingData(const string &buffer)
 {
-  if (!pbBuf.ParseFromString(buffer))
+  if (!pb_buf_.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  SetSimTime(pbBuf.time());
+  SetSimTime(pb_buf_.time());
 
-  if (pubLaser != nullptr)
+  if (pub_laser_ != nullptr)
   {
     UpdateLaserData();
-    pubLaser->publish(msgLaser);
+    pub_laser_->publish(msg_laser_);
   }
-  else if (pubPC2 != nullptr)
+  else if (pub_pc2_ != nullptr)
   {
     UpdatePointCloudData();
-    pubPC2->publish(msgPC2);
+    pub_pc2_->publish(msg_pc2_);
   }
 }
 
 void Lidar::UpdatePointCloudData(const double min_intensity)
 {
   // Pointcloud will be dense, unordered
-  msgPC2.height = 1;
-  msgPC2.is_dense = true;
+  msg_pc2_.height = 1;
+  msg_pc2_.is_dense = true;
 
   // Fill header
-  msgPC2.header.stamp = GetSimTime();
-  msgPC2.header.frame_id = frame_id;
+  msg_pc2_.header.stamp = GetSimTime();
 
   // Cache values that are repeatedly used
-  const auto beam_count = pbBuf.scan().count();
-  const auto vertical_beam_count = pbBuf.scan().vertical_count();
-  const auto angle_step = pbBuf.scan().angle_step();
-  const auto vertical_angle_step = pbBuf.scan().vertical_angle_step();
+  const auto beam_count = pb_buf_.scan().count();
+  const auto vertical_beam_count = pb_buf_.scan().vertical_count();
+  const auto angle_step = pb_buf_.scan().angle_step();
+  const auto vertical_angle_step = pb_buf_.scan().vertical_angle_step();
 
   // Gazebo sends an infinite vertical step if the number of samples is 1
   // Surprisingly, not setting the <vertical> tag results in nan instead of inf, which is ok
@@ -156,7 +157,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   }
 
   // Create fields in pointcloud
-  sensor_msgs::PointCloud2Modifier pcd_modifier(msgPC2);
+  sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
 
   pcd_modifier.setPointCloud2Fields(
       4,
@@ -166,14 +167,14 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
       "intensity", 1, sensor_msgs::msg::PointField::FLOAT32);
 
   pcd_modifier.resize(vertical_beam_count * beam_count);
-  sensor_msgs::PointCloud2Iterator<float> iter_x(msgPC2, "x");
-  sensor_msgs::PointCloud2Iterator<float> iter_y(msgPC2, "y");
-  sensor_msgs::PointCloud2Iterator<float> iter_z(msgPC2, "z");
-  sensor_msgs::PointCloud2Iterator<float> iter_intensity(msgPC2, "intensity");
+  sensor_msgs::PointCloud2Iterator<float> iter_x(msg_pc2_, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(msg_pc2_, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(msg_pc2_, "z");
+  sensor_msgs::PointCloud2Iterator<float> iter_intensity(msg_pc2_, "intensity");
 
   // Iterators to range and intensities
-  auto range_iter = pbBuf.scan().ranges().begin();
-  auto intensity_iter = pbBuf.scan().intensities().begin();
+  auto range_iter = pb_buf_.scan().ranges().begin();
+  auto intensity_iter = pb_buf_.scan().intensities().begin();
 
   // Number of points actually added
   size_t points_added = 0;
@@ -185,12 +186,12 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   size_t i, j;
 
   // Fill pointcloud with laser scan data, converting spherical to Cartesian
-  for (j = 0, inclination = pbBuf.scan().vertical_angle_min(); j < vertical_beam_count; ++j, inclination += vertical_angle_step)
+  for (j = 0, inclination = pb_buf_.scan().vertical_angle_min(); j < vertical_beam_count; ++j, inclination += vertical_angle_step)
   {
     auto c_inclination = cos(inclination);
     auto s_inclination = sin(inclination);
 
-    for (i = 0, azimuth = pbBuf.scan().angle_min(); i < beam_count; ++i, azimuth += angle_step, ++range_iter, ++intensity_iter)
+    for (i = 0, azimuth = pb_buf_.scan().angle_min(); i < beam_count; ++i, azimuth += angle_step, ++range_iter, ++intensity_iter)
     {
       auto c_azimuth = cos(azimuth);
       auto s_azimuth = sin(azimuth);
@@ -230,37 +231,36 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
 
 void Lidar::UpdateLaserData(const double min_intensity)
 {
-  msgLaser.header.stamp = GetSimTime();
-  msgLaser.header.frame_id = frame_id;
+  msg_laser_.header.stamp = GetSimTime();
 
-  msgLaser.angle_min = pbBuf.scan().angle_min();
-  msgLaser.angle_max = pbBuf.scan().angle_max();
-  msgLaser.angle_increment = pbBuf.scan().angle_step();
-  msgLaser.time_increment = 0;
-  msgLaser.scan_time = 0;
-  msgLaser.range_min = pbBuf.scan().range_min();
-  msgLaser.range_max = pbBuf.scan().range_max();
+  msg_laser_.angle_min = pb_buf_.scan().angle_min();
+  msg_laser_.angle_max = pb_buf_.scan().angle_max();
+  msg_laser_.angle_increment = pb_buf_.scan().angle_step();
+  msg_laser_.time_increment = 0;
+  msg_laser_.scan_time = 0;
+  msg_laser_.range_min = pb_buf_.scan().range_min();
+  msg_laser_.range_max = pb_buf_.scan().range_max();
 
-  const auto beam_count = pbBuf.scan().count();
-  const auto vertical_beam_count = pbBuf.scan().vertical_count();
+  const auto beam_count = pb_buf_.scan().count();
+  const auto vertical_beam_count = pb_buf_.scan().vertical_count();
   //DBG_SIM_INFO("num_beams:%d", num_beams);
 
   const auto start = (vertical_beam_count / 2) * beam_count;
 
-  if (msgLaser.ranges.size() != beam_count)
-    msgLaser.ranges.resize(beam_count);
+  if (msg_laser_.ranges.size() != beam_count)
+    msg_laser_.ranges.resize(beam_count);
 
   std::copy(
-      pbBuf.scan().ranges().begin() + start,
-      pbBuf.scan().ranges().begin() + start + beam_count,
-      msgLaser.ranges.begin());
+      pb_buf_.scan().ranges().begin() + start,
+      pb_buf_.scan().ranges().begin() + start + beam_count,
+      msg_laser_.ranges.begin());
 
-  if (msgLaser.intensities.size() != beam_count)
-    msgLaser.intensities.resize(beam_count);
+  if (msg_laser_.intensities.size() != beam_count)
+    msg_laser_.intensities.resize(beam_count);
 
   std::transform(
-      pbBuf.scan().intensities().begin() + start,
-      pbBuf.scan().intensities().begin() + start + beam_count,
-      msgLaser.intensities.begin(),
+      pb_buf_.scan().intensities().begin() + start,
+      pb_buf_.scan().intensities().begin() + start + beam_count,
+      msg_laser_.intensities.begin(),
       [min_intensity](double i) -> double { return i > min_intensity ? i : min_intensity; });
 }

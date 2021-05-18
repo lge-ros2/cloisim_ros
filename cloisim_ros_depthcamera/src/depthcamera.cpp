@@ -17,13 +17,13 @@
 using namespace std;
 using namespace cloisim_ros;
 
-DepthCamera::DepthCamera(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
-    : Camera(options_, node_name_, namespace_)
+DepthCamera::DepthCamera(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+    : Camera(options_, node_name, namespace_)
 {
 }
 
-DepthCamera::DepthCamera(const string node_name_, const string namespace_)
-    : DepthCamera(rclcpp::NodeOptions(), node_name_, namespace_)
+DepthCamera::DepthCamera(const string node_name, const string namespace_)
+    : DepthCamera(rclcpp::NodeOptions(), node_name, namespace_)
 {
 }
 
