@@ -8,6 +8,9 @@ ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot
   - CLOiSim: Latest [link](https://github.com/lge-ros2/cloisim/releases/latest), All Releases [link](https://github.com/lge-ros2/cloisim/releases)
 
 ```shell
+sudo apt update
+sudo apt install -y python3-rosdep
+sudo rosdep init
 rosdep update
 rosdep install -y -r -q --from-paths src --ignore-src --rosdistro foxy
 ```
