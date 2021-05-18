@@ -23,14 +23,14 @@ namespace cloisim_ros
   class DepthCamera : public Camera
   {
   public:
-    explicit DepthCamera(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
-    explicit DepthCamera(const std::string node_name_ = "cloisim_ros_depthcamera", const std::string namespace_ = "");
+    explicit DepthCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+    explicit DepthCamera(const std::string node_name = "cloisim_ros_depthcamera", const std::string namespace_ = "");
     virtual ~DepthCamera();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
+    void Initialize() override;
+    void Deinitialize() override;
+    void UpdatePublishingData(const std::string &buffer) override;
 
   private:
     // Camera info publisher

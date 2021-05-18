@@ -22,15 +22,15 @@ using namespace std;
 using namespace chrono_literals;
 using namespace cloisim_ros;
 
-Camera::Camera(const rclcpp::NodeOptions &options_, const string node_name_, const string namespace_)
-    : Base(node_name_, namespace_, options_, 2)
+Camera::Camera(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+    : Base(node_name, namespace_, options_)
 {
   topic_name_ = "camera";
   Start();
 }
 
-Camera::Camera(const string node_name_, const string namespace_)
-    : Camera(rclcpp::NodeOptions(), node_name_, namespace_)
+Camera::Camera(const string node_name, const string namespace_)
+    : Camera(rclcpp::NodeOptions(), node_name, namespace_)
 {
 }
 
@@ -46,78 +46,70 @@ void Camera::Initialize()
   get_parameter_or("bridge.Data", portData, uint16_t(0));
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
-  hashKeySub_ = GetMainHashKey();
-  DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
+  const auto hashKeyData = GetTargetHashKey("Data");
+  const auto hashKeyInfo = GetTargetHashKey("Info");
+  DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = GetBridge(0);
-  auto pBridgeInfo = GetBridge(1);
-
-  if (pBridgeData != nullptr)
-  {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
-  }
+  auto pBridgeData = CreateBridge(hashKeyData);
+  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
 
   const auto frame_id = GetFrameId("camera_link");
-  if (pBridgeInfo != nullptr)
+  if (info_bridge_ptr != nullptr)
   {
-    pBridgeInfo->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeySub_ + "Info");
+    info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    GetRos2Parameter(pBridgeInfo);
+    GetRos2Parameter(info_bridge_ptr);
 
-    const auto transform = GetObjectTransform(pBridgeInfo);
+    const auto transform = GetObjectTransform(info_bridge_ptr);
     SetupStaticTf2(transform, frame_id + "_link");
 
-    cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
-    const auto camSensorMsg = GetCameraSensorMessage(pBridgeInfo);
-    SetCameraInfoInManager(cameraInfoManager, camSensorMsg, frame_id);
+    camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
+    const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr);
+    SetCameraInfoInManager(camera_info_manager_, camSensorMsg, frame_id);
   }
 
-  msg_img.header.frame_id = frame_id;
-
+  msg_img_.header.frame_id = frame_id;
   const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
 
   image_transport::ImageTransport it(GetNode());
-  pubImage = it.advertiseCamera(topic_base_name_ + "/image_raw", 1);
+  pub_ = it.advertiseCamera(topic_base_name_ + "/image_raw", 1);
+
+  if (pBridgeData != nullptr)
+  {
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    CreatePublisherThread(pBridgeData);
+  }
 }
 
 void Camera::Deinitialize()
 {
-  pubImage.shutdown();
+  pub_.shutdown();
 }
 
-void Camera::UpdateData(const uint bridge_index)
+void Camera::UpdatePublishingData(const string &buffer)
 {
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
-  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
-  if (!succeeded || bufferLength < 0)
+  if (!pb_img_.ParseFromString(buffer))
   {
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  if (!m_pbImgBuf.ParseFromArray(pBuffer, bufferLength))
-  {
-    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-    return;
-  }
+  SetSimTime(pb_img_.time());
 
-  m_simTime = rclcpp::Time(m_pbImgBuf.time().sec(), m_pbImgBuf.time().nsec());
+  msg_img_.header.stamp = GetSimTime();
 
-  msg_img.header.stamp = m_simTime;
-
-  const auto encoding_arg = GetImageEncondingType(m_pbImgBuf.image().pixel_format());
-  const uint32_t cols_arg = m_pbImgBuf.image().width();
-  const uint32_t rows_arg = m_pbImgBuf.image().height();
-  const uint32_t step_arg = m_pbImgBuf.image().step();
+  const auto encoding_arg = GetImageEncondingType(pb_img_.image().pixel_format());
+  const uint32_t cols_arg = pb_img_.image().width();
+  const uint32_t rows_arg = pb_img_.image().height();
+  const uint32_t step_arg = pb_img_.image().step();
 
   // Copy from src to image_msg
-  sensor_msgs::fillImage(msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-                         reinterpret_cast<const void *>(m_pbImgBuf.image().data().data()));
+  sensor_msgs::fillImage(msg_img_, encoding_arg, rows_arg, cols_arg, step_arg,
+                         reinterpret_cast<const void *>(pb_img_.image().data().data()));
 
   // Publish camera info
-  auto camera_info_msg = cameraInfoManager->getCameraInfo();
-  camera_info_msg.header.stamp = msg_img.header.stamp;
+  auto camera_info_msg = camera_info_manager_->getCameraInfo();
+  camera_info_msg.header.stamp = msg_img_.header.stamp;
 
-  pubImage.publish(msg_img, camera_info_msg);
+  pub_.publish(msg_img_, camera_info_msg);
 }

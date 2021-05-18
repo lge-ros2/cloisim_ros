@@ -29,22 +29,18 @@ namespace cloisim_ros
   class ElevatorSystem : public Base
   {
   public:
-    explicit ElevatorSystem(const rclcpp::NodeOptions &options_, const std::string node_name_);
+    explicit ElevatorSystem(const rclcpp::NodeOptions &options_, const std::string node_name);
     explicit ElevatorSystem();
     virtual ~ElevatorSystem();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override { (void)bridge_index; };
+    void Initialize() override;
+    void Deinitialize() override { };
 
   private:
-    std::string systemName_;
-    std::string hashKeySrv_;
-
-    zmq::Bridge *pBridgeControl;
-
-    bool srvMode_;
+    bool srv_mode_;
+    zmq::Bridge *control_bridge_ptr;
+    cloisim::msgs::Param request_msg_;
 
     rclcpp::Service<elevator_system_msgs::srv::CallElevator>::SharedPtr srvCallElevator_;
     rclcpp::Service<elevator_system_msgs::srv::CallElevator>::SharedPtr srvGetCalledElevator_;

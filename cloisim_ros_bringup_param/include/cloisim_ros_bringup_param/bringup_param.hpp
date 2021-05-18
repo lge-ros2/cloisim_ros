@@ -32,12 +32,12 @@ namespace cloisim_ros
   public:
     BringUpParam(const string basename = "cloisim_ros");
 
-    bool IsSingleMode() const { return isSingleMode; }
+    bool IsSingleMode() const { return is_single_mode; }
     string TargetModel() const { return target_model; }
     string TargetPartsType() const { return target_parts_type; }
     string TargetPartsName() const { return target_parts_name; }
 
-    void IsSingleMode(const bool value) { isSingleMode = value; }
+    void IsSingleMode(const bool value) { is_single_mode = value; }
     void TargetModel(const string value) { target_model = value; }
     void TargetPartsType(const string value) { target_parts_type = value; }
     void TargetPartsName(const string value) { target_parts_name = value; }
@@ -49,7 +49,7 @@ namespace cloisim_ros
     static void StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
 
   private:
-    bool isSingleMode;
+    bool is_single_mode;
     string target_model;
     string target_parts_type;
     string target_parts_name;

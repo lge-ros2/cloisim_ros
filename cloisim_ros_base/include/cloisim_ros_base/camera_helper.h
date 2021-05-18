@@ -146,7 +146,7 @@ static void SetCameraInfoInManager(
 }
 
 static cloisim::msgs::CameraSensor GetCameraSensorMessage(
-  cloisim_ros::zmq::Bridge* const pBridge,
+  cloisim_ros::zmq::Bridge* const bridge_ptr,
   const std::string camera_name = "")
 {
   cloisim::msgs::Param request_msg;
@@ -159,7 +159,7 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
   std::string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
 
-  const auto reply = pBridge->RequestReply(serializedBuffer);
+  const auto reply = bridge_ptr->RequestReply(serializedBuffer);
 
   cloisim::msgs::CameraSensor cameraSensorInfo;
   if (reply.size() <= 0)
@@ -170,7 +170,7 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
   {
     if (cameraSensorInfo.ParseFromString(reply) == false)
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer pBuffer(%p) length(%ld)", reply.data(), reply.size());
+      DBG_SIM_ERR("Faild to Parsing Proto buffer buffer_ptr(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 

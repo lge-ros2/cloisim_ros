@@ -21,8 +21,8 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name_)
-  : Base(node_name_, options_, 1)
+GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name)
+  : Base(node_name, options_)
 {
   Start();
 }
@@ -39,60 +39,46 @@ GroundTruth::~GroundTruth()
 
 void GroundTruth::Initialize()
 {
-  string model_name;
   uint16_t portData;
-  get_parameter_or("model", model_name, string("GroundTruth"));
   get_parameter_or("bridge.Data", portData, uint16_t(0));
 
-  hashKeySub_ = model_name + GetPartsName();
-  DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
+  const auto hashKey = GetModelName() + GetPartsName() + "Data";
+  DBG_SIM_INFO("hash Key: %s", hashKey.c_str());
 
-  auto pBridgeData = GetBridge(0);
+  pub_ = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+
+  auto pBridgeData = CreateBridge(hashKey);
   if (pBridgeData != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Data");
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
+    CreatePublisherThread(pBridgeData);
   }
-
-  pub = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 }
 
-void GroundTruth::Deinitialize()
+void GroundTruth::UpdatePublishingData(const string &buffer)
 {
-}
-
-void GroundTruth::UpdateData(const uint bridge_index)
-{
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
-  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
-  if (!succeeded || bufferLength < 0)
+  if (!pb_buf_.ParseFromString(buffer))
   {
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  if (!pbBuf.ParseFromArray(pBuffer, bufferLength))
-  {
-    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-    return;
-  }
-
-  m_simTime = rclcpp::Time(pbBuf.header().stamp().sec(), pbBuf.header().stamp().nsec());
+  SetSimTime(pb_buf_.header().stamp());
 
   UpdatePerceptionData();
 
-  pub->publish(msg);
+  pub_->publish(msg_);
 }
 
 void GroundTruth::UpdatePerceptionData()
 {
-  msg.header.stamp = m_simTime;
+  msg_.header.stamp = GetSimTime();
 
-  msg.objects.clear();
+  msg_.objects.clear();
 
-  for (auto i = 0; i < pbBuf.perception_size(); i++)
+  for (auto i = 0; i < pb_buf_.perception_size(); i++)
   {
-    const auto perception = pbBuf.perception(i);
+    const auto perception = pb_buf_.perception(i);
 
     auto object_pose_msg = perception_msgs::msg::ObjectPose();
     object_pose_msg.tracking_id = perception.tracking_id();
@@ -109,6 +95,6 @@ void GroundTruth::UpdatePerceptionData()
       object_pose_msg.footprints.push_back(point32);
     }
 
-    msg.objects.push_back(object_pose_msg);
+    msg_.objects.push_back(object_pose_msg);
   }
 }

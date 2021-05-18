@@ -57,7 +57,7 @@ namespace cloisim_ros
       const bool useTCP = true;
       const uint8_t tagSize = 8; // The size of zmq packet header tag
 
-      const int keepOnlyLastMsg = 1;
+      const int keep_only_last_msg = 1;
       const int connect_timeout = 0;
       const int reconnect_ivl_min = 1000;
       const int reconnect_ivl_max = 5000;
@@ -105,7 +105,7 @@ namespace cloisim_ros
       bool CloseSocket(void*& target);
 
     private:
-      std::string GetBridgeAddress(const uint16_t port)
+      std::string GetAddress(const uint16_t port)
       {
         return std::string((useTCP)? "tcp":"udp") + "://" + bridgeAddr_ + ":" + std::to_string(port);
       }
