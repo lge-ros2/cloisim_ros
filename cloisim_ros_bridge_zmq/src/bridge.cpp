@@ -500,7 +500,7 @@ std::string Bridge::RequestReply(std::string request_data)
     }
     else
     {
-      DBG_SIM_ERR("Faild to get replay buffer, length(%d)", bufferLength);
+      DBG_SIM_ERR("Faild to get reply buffer, length(%d)", bufferLength);
     }
   }
 
