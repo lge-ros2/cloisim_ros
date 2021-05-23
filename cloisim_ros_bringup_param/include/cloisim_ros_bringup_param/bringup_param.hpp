@@ -23,6 +23,8 @@
 
 namespace cloisim_ros
 {
+  using namespace std;
+
   class BringUpParam : public rclcpp::Node
   {
   private:
@@ -46,6 +48,11 @@ namespace cloisim_ros
 
     void StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
 
+  public:
+    static bool IsRobotSpecificType(const string node_type);
+
+    static bool IsWorldSpecificType(const string node_type);
+
     static void StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
 
   private:
@@ -54,9 +61,13 @@ namespace cloisim_ros
     string target_parts_type;
     string target_parts_name;
 
-    WebSocketService *wsService;
+    WebSocketService *ws_service_ptr_;
+
+    Json::Value result_map_;
 
   private:
+    void RequestBringUpList();
+
     Json::Value GetFilteredListByParameters(const Json::Value result);
   };
 }

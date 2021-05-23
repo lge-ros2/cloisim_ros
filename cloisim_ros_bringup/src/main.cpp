@@ -26,21 +26,11 @@
 
 using namespace std;
 
-static rclcpp::NodeOptions g_default_node_options;
+typedef int num_of_threads_t;
 static vector<shared_ptr<cloisim_ros::Base>> g_rclcpp_node_list;
+static rclcpp::NodeOptions g_default_node_options;
+num_of_threads_t g_num_of_threads = 0;
 static bool g_isSingleMode = false;
-
-inline static bool isRobotSpecific(const string node_type)
-{
-  return (!node_type.compare("MICOM") || !node_type.compare("LIDAR") || !node_type.compare("LASER") ||
-          !node_type.compare("CAMERA") || !node_type.compare("DEPTHCAMERA") || !node_type.compare("MULTICAMERA") || !node_type.compare("REALSENSE") ||
-          !node_type.compare("GPS"));
-}
-
-inline static bool isWorldSpecific(const string node_type)
-{
-  return (!node_type.compare("ELEVATOR") || !node_type.compare("WORLD") || !node_type.compare("GROUNDTRUTH"));
-}
 
 void bringup_target_parts_by_name(const Json::Value item, const string node_type, const string model_name, const string node_name)
 {
@@ -49,13 +39,17 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
 
     cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(item, node_options);
 
-    if (isRobotSpecific(node_type))
+    num_of_threads_t num_of_threads = 2; // default tf and tf_static for robot specific type
+
+    if (cloisim_ros::BringUpParam::IsRobotSpecificType(node_type))
     {
       if (g_isSingleMode)
         node_options.append_parameter_override("single_mode.robotname", model_name);
 
       if (!node_type.compare("MICOM"))
       {
+        num_of_threads += 4;
+
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
         else
@@ -63,6 +57,8 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("LIDAR") || !node_type.compare("LASER"))
       {
+        num_of_threads += 1;
+
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name);
         else
@@ -70,6 +66,8 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("CAMERA"))
       {
+        num_of_threads += 5;
+
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Camera>(node_options, node_name);
         else
@@ -77,6 +75,8 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("DEPTHCAMERA"))
       {
+        num_of_threads += 5;
+
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name);
         else
@@ -84,6 +84,8 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("MULTICAMERA"))
       {
+        num_of_threads += 5;
+
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name);
         else
@@ -91,6 +93,8 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("REALSENSE"))
       {
+        num_of_threads += 20;
+
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
         else
@@ -98,15 +102,18 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("GPS"))
       {
+        num_of_threads += 1;
+
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Gps>(node_options, node_name);
         else
           node = std::make_shared<cloisim_ros::Gps>(node_options, node_name, model_name);
       }
     }
-    else if (isWorldSpecific(node_type))
+    else if (cloisim_ros::BringUpParam::IsWorldSpecificType(node_type))
     {
       node_options.append_parameter_override("model", model_name);
+      num_of_threads = 1;
 
       if (!node_type.compare("ELEVATOR"))
       {
@@ -124,10 +131,15 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
     else
     {
       cout << node_type << " is not supported." << endl;
+      num_of_threads = 0;
       return;
     }
 
-    g_rclcpp_node_list.push_back(node);
+    if (node != nullptr)
+    {
+      g_num_of_threads += num_of_threads;
+      g_rclcpp_node_list.push_back(node);
+    }
 }
 
 void bringup_target_parts_by_type(const Json::Value node_list, const string node_type, const string model_name, const string targetPartsName)
@@ -191,34 +203,42 @@ void bringup_cloisim_ros(const Json::Value result_map, const string target_model
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::executors::MultiThreadedExecutor executor;
+  rclcpp::executors::MultiThreadedExecutor *executor_ptr;
 
   const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_bringup");
-  executor.add_node(bringup_param_node);
 
   g_isSingleMode = bringup_param_node->IsSingleMode();
   const auto targetModel = bringup_param_node->TargetModel();
   const auto targetPartsType = bringup_param_node->TargetPartsType();
   const auto targetPartsName = bringup_param_node->TargetPartsName();
 
-  g_default_node_options.append_parameter_override("single_mode", bool(g_isSingleMode));
-
   const auto result_map = bringup_param_node->GetBringUpList();
   if (!result_map.empty())
   {
+    g_default_node_options.append_parameter_override("single_mode", bool(g_isSingleMode));
+
     bringup_cloisim_ros(result_map, targetModel, targetPartsType, targetPartsName);
+
+    const auto exec_options = rclcpp::ExecutorOptions();
+    size_t number_of_threads = 1 + g_num_of_threads; // default 1 for bringup param
+    const auto yield_before_execute = true;
+    executor_ptr = new rclcpp::executors::MultiThreadedExecutor(exec_options, number_of_threads, yield_before_execute);
+    cout << " MultiThreadedExecutor::NumberOfThread = " << executor_ptr->get_number_of_threads() << endl;
+
     for (auto it = g_rclcpp_node_list.begin(); it != g_rclcpp_node_list.end(); ++it)
     {
-      executor.add_node(*it);
-      usleep(1000);
+      executor_ptr->add_node(*it);
     }
-
-    executor.spin();
   }
   else
   {
+    executor_ptr = new rclcpp::executors::MultiThreadedExecutor();
     cout << " >>>>> Failed to get bringup list!! Check CLOiSim status first!!!" << endl;
   }
+
+  executor_ptr->add_node(bringup_param_node);
+
+  executor_ptr->spin();
 
   rclcpp::shutdown();
 
