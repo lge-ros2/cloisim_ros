@@ -34,7 +34,7 @@ namespace cloisim_ros
   private:
     void Initialize() override;
     void Deinitialize() override;
-    void UpdatePublishingData(zmq::Bridge* const bridge_ptr, const std::string &buffer) override;
+    void UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const std::string &buffer) override;
 
     void GetActivatedModules(zmq::Bridge *const bridge_ptr);
 
@@ -42,13 +42,13 @@ namespace cloisim_ros
     std::vector<std::string> activated_modules_;
 
     // message for ROS2 communictaion
-    std::map<zmq::Bridge* const, sensor_msgs::msg::Image> msg_imgs_;
+    std::map<const zmq::Bridge* const, sensor_msgs::msg::Image> msg_imgs_;
 
     // Camera info managers
-    std::map<zmq::Bridge* const, std::shared_ptr<camera_info_manager::CameraInfoManager>> camera_info_managers_;
+    std::map<const zmq::Bridge* const, std::shared_ptr<camera_info_manager::CameraInfoManager>> camera_info_managers_;
 
     // Image publisher
-    std::map<zmq::Bridge* const, image_transport::CameraPublisher> pubs_;
+    std::map<const zmq::Bridge* const, image_transport::CameraPublisher> pubs_;
   };
 }
 #endif

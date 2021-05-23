@@ -40,7 +40,7 @@ namespace cloisim_ros
     virtual void Initialize() = 0;
     virtual void Deinitialize() = 0;
     virtual void UpdatePublishingData(const std::string &buffer) { (void)buffer; };
-    virtual void UpdatePublishingData(zmq::Bridge* const bridge_ptr, const std::string &buffer) { (void)bridge_ptr; (void)buffer; };
+    virtual void UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const std::string &buffer) { (void)bridge_ptr; (void)buffer; };
 
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
@@ -103,6 +103,7 @@ namespace cloisim_ros
     void PublishStaticTF();
 
   private:
+    
     std::map<std::string, zmq::Bridge *> m_hashkey_bridge_map;
 
     bool m_bRunThread;
