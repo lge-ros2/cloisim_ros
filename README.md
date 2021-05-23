@@ -37,6 +37,17 @@ check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_r
 
 ### Run cloisim_ros (robot + world)
 
+#### Shared Memory DDS with FastRTPS
+
+It's experimental feature for cloisim_ros. Use absolute path in FASTRTPS_DEFAULT_PROFILES_FILE environment variable.
+
+For example,
+
+```shell
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+export FASTRTPS_DEFAULT_PROFILES_FILE=/home/cloi/src/cloisim_ros/fastrtps_shared_profile.xml
+```
+
 #### Turn off single mode(=multi robot mode)
 
 **Strongly recommend to use this method.**
