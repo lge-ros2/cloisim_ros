@@ -47,7 +47,7 @@ namespace cloisim_ros
     void SetupStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
     void SetupStaticTf2(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
 
-    void Start();
+    void Start(const bool enable_tf_publish = true);
     void Stop();
 
     void SetupStaticTf2Message(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string parent_frame_id = "base_link");
@@ -99,11 +99,10 @@ namespace cloisim_ros
     static cloisim::msgs::Pose IdentityPose();
 
   private:
-    void SetupBridges(const int number_of_bridges);
     void PublishStaticTF();
 
   private:
-    
+
     std::map<std::string, zmq::Bridge *> m_hashkey_bridge_map;
 
     bool m_bRunThread;

@@ -44,8 +44,9 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
                .arguments(vector<string>{"--ros-args", "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"}))
     , m_bRunThread(false)
     , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
+    , m_static_tf_broadcaster(nullptr)
+    , m_tf_broadcaster(nullptr)
 {
-  // SetupBridges(number_of_bridges);
 }
 
 Base::~Base()
@@ -57,13 +58,16 @@ Base::~Base()
   }
 }
 
-void Base::Start()
+void Base::Start(const bool enable_tf_publish)
 {
   const auto wallTimerPeriod = 0.5s;
   m_bRunThread = true;
 
-  m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(m_node_handle);
-  m_static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(m_node_handle);
+  if (enable_tf_publish)
+  {
+    m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(m_node_handle);
+    m_static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(m_node_handle);
+  }
 
   Initialize();
 
@@ -106,8 +110,11 @@ void Base::SetupStaticTf2Message(const cloisim::msgs::Pose transform, const stri
 
 void Base::PublishTF()
 {
-  m_tf_broadcaster->sendTransform(m_tf_list);
-  m_tf_list.clear();
+  if (m_tf_broadcaster != nullptr && m_tf_list.size() > 0)
+  {
+    m_tf_broadcaster->sendTransform(m_tf_list);
+    m_tf_list.clear();
+  }
 }
 
 void Base::PublishStaticTF()
@@ -118,7 +125,10 @@ void Base::PublishStaticTF()
     _tf.header.stamp = m_sim_time;
   }
 
-  m_static_tf_broadcaster->sendTransform(m_static_tf_list);
+  if (m_static_tf_broadcaster != nullptr && m_static_tf_list.size() > 0)
+  {
+    m_static_tf_broadcaster->sendTransform(m_static_tf_list);
+  }
 }
 
 zmq::Bridge* Base::CreateBridge(const string hashKey)

@@ -24,7 +24,7 @@ using namespace cloisim_ros;
 GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name)
   : Base(node_name, options_)
 {
-  Start();
+  Start(false);
 }
 
 GroundTruth::GroundTruth()

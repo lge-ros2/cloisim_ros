@@ -161,7 +161,7 @@ void bringup_target_parts_by_type(const Json::Value node_list, const string node
 
     bringup_target_parts_by_name(item, node_type, model_name, node_name);
 
-    usleep(10000);
+    usleep(1000);
   }
 }
 

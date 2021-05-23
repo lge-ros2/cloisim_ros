@@ -28,7 +28,7 @@ ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string
     , srv_mode_(false)
     , control_bridge_ptr(nullptr)
 {
-  Start();
+  Start(false);
 }
 
 ElevatorSystem::ElevatorSystem()
