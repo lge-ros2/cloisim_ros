@@ -127,6 +127,10 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       {
         node = std::make_shared<cloisim_ros::GroundTruth>(node_options, node_name);
       }
+      else if (!node_type.compare("ACTOR"))
+      {
+        node = std::make_shared<cloisim_ros::Actor>(node_options, node_name);
+      }
     }
     else
     {
