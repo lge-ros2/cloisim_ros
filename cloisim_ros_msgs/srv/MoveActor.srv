@@ -4,7 +4,7 @@
 ## SPDX-License-Identifier: MIT
 ##
 
-string target_actor_name
+string target_name
 
 geometry_msgs/Vector3 destination
 

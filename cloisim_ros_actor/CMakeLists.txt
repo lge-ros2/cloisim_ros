@@ -13,10 +13,12 @@ cloisim_ros_package()
 find_package(ament_cmake REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
+find_package(cloisim_ros_msgs REQUIRED)
 
 set(dependencies
   cloisim_ros_base
   cloisim_ros_bringup_param
+  cloisim_ros_msgs
 )
 
 ################################################################################

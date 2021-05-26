@@ -16,20 +16,19 @@
 #include "cloisim_ros_actor/actor.hpp"
 
 using namespace std;
-using namespace placeholders;
 using namespace cloisim;
 using namespace cloisim_ros;
-using namespace elevator_system_msgs;
-
-#define BindCallback(func) bind(&Actor::func, this, _1, _2, _3)
+using namespace placeholders;
 
 Actor::Actor(const rclcpp::NodeOptions &options_, const string node_name)
     : Base(node_name, options_)
-    , srv_mode_(false)
     , control_bridge_ptr(nullptr)
 {
   Start(false);
-}Actor
+}
+
+Actor::Actor()
+    : Actor(rclcpp::NodeOptions(), "cloisim_ros_actor")
 {
 }
 
@@ -50,42 +49,16 @@ void Actor::Initialize()
   control_bridge_ptr = CreateBridge(hashKeySrv);
   if (control_bridge_ptr != nullptr)
   {
-    control_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);
-
-    const auto reply = RequestReplyMessage(control_bridge_ptr, "request_system_name");
-    if (reply.IsInitialized())
-    {
-      if (reply.name().compare("request_system_name") == 0 &&
-          reply.value().type() == msgs::Any_ValueType_STRING &&
-          !reply.value().string_value().empty())
-      {
-        const auto system_name = reply.value().string_value();
-
-        request_msg_.set_name(system_name);
-      }
-      else
-      {
-        request_msg_.set_name("Actor");
-      }
-    }
+    srvCallMoveActor_ = this->create_service<cloisim_ros_msgs::srv::MoveActor>("/actor_control", bind(&Actor::CallMoveActor, this, _1, _2, _3));
   }
-
-  srvCallElevator_ = this->create_service<srv::CallElevator>(
-      nodeName + string("/call_elevator"), BindCallback(CallElevator));
-
-  srvGetCalledElevator_ = this->create_service<srv::CallElevator>(
-      nodeName + string("/get_called_elevator"), BindCallback(GetElevatorCalled));
 }
 
-void Actor::CallElevator(
+void Actor::CallMoveActor(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::CallElevator::Request> request,
-    const shared_ptr<srv::CallElevator::Response> response)
+    const shared_ptr<cloisim_ros_msgs::srv::MoveActor::Request> request,
+    const shared_ptr<cloisim_ros_msgs::srv::MoveActor::Response> response)
 {
-  const auto message = CreateRequest("call_elevator",
-                               request->current_floor,
-                               request->target_floor);
-
+  const auto message = CreateMoveRequest(request->target_name, request->destination);
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
@@ -93,189 +66,28 @@ void Actor::CallElevator(
   }
 }
 
-void Actor::GetElevatorCalled(
-    const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::CallElevator::Request> request,
-    const shared_ptr<srv::CallElevator::Response> response)
+bool Actor::GetResultFromResponse(const msgs::Param &response_msg)
 {
-  auto message = CreateRequest("get_called_elevator",
-                               request->current_floor,
-                               request->target_floor);
-
-  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
-  if (reply.IsInitialized())
-  {
-      response->result = GetResultFromResponse(reply);
-
-      const auto result_param = reply.children(2);
-      if (result_param.IsInitialized())
-      {
-        const auto elevator_index = (result_param.name().compare("elevator_index") != 0) ? "":result_param.value().string_value();
-        response->elevator_index = elevator_index;
-      }
-  }
-}
-
-void Actor::GetElevatorInfo(
-    const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::GetElevatorInformation::Request> request,
-    const shared_ptr<srv::GetElevatorInformation::Response> response)
-{
-  auto message = CreateRequest("get_elevator_information", request->elevator_index);
-
-  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
-  if (reply.IsInitialized())
-  {
-    msgs::Param result_param;
-
-    response->result = GetResultFromResponse(reply);
-
-    result_param = reply.children(3);
-    if (result_param.IsInitialized())
-    {
-      const auto current_floor = (result_param.name().compare("current_floor") != 0) ? "" : result_param.value().string_value();
-      response->current_floor = current_floor;
-    }
-
-    result_param = reply.children(4);
-    if (result_param.IsInitialized())
-    {
-      const auto height = (float)((result_param.name().compare("height") != 0) ? 0.0 : result_param.value().double_value());
-      response->height = height;
-    }
-  }
-}
-
-void Actor::SelectFloor(
-    const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::SelectElevatorFloor::Request> request,
-    const shared_ptr<srv::SelectElevatorFloor::Response> response)
-{
-  auto message = CreateRequest("select_elevator_floor",
-                               request->current_floor,
-                               request->target_floor,
-                               request->elevator_index);
-
-  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
-  if (reply.IsInitialized())
-  {
-    response->result = GetResultFromResponse(reply);
-  }
-}
-
-void Actor::RequestDoorOpen(
-    const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::RequestDoor::Request> request,
-    const shared_ptr<srv::RequestDoor::Response> response)
-{
-  auto message = CreateRequest("request_door_open", request->elevator_index);
-
-  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
-  if (reply.IsInitialized())
-  {
-    response->result = GetResultFromResponse(reply);
-  }
-}
-
-void Actor::RequestDoorClose(
-    const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::RequestDoor::Request> request,
-    const shared_ptr<srv::RequestDoor::Response> response)
-{
-  auto message = CreateRequest("request_door_close", request->elevator_index);
-
-  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
-  if (reply.IsInitialized())
-  {
-    response->result = GetResultFromResponse(reply);
-  }
-}
-
-void Actor::IsDoorOpened(
-    const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::RequestDoor::Request> request,
-    const shared_ptr<srv::RequestDoor::Response> response)
-{
-  auto message = CreateRequest("is_door_opened", request->elevator_index);
-
-  const auto reply = RequestReplyMessage(control_bridge_ptr, message);
-  if (reply.IsInitialized())
-  {
-    response->result = GetResultFromResponse(reply);
-  }
-}
-
-void Actor::ReserveElevator(
-  const shared_ptr<rmw_request_id_t> /*request_header*/,
-  const shared_ptr<srv::ReturnBool::Request> /*request*/,
-  const shared_ptr<srv::ReturnBool::Response> response)
-{
-  response->result = srv_mode_;
-}
-
-void Actor::ReleaseElevator(
-  const shared_ptr<rmw_request_id_t> /*request_header*/,
-  const shared_ptr<srv::ReturnBool::Request> /*request*/,
-  const shared_ptr<srv::ReturnBool::Response> response)
-{
-  response->result = srv_mode_;
-}
-
-/**
- * @brief Create protobuf message
- *
- * @param service_name
- * @param current_floor
- * @param target_floor
- * @param elevator_index
- *
- * @return created protobuf message for request
- */
-msgs::Param Actor::CreateRequest(
-    const string service_name,
-    const string current_floor,
-    const string target_floor,
-    const string elevator_index)
-{
-  request_msg_.clear_children();
-
-  msgs::Param *param_ptr;
-  msgs::Any *value_ptr;
-
-  param_ptr = request_msg_.add_children();
-  param_ptr->set_name("service_name");
-  value_ptr = param_ptr->mutable_value();
-  value_ptr->set_type(msgs::Any::STRING);
-  value_ptr->set_string_value(service_name);
-
-  param_ptr = request_msg_.add_children();
-  param_ptr->set_name("current_floor");
-  value_ptr = param_ptr->mutable_value();
-  value_ptr->set_type(msgs::Any::STRING);
-  value_ptr->set_string_value(current_floor);
-
-  param_ptr = request_msg_.add_children();
-  param_ptr->set_name("target_floor");
-  value_ptr = param_ptr->mutable_value();
-  value_ptr->set_type(msgs::Any::STRING);
-  value_ptr->set_string_value(target_floor);
-
-  param_ptr = request_msg_.add_children();
-  param_ptr->set_name("elevator_index");
-  value_ptr = param_ptr->mutable_value();
-  value_ptr->set_type(msgs::Any::STRING);
-  value_ptr->set_string_value(elevator_index);
-
-  return request_msg_;
-}
-
-bool Actor::GetResultFromResponse(const msgs::Param &response_msg, const int children_index)
-{
-  const auto result_param = response_msg.children(children_index);
-  if (!result_param.IsInitialized() || result_param.name().compare("result") != 0)
+  if (!response_msg.IsInitialized() || response_msg.name().compare("result") != 0)
   {
     return false;
   }
+  return response_msg.value().bool_value();
+}
 
-  return result_param.value().bool_value();
+cloisim::msgs::Param Actor::CreateMoveRequest(const string target_name, const geometry_msgs::msg::Vector3 point)
+{
+  msgs::Param request_msg;
+  request_msg.set_name(target_name);
+
+  auto value_ptr = request_msg.mutable_value();
+  value_ptr->set_type(msgs::Any::VECTOR3D);
+
+  msgs::Vector3d vector3d_value;
+  vector3d_value.set_x(point.x);
+  vector3d_value.set_y(point.y);
+  vector3d_value.set_z(point.z);
+  value_ptr->set_allocated_vector3d_value(&vector3d_value);
+
+  return request_msg;
 }
