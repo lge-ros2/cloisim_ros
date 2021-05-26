@@ -26,6 +26,8 @@ find_package(cloisim_ros_gps REQUIRED)
 find_package(cloisim_ros_elevatorsystem REQUIRED)
 find_package(cloisim_ros_groundtruth REQUIRED)
 find_package(cloisim_ros_world REQUIRED)
+find_package(cloisim_ros_actor REQUIRED)
+
 
 set(dependencies
   rclcpp
@@ -41,6 +43,7 @@ set(dependencies
   cloisim_ros_elevatorsystem
   cloisim_ros_groundtruth
   cloisim_ros_world
+  cloisim_ros_actor
 )
 
 ################################################################################

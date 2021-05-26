@@ -49,7 +49,9 @@ void Actor::Initialize()
   control_bridge_ptr = CreateBridge(hashKeySrv);
   if (control_bridge_ptr != nullptr)
   {
-    srvCallMoveActor_ = this->create_service<cloisim_ros_msgs::srv::MoveActor>("/actor_control", bind(&Actor::CallMoveActor, this, _1, _2, _3));
+    control_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);
+
+    srvCallMoveActor_ = this->create_service<cloisim_ros_msgs::srv::MoveActor>(nodeName + "/move_actor", bind(&Actor::CallMoveActor, this, _1, _2, _3));
   }
 }
 
@@ -83,11 +85,10 @@ cloisim::msgs::Param Actor::CreateMoveRequest(const string target_name, const ge
   auto value_ptr = request_msg.mutable_value();
   value_ptr->set_type(msgs::Any::VECTOR3D);
 
-  msgs::Vector3d vector3d_value;
-  vector3d_value.set_x(point.x);
-  vector3d_value.set_y(point.y);
-  vector3d_value.set_z(point.z);
-  value_ptr->set_allocated_vector3d_value(&vector3d_value);
+  auto vector3d_value_ptr = value_ptr->mutable_vector3d_value();
+  vector3d_value_ptr->set_x(point.x);
+  vector3d_value_ptr->set_y(point.y);
+  vector3d_value_ptr->set_z(point.z);
 
   return request_msg;
 }

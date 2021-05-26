@@ -29,6 +29,7 @@
   <depend>cloisim_ros_elevatorsystem</depend>
   <depend>cloisim_ros_groundtruth</depend>
   <depend>cloisim_ros_world</depend>
+  <depend>cloisim_ros_actor</depend>
 
   <test_depend>launch</test_depend>
   <test_depend>launch_testing</test_depend>

@@ -12,6 +12,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include <cloisim_ros_bringup_param/bringup_param.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <cloisim_ros_multicamera/multicamera.hpp>
 #include <cloisim_ros_depthcamera/depthcamera.hpp>
@@ -20,9 +21,9 @@
 #include <cloisim_ros_lidar/lidar.hpp>
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_elevatorsystem/elevatorsystem.hpp>
-#include <cloisim_ros_world/world.hpp>
 #include <cloisim_ros_groundtruth/ground_truth.hpp>
-#include <cloisim_ros_bringup_param/bringup_param.hpp>
+#include <cloisim_ros_world/world.hpp>
+#include <cloisim_ros_actor/actor.hpp>
 
 using namespace std;
 
