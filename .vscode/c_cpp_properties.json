@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/opt/ros/foxy/include",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../../install/perception_msgs/include/",
+                "${workspaceFolder}/../../install/elevator_system_msgs/include/",
+                "${workspaceFolder}/../../install/cloisim_ros_protobuf_msgs/include/",
+                "${workspaceFolder}/../../install/cloisim_ros_msgs/include/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

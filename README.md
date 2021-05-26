@@ -8,6 +8,9 @@ ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot
   - CLOiSim: Latest [link](https://github.com/lge-ros2/cloisim/releases/latest), All Releases [link](https://github.com/lge-ros2/cloisim/releases)
 
 ```shell
+sudo apt update
+sudo apt install -y python3-rosdep
+sudo rosdep init
 rosdep update
 rosdep install -y -r -q --from-paths src --ignore-src --rosdistro foxy
 ```
@@ -33,6 +36,17 @@ export CLOISIM_SERVICE_PORT=8080
 check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup) for bring-up guide
 
 ### Run cloisim_ros (robot + world)
+
+#### Shared Memory DDS with FastRTPS
+
+It's experimental feature for cloisim_ros. Use absolute path in FASTRTPS_DEFAULT_PROFILES_FILE environment variable.
+
+For example,
+
+```shell
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+export FASTRTPS_DEFAULT_PROFILES_FILE=/home/cloi/src/cloisim_ros/fastrtps_shared_profile.xml
+```
 
 #### Turn off single mode(=multi robot mode)
 

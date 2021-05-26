@@ -23,10 +23,10 @@ using namespace std;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-World::World(const rclcpp::NodeOptions &options_, const std::string node_name_)
-  : Base(node_name_, options_, 1)
+World::World(const rclcpp::NodeOptions &options_, const std::string node_name)
+  : Base(node_name, options_)
 {
-  Start();
+  Start(false);
 }
 
 World::World()
@@ -41,61 +41,35 @@ World::~World()
 
 void World::Initialize()
 {
-  string model_name;
-  uint16_t portData;
-  get_parameter_or("model", model_name, string("World"));
-  get_parameter_or("bridge.Clock", portData, uint16_t(0));
+  uint16_t portClock;
+  get_parameter_or("bridge.Clock", portClock, uint16_t(0));
 
-  hashKeySub_ = model_name + GetPartsName();
-  DBG_SIM_INFO("hash Key sub: %s", hashKeySub_.c_str());
-
-  auto pBridgeData = GetBridge(0);
-  if (pBridgeData != nullptr)
-  {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeySub_ + "Clock");
-  }
+  const auto hashKey = GetModelName() + GetPartsName() +  "Clock";
+  DBG_SIM_INFO("hash Key: %s", hashKey.c_str());
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
-  clock_pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock",
-                                                           rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
-}
+  pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
-void World::Deinitialize()
-{
-}
-
-void World::UpdateData(const uint bridge_index)
-{
-  void *pBuffer = nullptr;
-  int bufferLength = 0;
-
-  const bool succeeded = GetBufferFromSimulator(bridge_index, &pBuffer, bufferLength);
-  if (!succeeded || bufferLength < 0)
+  auto pBridgeData = CreateBridge(hashKey);
+  if (pBridgeData != nullptr)
   {
+    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portClock, hashKey);
+    CreatePublisherThread(pBridgeData);
+  }
+}
+
+void World::UpdatePublishingData(const string &buffer)
+{
+  if (!pb_buf_.ParseFromString(buffer))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  if (!pbBuf_.ParseFromArray(pBuffer, bufferLength))
-  {
-    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
-    return;
-  }
+  SetSimTime(pb_buf_.sim_time());
+  // const auto realTime = pb_buf_.real_time();
 
-  if (pbBuf_.name() == "timeInfo" &&
-      pbBuf_.value().type() == msgs::Any::NONE &&
-      pbBuf_.children_size() == 2)
-  {
-    const auto simTime = (pbBuf_.children(0).name() != "simTime") ? msgs::Time() : pbBuf_.children(0).value().time_value();
-    // const auto realTime = (pbBuf_.children(1).name() != "realTime") ? msgs::Time() : pbBuf_.children(1).value().time_value();
-
-    PublishSimTime(rclcpp::Time(simTime.sec(), simTime.nsec()));
-  }
-}
-
-void World::PublishSimTime(const rclcpp::Time simTime)
-{
-  rosgraph_msgs::msg::Clock clock;
-  clock.clock = simTime;
-  clock_pub_->publish(clock);
+  msg_clock_.clock = GetSimTime();
+  pub_->publish(msg_clock_);
 }

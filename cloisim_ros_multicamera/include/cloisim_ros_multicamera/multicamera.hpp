@@ -26,35 +26,27 @@ namespace cloisim_ros
   class MultiCamera : public Base
   {
   public:
-    explicit MultiCamera(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit MultiCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
     explicit MultiCamera(const std::string namespace_ = "");
     virtual ~MultiCamera();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
-
-    void GetRos2FramesId(zmq::Bridge *const pBridge);
+    void Initialize() override;
+    void Deinitialize() override;
+    void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    std::string multicamera_name_;
-
-    std::string hashKeySub_;
-
-    std::vector<std::string> frame_id_list_;
-
     // buffer from simulation
-    cloisim::msgs::ImagesStamped pbBuf_;
+    cloisim::msgs::ImagesStamped pb_buf_;
 
     // message for ROS2 communictaion
-    std::map<int, sensor_msgs::msg::Image> msgImgs_;
+    std::map<int, sensor_msgs::msg::Image> msg_imgs_;
 
     // Camera info managers
-    std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> cameraInfoManager;
+    std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> camera_info_manager_;
 
     // Image publisher
-    std::vector<image_transport::CameraPublisher> pubImages_;
+    std::vector<image_transport::CameraPublisher> pubs_;
   };
 }
 #endif

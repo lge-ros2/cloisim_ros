@@ -1,5 +1,5 @@
 /**
- *  @file   term_color.h
+ *  @file   debug_log.h
  *  @date   2020-04-21
  *  @author Hyunseok Yang
  *  @brief

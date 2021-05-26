@@ -25,27 +25,24 @@ namespace cloisim_ros
   class Gps : public Base
   {
   public:
-    explicit Gps(const rclcpp::NodeOptions &options_, const std::string node_name_, const std::string namespace_ = "");
+    explicit Gps(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
     explicit Gps(const std::string namespace_ = "");
     ~Gps();
 
   private:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index) override;
+    void Initialize() override;
+    void Deinitialize() override { };
+    void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    // key for connection
-    std::string hashKeySub_;
-
     // buffer from simulation
-    cloisim::msgs::GPS pbBuf_;
+    cloisim::msgs::GPS pb_buf_;
 
     // message for ROS2 communictaion
-    sensor_msgs::msg::NavSatFix msg_navsat;
+    sensor_msgs::msg::NavSatFix msg_nav_;
 
     // Laser publisher
-    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pubNav;
+    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub_;
   };
 }
 #endif

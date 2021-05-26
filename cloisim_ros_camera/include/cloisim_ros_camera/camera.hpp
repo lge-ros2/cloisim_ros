@@ -27,30 +27,27 @@ namespace cloisim_ros
   class Camera : public Base
   {
   public:
-    explicit Camera(const rclcpp::NodeOptions &options_, const std::string node_name_ = "cloisim_ros_camera", const std::string namespace_ = "");
-    explicit Camera(const std::string node_name_ = "cloisim_ros_camera", const std::string namespace_ = "");
+    explicit Camera(const rclcpp::NodeOptions &options_, const std::string node_name = "cloisim_ros_camera", const std::string namespace_ = "");
+    explicit Camera(const std::string node_name = "cloisim_ros_camera", const std::string namespace_ = "");
     virtual ~Camera();
 
   protected:
-    virtual void Initialize() override;
-    virtual void Deinitialize() override;
-    virtual void UpdateData(const uint bridge_index = 0) override;
+    void Initialize() override;
+    void Deinitialize() override;
+    void UpdatePublishingData(const std::string &buffer) override;
 
   private:
-    // key for connection
-    std::string hashKeySub_;
-
     // image buffer from simulatornode_name_
-    cloisim::msgs::ImageStamped m_pbImgBuf;
+    cloisim::msgs::ImageStamped pb_img_;
 
     // message for ROS2 communictaion
-    sensor_msgs::msg::Image msg_img;
+    sensor_msgs::msg::Image msg_img_;
 
     // Image publisher
-    image_transport::CameraPublisher pubImage;
+    image_transport::CameraPublisher pub_;
 
     // Camera info manager
-    std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager;
+    std::shared_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
   };
 }
 #endif

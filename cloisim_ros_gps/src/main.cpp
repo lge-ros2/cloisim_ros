@@ -33,11 +33,11 @@ int main(int argc, char** argv)
     rclcpp::NodeOptions node_options;
     bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
 
-    const auto isSingleMode = bringup_param_node->IsSingleMode();
+    const auto is_single_mode = bringup_param_node->IsSingleMode();
     const auto model_name = bringup_param_node->TargetModel();
     const auto node_name = bringup_param_node->TargetPartsName();
 
-    if (isSingleMode)
+    if (is_single_mode)
       node = std::make_shared<cloisim_ros::Gps>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Gps>(node_options, node_name, model_name);

@@ -9,20 +9,16 @@
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-
-  <build_depend>rclcpp</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend>cloisim_ros_protobuf_msgs</build_depend>
-  <build_depend>cloisim_ros_bridge_zmq</build_depend>
-
-  <exec_depend>rclcpp</exec_depend>
-  <exec_depend>tf2</exec_depend>
-  <exec_depend>tf2_ros</exec_depend>
-  <exec_depend>cloisim_ros_protobuf_msgs</exec_depend>
-  <exec_depend>cloisim_ros_bridge_zmq</exec_depend>
+  <depend>rclcpp</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>cloisim_ros_protobuf_msgs</depend>
+  <depend>cloisim_ros_bridge_zmq</depend>
+  <depend>geometry_msgs</depend>
 
   <depend>protobuf-dev</depend>
+
+  <test_depend>ament_cmake_cppcheck</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

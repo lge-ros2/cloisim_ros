@@ -4,33 +4,29 @@
 cmake_minimum_required(VERSION 3.5)
 project(cloisim_ros_base)
 
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -fstack-protector -O2)
-endif()
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+include("cmake/cloisim_ros_package.cmake")
+cloisim_ros_package()
 
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(cloisim_ros_bridge_zmq REQUIRED)
 find_package(cloisim_ros_protobuf_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+# if(BUILD_TESTING)
+  find_package(ament_cmake_cppcheck REQUIRED)
+  ament_cppcheck()
+# endif()
 
 set(dependencies
   rclcpp
   tf2_ros
   cloisim_ros_bridge_zmq
   cloisim_ros_protobuf_msgs
+  geometry_msgs
 )
 
 ################################################################################
