@@ -25,7 +25,7 @@ bool BringUpParam::IsRobotSpecificType(const string node_type)
 
 bool BringUpParam::IsWorldSpecificType(const string node_type)
 {
-  return (!node_type.compare("ELEVATOR") || !node_type.compare("WORLD") || !node_type.compare("GROUNDTRUTH"));
+  return (!node_type.compare("ELEVATOR") || !node_type.compare("ACTOR") || !node_type.compare("WORLD") || !node_type.compare("GROUNDTRUTH"));
 }
 
 BringUpParam::BringUpParam(const string basename)

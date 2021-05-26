@@ -12,6 +12,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include <cloisim_ros_bringup_param/bringup_param.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <cloisim_ros_multicamera/multicamera.hpp>
 #include <cloisim_ros_depthcamera/depthcamera.hpp>
@@ -20,9 +21,9 @@
 #include <cloisim_ros_lidar/lidar.hpp>
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_elevatorsystem/elevatorsystem.hpp>
-#include <cloisim_ros_world/world.hpp>
 #include <cloisim_ros_groundtruth/ground_truth.hpp>
-#include <cloisim_ros_bringup_param/bringup_param.hpp>
+#include <cloisim_ros_world/world.hpp>
+#include <cloisim_ros_actor/actor.hpp>
 
 using namespace std;
 
@@ -126,6 +127,10 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       else if (!node_type.compare("GROUNDTRUTH"))
       {
         node = std::make_shared<cloisim_ros::GroundTruth>(node_options, node_name);
+      }
+      else if (!node_type.compare("ACTOR"))
+      {
+        node = std::make_shared<cloisim_ros::Actor>(node_options, node_name);
       }
     }
     else

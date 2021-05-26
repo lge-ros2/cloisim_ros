@@ -181,12 +181,14 @@ void Micom::ResetOdometryCallback(
 string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
   msgs::Twist twistBuf;  // m/s and rad/s
-  twistBuf.mutable_linear()->set_x(msg->linear.x);
-  twistBuf.mutable_linear()->set_y(msg->linear.y);
-  twistBuf.mutable_linear()->set_z(msg->linear.z);
-  twistBuf.mutable_angular()->set_x(msg->angular.x);
-  twistBuf.mutable_angular()->set_y(msg->angular.y);
-  twistBuf.mutable_angular()->set_z(msg->angular.z);
+  auto linear_ptr = twistBuf.mutable_linear();
+  auto angular_ptr = twistBuf.mutable_angular();
+  linear_ptr->set_x(msg->linear.x);
+  linear_ptr->set_y(msg->linear.y);
+  linear_ptr->set_z(msg->linear.z);
+  angular_ptr->set_x(msg->angular.x);
+  angular_ptr->set_y(msg->angular.y);
+  angular_ptr->set_z(msg->angular.z);
 
   // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f) / 2.0));
