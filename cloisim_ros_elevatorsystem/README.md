@@ -7,13 +7,13 @@ You need to download interfaces.
 Please, refer to [here](https://github.com/lge-ros2/cloi_common_interfaces/tree/foxy)
 
 ```shell
-ros2 run cloisim_ros_elevatorsystem cloisim_ros_elevatorsystem
+ros2 run cloisim_ros_elevatorsystem standalone
 ```
 
 or
 
 ```shell
-ros2 run cloisim_ros_elevatorsystem cloisim_ros_elevatorsystem --ros-args -p target_model:=SeochoTower -p target_parts_name:=elevator_system
+ros2 run cloisim_ros_elevatorsystem standalone --ros-args -p target_model:=SeochoTower -p target_parts_name:=elevator_system
 ```
 
 ## Example

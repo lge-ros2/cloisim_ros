@@ -1,13 +1,13 @@
 # CLOiSim-ROS Actor
 
 ```shell
-ros2 run cloisim_ros_actor cloisim_ros_actor
+ros2 run cloisim_ros_actor standalone
 ```
 
 or
 
 ```shell
-ros2 run cloisim_ros_actor cloisim_ros_actor --ros-args -p target_model:=SeochoTower -p target_parts_name:=elevator_system
+ros2 run cloisim_ros_actor standalone --ros-args -p target_model:=SeochoTower -p target_parts_name:=elevator_system
 ```
 
 ## Example
