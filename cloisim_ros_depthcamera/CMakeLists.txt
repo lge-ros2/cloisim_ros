@@ -3,6 +3,7 @@
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
 project(cloisim_ros_depthcamera)
+set(EXEC_NAME "standalone")
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
@@ -37,12 +38,12 @@ ament_target_dependencies(
 )
 
 add_executable(
-  ${PROJECT_NAME}
+  ${STANDALONE_EXEC_NAME}
   src/main.cpp
 )
 
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE
+  ${STANDALONE_EXEC_NAME} PRIVATE
   ${PROJECT_NAME}_core
 )
 
@@ -63,7 +64,7 @@ install(
 )
 
 install(
-  TARGETS ${PROJECT_NAME}
+  TARGETS ${STANDALONE_EXEC_NAME}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -19,4 +19,6 @@ macro(cloisim_ros_package)
     # add_compile_options(-Werror)
   endif()
 
+  set(STANDALONE_EXEC_NAME "standalone")
+
 endmacro()

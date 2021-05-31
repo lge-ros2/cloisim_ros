@@ -41,18 +41,12 @@ ament_target_dependencies(
 )
 
 add_executable(
-  ${PROJECT_NAME}
+  ${STANDALONE_EXEC_NAME}
   src/main.cpp
 )
 
-target_include_directories(
-  ${PROJECT_NAME} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE
+  ${STANDALONE_EXEC_NAME} PRIVATE
   ${PROJECT_NAME}_core
 )
 
@@ -73,7 +67,7 @@ install(
 )
 
 install(
-  TARGETS ${PROJECT_NAME}
+  TARGETS ${STANDALONE_EXEC_NAME}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
