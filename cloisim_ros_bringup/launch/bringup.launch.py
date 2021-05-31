@@ -24,7 +24,7 @@ def generate_launch_description():
 
     cloisim_ros_cmd = Node(
         package="cloisim_ros_bringup",
-        executable="cloisim_ros_bringup",
+        executable="bringup",
         output='screen',
         remappings=[('scan',_scan)],
         parameters=[{'single_mode': _single_mode, 'target_model': _target_model, 'target_parts_type': _target_parts_type, 'target_parts_name': _target_parts_name}])

@@ -34,7 +34,7 @@ namespace cloisim_ros
     explicit Base(const std::string node_name, const rclcpp::NodeOptions &options);
     explicit Base(const std::string node_name, const std::string namespace_);
     explicit Base(const std::string node_name, const std::string namespace_, const rclcpp::NodeOptions &options);
-    ~Base();
+    virtual ~Base();
 
   protected:
     virtual void Initialize() = 0;

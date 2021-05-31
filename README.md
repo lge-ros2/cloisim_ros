@@ -81,7 +81,7 @@ ros2 launch cloisim_ros_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim
 
 ## Using Docker
 
-Run below command after clone this repository(this branch). Only support 'ros2 run'
+Run below command after clone this repository(this branch).
 
 ### Build Docker image
 

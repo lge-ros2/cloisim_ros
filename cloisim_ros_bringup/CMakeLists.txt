@@ -7,6 +7,8 @@ project(cloisim_ros_bringup)
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
 
+set(STANDALONE_EXEC_NAME "bringup")
+
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
@@ -50,12 +52,12 @@ set(dependencies
 # Build
 ################################################################################
 add_executable(
-  ${PROJECT_NAME}
+  ${STANDALONE_EXEC_NAME}
   src/main.cpp
 )
 
 ament_target_dependencies(
-  ${PROJECT_NAME}
+  ${STANDALONE_EXEC_NAME}
   ${dependencies}
 )
 
@@ -68,7 +70,7 @@ install(
 )
 
 install(
-  TARGETS ${PROJECT_NAME}
+  TARGETS ${STANDALONE_EXEC_NAME}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
