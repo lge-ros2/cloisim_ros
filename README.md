@@ -120,8 +120,9 @@ docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_D
 You can set bridge ip using below command.
 
 ```shell
-echo $(ip addr show dev docker0 | grep "inet" | awk 'NR==1{print $2}' | cut -d'/' -f 1)
-docker run -it --rm -e CLOISIM_BRIDGE_IP=`echo $(ip addr show dev docker0 | grep "inet" | awk 'NR==1{print $2}' | cut -d'/' -f 1)` -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
+export CLOISIM_BRIDGE_IP=$(ip addr show dev docker0 | grep "inet" | awk 'NR==1{print $2}' | cut -d'/' -f 1)
+echo $CLOISIM_BRIDGE_IP
+docker run -it --rm -e CLOISIM_BRIDGE_IP=$CLOISIM_BRIDGE_IP -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
 ```
 
 ## Version info

@@ -51,12 +51,20 @@ static void SetQuaternionMessageToGeometry(const cloisim::msgs::Quaternion &src,
   dst.w = src.w();
 }
 
-static void SetQuaternionMessageToGeometry(const tf2::Quaternion &src, geometry_msgs::msg::Quaternion &dst)
+static void SetTf2QuaternionToGeometry(const tf2::Quaternion &src, geometry_msgs::msg::Quaternion &dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
   dst.w = src.w();
+}
+
+
+static void SetPointToGeometry(const geometry_msgs::msg::Point &src, geometry_msgs::msg::Vector3 &dst)
+{
+  dst.x = src.x;
+  dst.y = src.y;
+  dst.z = src.z;
 }
 
 #endif
