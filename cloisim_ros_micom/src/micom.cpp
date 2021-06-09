@@ -281,12 +281,13 @@ void Micom::UpdateOdom()
 
   msg_odom_.header.stamp = GetSimTime();
   SetVector3MessageToGeometry(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
+  msg_odom_.pose.pose.position.z = 0.0; // position.z contians yaw value
   SetVector3MessageToGeometry(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
   SetVector3MessageToGeometry(pb_micom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
 
-  tf2::Quaternion q;
-  q.setRPY(0.0, 0.0, pb_micom_.odom().pose().z());
-  SetQuaternionMessageToGeometry(q, msg_odom_.pose.pose.orientation);
+  tf2::Quaternion tf2_q;
+  tf2_q.setRPY(0.0, 0.0, pb_micom_.odom().pose().z());
+  SetTf2QuaternionToGeometry(tf2_q, msg_odom_.pose.pose.orientation);
 
   // static int cnt = 0;
   // if (cnt++ % LOGGING_PERIOD == 0)
@@ -298,20 +299,18 @@ void Micom::UpdateOdom()
 
   // Update TF
   odom_tf_.header.stamp = msg_odom_.header.stamp;
-  odom_tf_.transform.translation.x = msg_odom_.pose.pose.position.x;
-  odom_tf_.transform.translation.y = msg_odom_.pose.pose.position.y;
-  odom_tf_.transform.translation.z = msg_odom_.pose.pose.position.z;
+  SetPointToGeometry(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
   odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
   AddTf2(odom_tf_);
 
   wheel_left_tf_.header.stamp = msg_odom_.header.stamp;
-  q.setRPY(orig_left_wheel_rot_[0], last_rad_[0], orig_left_wheel_rot_[2]);
-  SetQuaternionMessageToGeometry(q, wheel_left_tf_.transform.rotation);
+  tf2_q.setRPY(orig_left_wheel_rot_[0], last_rad_[0], orig_left_wheel_rot_[2]);
+  SetTf2QuaternionToGeometry(tf2_q, wheel_left_tf_.transform.rotation);
   AddTf2(wheel_left_tf_);
 
   wheel_right_tf_.header.stamp = msg_odom_.header.stamp;
-  q.setRPY(orig_right_wheel_rot_[0], last_rad_[1], orig_right_wheel_rot_[2]);
-  SetQuaternionMessageToGeometry(q, wheel_right_tf_.transform.rotation);
+  tf2_q.setRPY(orig_right_wheel_rot_[0], last_rad_[1], orig_right_wheel_rot_[2]);
+  SetTf2QuaternionToGeometry(tf2_q, wheel_right_tf_.transform.rotation);
   AddTf2(wheel_right_tf_);
 }
 
