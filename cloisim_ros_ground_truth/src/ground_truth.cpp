@@ -14,7 +14,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_groundtruth/ground_truth.hpp"
+#include "cloisim_ros_ground_truth/ground_truth.hpp"
 #include <cloisim_ros_base/helper.h>
 
 using namespace std;
@@ -28,7 +28,7 @@ GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string 
 }
 
 GroundTruth::GroundTruth()
-  : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_groundtruth")
+  : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_ground_truth")
 {
 }
 

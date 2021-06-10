@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_groundtruth)
+project(cloisim_ros_ground_truth)
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()

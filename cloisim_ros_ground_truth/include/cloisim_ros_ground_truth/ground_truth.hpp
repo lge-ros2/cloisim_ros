@@ -14,8 +14,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_GROUNDTRUTH_HPP_
-#define _CLOISIM_ROS_GROUNDTRUTH_HPP_
+#ifndef _cloisim_ros_ground_truth_HPP_
+#define _cloisim_ros_ground_truth_HPP_
 
 #include <cloisim_ros_base/base.hpp>
 #include <cloisim_msgs/perception_v.pb.h>

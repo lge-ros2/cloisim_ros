@@ -21,7 +21,7 @@
 #include <cloisim_ros_lidar/lidar.hpp>
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_elevatorsystem/elevatorsystem.hpp>
-#include <cloisim_ros_groundtruth/ground_truth.hpp>
+#include <cloisim_ros_ground_truth/ground_truth.hpp>
 #include <cloisim_ros_world/world.hpp>
 #include <cloisim_ros_actor/actor.hpp>
 
