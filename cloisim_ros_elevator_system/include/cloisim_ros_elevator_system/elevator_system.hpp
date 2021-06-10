@@ -1,5 +1,5 @@
 /**
- *  @file   elevatorsystems.hpp
+ *  @file   elevator_systems.hpp
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
@@ -13,8 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_ELEVATORSYSTEM_HPP_
-#define _CLOISIM_ROS_ELEVATORSYSTEM_HPP_
+#ifndef _CLOISIM_ROS_ELEVATOR_SYSTEM_HPP_
+#define _CLOISIM_ROS_ELEVATOR_SYSTEM_HPP_
 
 #include <cloisim_ros_base/base.hpp>
 #include <cloisim_msgs/param.pb.h>

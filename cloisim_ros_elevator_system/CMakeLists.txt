@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_elevatorsystem)
+project(cloisim_ros_elevator_system)
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
@@ -26,7 +26,7 @@ set(dependencies
 ################################################################################
 add_library(
   ${PROJECT_NAME}_core SHARED
-  src/elevatorsystem.cpp
+  src/elevator_system.cpp
 )
 
 target_include_directories(

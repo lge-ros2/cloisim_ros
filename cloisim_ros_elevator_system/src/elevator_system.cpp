@@ -1,5 +1,5 @@
 /**
- *  @file   elevatorsystem.cpp
+ *  @file   elevator_system.cpp
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_elevatorsystem/elevatorsystem.hpp"
+#include "cloisim_ros_elevator_system/elevator_system.hpp"
 
 using namespace std;
 using namespace placeholders;
@@ -32,7 +32,7 @@ ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string
 }
 
 ElevatorSystem::ElevatorSystem()
-    : ElevatorSystem(rclcpp::NodeOptions(), "cloisim_ros_elevatorsystem")
+    : ElevatorSystem(rclcpp::NodeOptions(), "cloisim_ros_elevator_system")
 {
 }
 

@@ -25,7 +25,7 @@ find_package(cloisim_ros_depthcamera REQUIRED)
 find_package(cloisim_ros_multicamera REQUIRED)
 find_package(cloisim_ros_realsense REQUIRED)
 find_package(cloisim_ros_gps REQUIRED)
-find_package(cloisim_ros_elevatorsystem REQUIRED)
+find_package(cloisim_ros_elevator_system REQUIRED)
 find_package(cloisim_ros_ground_truth REQUIRED)
 find_package(cloisim_ros_world REQUIRED)
 find_package(cloisim_ros_actor REQUIRED)
@@ -42,7 +42,7 @@ set(dependencies
   cloisim_ros_multicamera
   cloisim_ros_realsense
   cloisim_ros_gps
-  cloisim_ros_elevatorsystem
+  cloisim_ros_elevator_system
   cloisim_ros_ground_truth
   cloisim_ros_world
   cloisim_ros_actor
