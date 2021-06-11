@@ -279,6 +279,16 @@ bool Base::GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffe
   return true;
 }
 
+bool Base::SetBufferToSimulator(zmq::Bridge* const bridge_ptr, const string &buffer)
+{
+  if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr)
+  {
+    return bridge_ptr->Send(buffer.data(), buffer.size());;
+  }
+
+  return false;
+}
+
 void Base::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const string child_frame_id, const string header_frame_id)
 {
   SetTf2(target_msg, IdentityPose(), child_frame_id, header_frame_id);

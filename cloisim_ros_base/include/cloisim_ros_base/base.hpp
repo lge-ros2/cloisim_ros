@@ -85,7 +85,9 @@ namespace cloisim_ros
 
     void GetRos2Parameter(zmq::Bridge* const bridge_ptr);
 
-    bool GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
+    static bool GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
+
+    static bool SetBufferToSimulator(zmq::Bridge* const bridge_ptr, const std::string &buffer);
 
     std::string GetFrameId(const std::string default_frame_id = "base_link");
 
