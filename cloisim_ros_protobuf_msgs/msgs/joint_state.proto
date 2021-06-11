@@ -1,0 +1,14 @@
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface JointState
+/// \brief Message for joint state
+
+message JointState
+{
+  required string name = 1;
+  required double position = 2;
+  required double velocity = 3;
+  required double effort = 4;
+}
