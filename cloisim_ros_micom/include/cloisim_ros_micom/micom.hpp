@@ -39,8 +39,6 @@ namespace cloisim_ros
   private:
     void GetTransformNameInfo(zmq::Bridge *const bridge_ptr);
 
-    void MicomWrite(zmq::Bridge* const bridge_ptr, const std::string &buffer);
-
     void ResetOdometryCallback(
         const std::shared_ptr<rmw_request_id_t> /*request_header*/,
         const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,

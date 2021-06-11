@@ -105,9 +105,10 @@ void Micom::Initialize()
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
     CreatePublisherThread(pBridgeData);
   }
+
   auto callback_sub = [this, pBridgeData](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
     const auto msgBuf = MakeControlMessage(msg);
-    MicomWrite(pBridgeData, msgBuf);
+    SetBufferToSimulator(pBridgeData, msgBuf);
   };
 
   // ROS2 Subscriber
@@ -200,14 +201,6 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   string message;
   twistBuf.SerializeToString(&message);
   return message;
-}
-
-void Micom::MicomWrite(zmq::Bridge* const bridge_ptr, const std::string &buffer)
-{
-  if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr)
-  {
-    bridge_ptr->Send(buffer.data(), buffer.size());
-  }
 }
 
 void Micom::UpdatePublishingData(const string &buffer)
