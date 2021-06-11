@@ -44,13 +44,11 @@ namespace cloisim_ros
 
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
-    void SetupStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
-    void SetupStaticTf2(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
+    void SetStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
+    void SetStaticTf2(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
 
     void Start(const bool enable_tf_publish = true);
     void Stop();
-
-    void SetupStaticTf2Message(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string parent_frame_id = "base_link");
 
     void AddTf2(const geometry_msgs::msg::TransformStamped tf)
     {

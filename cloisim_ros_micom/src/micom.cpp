@@ -50,7 +50,6 @@ void Micom::Initialize()
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx, uint16_t(0));
-
   const auto hashKeyInfo = GetTargetHashKey("Info");
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
@@ -70,11 +69,11 @@ void Micom::Initialize()
     GetTransformNameInfo(info_bridge_ptr);
 
     std::string base_link_name("base_link");
-    SetupStaticTf2(base_link_name, "base_footprint");
+    SetStaticTf2(base_link_name, "base_footprint");
 
     const auto transform_imu_name = target_transform_name["imu"];
     const auto transform_imu = GetObjectTransform(info_bridge_ptr, transform_imu_name);
-    SetupStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name);
+    SetStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name);
 
     const auto transform_wheel_0_name = target_transform_name["wheels/left"];
     const auto transform_wheel_0 = GetObjectTransform(info_bridge_ptr, transform_wheel_0_name);

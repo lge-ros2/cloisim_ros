@@ -62,7 +62,7 @@ void MultiCamera::Initialize()
     for (auto frame_id : frame_id_list_)
     {
       const auto transform = GetObjectTransform(info_bridge_ptr, frame_id);
-      SetupStaticTf2(transform, GetPartsName() + "_" + frame_id);
+      SetStaticTf2(transform, GetPartsName() + "_" + frame_id);
 
       // Image publisher
       const auto topic_base_name_ = GetPartsName() + "/" + frame_id;

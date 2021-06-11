@@ -68,7 +68,7 @@ void Lidar::Initialize()
     msg_pc2_.header.frame_id = frame_id;
 
     const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetupStaticTf2(transform, frame_id);
+    SetStaticTf2(transform, frame_id);
 
     output_type = GetOutputType(info_bridge_ptr);
   }

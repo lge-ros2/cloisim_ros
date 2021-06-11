@@ -97,17 +97,6 @@ void Base::Stop()
   CloseBridges();
 }
 
-void Base::SetupStaticTf2Message(const cloisim::msgs::Pose transform, const string child_frame_id, const string parent_frame_id)
-{
-  geometry_msgs::msg::TransformStamped msg_tf;
-  msg_tf.header.frame_id = parent_frame_id;
-  msg_tf.child_frame_id = child_frame_id;
-  SetVector3MessageToGeometry(transform.position(), msg_tf.transform.translation);
-  SetQuaternionMessageToGeometry(transform.orientation(), msg_tf.transform.rotation);
-
-  AddStaticTf2(msg_tf);
-}
-
 void Base::PublishTF()
 {
   if (m_tf_broadcaster != nullptr && m_tf_list.size() > 0)
@@ -302,12 +291,12 @@ void Base::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const msgs::
   SetQuaternionMessageToGeometry(transform.orientation(), target_msg.transform.rotation);
 }
 
-void Base::SetupStaticTf2(const string child_frame_id, const string header_frame_id)
+void Base::SetStaticTf2(const string child_frame_id, const string header_frame_id)
 {
-  SetupStaticTf2(IdentityPose(), child_frame_id, header_frame_id);
+  SetStaticTf2(IdentityPose(), child_frame_id, header_frame_id);
 }
 
-void Base::SetupStaticTf2(const msgs::Pose transform, const string child_frame_id, const string header_frame_id)
+void Base::SetStaticTf2(const msgs::Pose transform, const string child_frame_id, const string header_frame_id)
 {
   geometry_msgs::msg::TransformStamped static_tf;
   static_tf.header.frame_id = header_frame_id;
