@@ -41,7 +41,7 @@ namespace cloisim_ros
 
     void JointControlWrite(zmq::Bridge* const bridge_ptr, const std::string &buffer);
 
-    std::string MakeCommandMessage(const control_msgs::msg::JointJog::SharedPtr msg) const;
+    std::string MakeCommandMessage(const std::string joint_name, const double joint_displacement, const double joint_velocity) const;
 
   private:
     zmq::Bridge *info_bridge_ptr;
@@ -59,7 +59,7 @@ namespace cloisim_ros
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_state_;
 
     // ROS2 Joint Jog subscriber
-    rclcpp::Subscription<control_msgs::msg::JointJog>::SharedPtr sub_joint_job__;
+    rclcpp::Subscription<control_msgs::msg::JointJog>::SharedPtr sub_joint_job_;
   };
 }
 #endif

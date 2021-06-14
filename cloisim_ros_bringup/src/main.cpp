@@ -24,6 +24,7 @@
 #include <cloisim_ros_ground_truth/ground_truth.hpp>
 #include <cloisim_ros_world/world.hpp>
 #include <cloisim_ros_actor/actor.hpp>
+#include <cloisim_ros_joint_control/joint_control.hpp>
 
 using namespace std;
 

@@ -55,39 +55,6 @@ void JointControl::Initialize()
   const auto hashKeySub = GetTargetHashKey("Tx");
   DBG_SIM_INFO("hash Key: info(%s) pub_(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
 
-  // SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
-
-  // info_bridge_ptr = CreateBridge(hashKeyInfo);
-  // if (info_bridge_ptr != nullptr)
-  // {
-  //   info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
-
-  //   GetTransformNameInfo(info_bridge_ptr);
-
-  //   std::string base_link_name("base_link");
-  //   SetStaticTf2(base_link_name, "base_footprint");
-
-  //   const auto transform_imu_name = target_transform_name["imu"];
-  //   const auto transform_imu = GetObjectTransform(info_bridge_ptr, transform_imu_name);
-  //   SetStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name);
-
-  //   const auto transform_wheel_0_name = target_transform_name["wheels/left"];
-  //   const auto transform_wheel_0 = GetObjectTransform(info_bridge_ptr, transform_wheel_0_name);
-  //   SetTf2(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name + "_link", base_link_name);
-
-  //   const auto init_left_q_msg = &wheel_left_tf_.transform.rotation;
-  //   const auto wheel_left_quat = tf2::Quaternion(init_left_q_msg->x, init_left_q_msg->y, init_left_q_msg->z, init_left_q_msg->w);
-  //   tf2::Matrix3x3(wheel_left_quat).getRPY(orig_left_wheel_rot_[0], orig_left_wheel_rot_[1], orig_left_wheel_rot_[2]);
-
-  //   const auto transform_wheel_1_name = target_transform_name["wheels/right"];
-  //   const auto transform_wheel_1 = GetObjectTransform(info_bridge_ptr, transform_wheel_1_name);
-  //   SetTf2(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name + "_link", base_link_name);
-
-  //   const auto init_right_q_msg = &wheel_right_tf_.transform.rotation;
-  //   const auto wheel_right_quat = tf2::Quaternion(init_right_q_msg->x, init_right_q_msg->y, init_right_q_msg->z, init_right_q_msg->w);
-  //   tf2::Matrix3x3(wheel_right_quat).getRPY(orig_right_wheel_rot_[0], orig_right_wheel_rot_[1], orig_right_wheel_rot_[2]);
-  // }
-
   // ROS2 Publisher
   pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", rclcpp::SensorDataQoS());
 
@@ -98,70 +65,35 @@ void JointControl::Initialize()
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
     CreatePublisherThread(pBridgeData);
   }
+
   auto callback_sub = [this, pBridgeData](const control_msgs::msg::JointJog::SharedPtr msg) -> void {
-    const auto msgBuf = MakeCommandMessage(msg);
-    SetBufferToSimulator(pBridgeData, msgBuf);
+    // const auto duration = msg->duration;
+    for (size_t i = 0; i < msg->joint_names.size(); i++)
+    {
+      const auto joint_name = msg->joint_names[i];
+      const auto displacement = msg->displacements[i];
+      const auto velocity = msg->velocities[i];
+
+      const auto msgBuf = MakeCommandMessage(joint_name, displacement, velocity);
+      SetBufferToSimulator(pBridgeData, msgBuf);
+    }
   };
 
   // ROS2 Subscriber
-  sub_joint_job__ = create_subscription<control_msgs::msg::JointJog>("joint_command", rclcpp::SensorDataQoS(), callback_sub);
+  sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>("joint_command", rclcpp::SensorDataQoS(), callback_sub);
 }
 
-// void JointControl::GetTransformNameInfo(zmq::Bridge* const bridge_ptr)
-// {
-//   if (bridge_ptr == nullptr)
-//   {
-//     return;
-//   }
-
-//   const auto reply = RequestReplyMessage(bridge_ptr, "request_transform_name");
-
-//   if (reply.IsInitialized() &&
-//       (reply.name().compare("ros2") == 0))
-//   {
-//     auto baseParam = reply.children(0);
-//     if (baseParam.IsInitialized() &&
-//         baseParam.name() == "transform_name")
-//     {
-//       auto param0 = baseParam.children(0);
-//       if (param0.name() == "imu" && param0.has_value() &&
-//           param0.value().type() == msgs::Any_ValueType_STRING &&
-//           !param0.value().string_value().empty())
-//       {
-//         target_transform_name["imu"] = param0.value().string_value();
-//       }
-
-//       auto param1 = baseParam.children(1);
-//       if (param1.name() == "wheels")
-//       {
-//         auto childParam0 = param1.children(0);
-//         if (childParam0.name() == "left" && childParam0.has_value() &&
-//             childParam0.value().type() == msgs::Any_ValueType_STRING &&
-//             !childParam0.value().string_value().empty())
-//         {
-//           target_transform_name["wheels/left"] = childParam0.value().string_value();
-//         }
-
-//         auto childParam1 = param1.children(1);
-//         if (childParam1.name() == "right" && childParam1.has_value() &&
-//             childParam1.value().type() == msgs::Any_ValueType_STRING &&
-//             !childParam1.value().string_value().empty())
-//         {
-//           target_transform_name["wheels/right"] = childParam1.value().string_value();
-//         }
-//       }
-//     }
-
-//     DBG_SIM_INFO("transform name imu:%s, wheels(0/1):%s/%s",
-//                  target_transform_name["imu"].c_str(),
-//                  target_transform_name["wheels/left"].c_str(),
-//                  target_transform_name["wheels/right"].c_str());
-//   }
-// }
-
-string JointControl::MakeCommandMessage(const control_msgs::msg::JointJog::SharedPtr msg) const
+string JointControl::MakeCommandMessage(const string joint_name, const double joint_displacement, const double joint_velocity) const
 {
   msgs::JointCmd jointCmd;
+
+  jointCmd.set_name(joint_name);
+
+  auto position = jointCmd.mutable_position();
+  position->set_target(joint_displacement);
+
+  auto velocity = jointCmd.mutable_velocity();
+  velocity->set_target(joint_velocity);
 
   string message;
   jointCmd.SerializeToString(&message);
@@ -176,9 +108,23 @@ void JointControl::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_joint_states.header().stamp());
+  SetTime(pb_joint_states.header().stamp());
 
-  // PublishTF();
+  msg_jointstate_.header.stamp = GetTime();
+  msg_jointstate_.name.clear();
+  msg_jointstate_.effort.clear();
+  msg_jointstate_.position.clear();
+  msg_jointstate_.velocity.clear();
+
+  for (auto i = 0; i < pb_joint_states.jointstate_size(); i++)
+  {
+    const auto joint_state = pb_joint_states.jointstate(i);
+
+    msg_jointstate_.name.push_back(joint_state.name());
+    msg_jointstate_.effort.push_back(joint_state.effort());
+    msg_jointstate_.position.push_back(joint_state.position());
+    msg_jointstate_.velocity.push_back(joint_state.velocity());
+  }
 
   // publish data
   pub_joint_state_->publish(msg_jointstate_);

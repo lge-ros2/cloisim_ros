@@ -29,6 +29,7 @@ find_package(cloisim_ros_elevator_system REQUIRED)
 find_package(cloisim_ros_ground_truth REQUIRED)
 find_package(cloisim_ros_world REQUIRED)
 find_package(cloisim_ros_actor REQUIRED)
+find_package(cloisim_ros_joint_control REQUIRED)
 
 
 set(dependencies
@@ -46,6 +47,7 @@ set(dependencies
   cloisim_ros_ground_truth
   cloisim_ros_world
   cloisim_ros_actor
+  cloisim_ros_joint_control
 )
 
 ################################################################################
