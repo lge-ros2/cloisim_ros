@@ -67,9 +67,9 @@ void World::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.sim_time());
+  SetTime(pb_buf_.sim_time());
   // const auto realTime = pb_buf_.real_time();
 
-  msg_clock_.clock = GetSimTime();
+  msg_clock_.clock = GetTime();
   pub_->publish(msg_clock_);
 }

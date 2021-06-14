@@ -89,9 +89,9 @@ namespace cloisim_ros
 
     std::string GetFrameId(const std::string default_frame_id = "base_link");
 
-    void SetSimTime(const cloisim::msgs::Time &time);
-    void SetSimTime(const int32_t seconds, const uint32_t nanoseconds);
-    rclcpp::Time GetSimTime() { return m_sim_time; }
+    void SetTime(const cloisim::msgs::Time &time);
+    void SetTime(const int32_t seconds, const uint32_t nanoseconds);
+    rclcpp::Time GetTime() { return m_sim_time; }
 
   public:
     static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const std::string request_message, const std::string request_value = "");

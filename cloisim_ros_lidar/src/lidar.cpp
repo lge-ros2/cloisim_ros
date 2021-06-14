@@ -120,7 +120,7 @@ void Lidar::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   if (pub_laser_ != nullptr)
   {
@@ -141,7 +141,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   msg_pc2_.is_dense = true;
 
   // Fill header
-  msg_pc2_.header.stamp = GetSimTime();
+  msg_pc2_.header.stamp = GetTime();
 
   // Cache values that are repeatedly used
   const auto beam_count = pb_buf_.scan().count();
@@ -231,7 +231,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
 
 void Lidar::UpdateLaserData(const double min_intensity)
 {
-  msg_laser_.header.stamp = GetSimTime();
+  msg_laser_.header.stamp = GetTime();
 
   msg_laser_.angle_min = pb_buf_.scan().angle_min();
   msg_laser_.angle_max = pb_buf_.scan().angle_max();

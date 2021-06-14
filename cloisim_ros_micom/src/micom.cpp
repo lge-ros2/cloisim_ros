@@ -210,13 +210,13 @@ void Micom::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_micom_.time());
+  SetTime(pb_micom_.time());
 
   //DBG_SIM_WRN("Simulation time %u %u size(%d)",
   //  pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
 
   // reset odom info when sim time is reset
-  if (GetSimTime().seconds() < DBL_EPSILON && GetSimTime().nanoseconds() < 50000000)
+  if (GetTime().seconds() < DBL_EPSILON && GetTime().nanoseconds() < 50000000)
   {
     // DBG_SIM_WRN("Simulation time %u %u size(%d)", pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
     DBG_SIM_WRN("Simulation time has been reset!!!");
@@ -253,9 +253,9 @@ void Micom::UpdateOdom()
     return;
   }
 
-  static rclcpp::Time last_time = GetSimTime();
-  const rclcpp::Duration duration(GetSimTime().nanoseconds() - last_time.nanoseconds());
-  last_time = GetSimTime();
+  static rclcpp::Time last_time = GetTime();
+  const rclcpp::Duration duration(GetTime().nanoseconds() - last_time.nanoseconds());
+  last_time = GetTime();
 
   const auto step_time = duration.seconds();
   const auto wheel_anglular_vel_left = pb_micom_.odom().angular_velocity().left();
@@ -271,7 +271,7 @@ void Micom::UpdateOdom()
   last_rad_[0] += wheel_l_circum;
   last_rad_[1] += wheel_r_circum;
 
-  msg_odom_.header.stamp = GetSimTime();
+  msg_odom_.header.stamp = GetTime();
   SetVector3MessageToGeometry(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
   msg_odom_.pose.pose.position.z = 0.0; // position.z contians yaw value
   SetVector3MessageToGeometry(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
@@ -308,7 +308,7 @@ void Micom::UpdateOdom()
 
 void Micom::UpdateImu()
 {
-  msg_imu_.header.stamp = GetSimTime();
+  msg_imu_.header.stamp = GetTime();
 
   SetQuaternionMessageToGeometry(pb_micom_.imu().orientation(), msg_imu_.orientation);\
 
@@ -350,7 +350,7 @@ void Micom::UpdateImu()
 
 void Micom::UpdateBattery()
 {
-  msg_battery_.header.stamp = GetSimTime();
+  msg_battery_.header.stamp = GetTime();
   msg_battery_.voltage = 0.0;
   msg_battery_.current = 0.0;
 }

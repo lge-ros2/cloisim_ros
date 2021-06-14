@@ -378,12 +378,12 @@ string Base::GetFrameId(const string default_frame_id)
   return (frame_id_list_.size() == 0) ? default_frame_id : frame_id_list_.back();
 }
 
-void Base::SetSimTime(const cloisim::msgs::Time &time)
+void Base::SetTime(const cloisim::msgs::Time &time)
 {
-  SetSimTime(time.sec(), time.nsec());
+  SetTime(time.sec(), time.nsec());
 }
 
-void Base::SetSimTime(const int32_t seconds, const uint32_t nanoseconds)
+void Base::SetTime(const int32_t seconds, const uint32_t nanoseconds)
 {
   m_sim_time = rclcpp::Time(seconds, nanoseconds);
 }

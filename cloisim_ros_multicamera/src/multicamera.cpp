@@ -118,7 +118,7 @@ void MultiCamera::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   for (auto i = 0; i < pb_buf_.image_size(); i++)
   {
@@ -129,13 +129,13 @@ void MultiCamera::UpdatePublishingData(const string &buffer)
     const uint32_t step_arg = img->step();
 
     auto const msg_img = &msg_imgs_[i];
-    msg_img->header.stamp = GetSimTime();
+    msg_img->header.stamp = GetTime();
     sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                            reinterpret_cast<const void *>(img->data().data()));
 
     // Publish camera info
     auto camera_info_msg = camera_info_manager_[i]->getCameraInfo();
-    camera_info_msg.header.stamp = GetSimTime();
+    camera_info_msg.header.stamp = GetTime();
     pubs_.at(i).publish(*msg_img, camera_info_msg);
   }
 }

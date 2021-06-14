@@ -63,7 +63,7 @@ void GroundTruth::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.header().stamp());
+  SetTime(pb_buf_.header().stamp());
 
   UpdatePerceptionData();
 
@@ -72,7 +72,7 @@ void GroundTruth::UpdatePublishingData(const string &buffer)
 
 void GroundTruth::UpdatePerceptionData()
 {
-  msg_.header.stamp = GetSimTime();
+  msg_.header.stamp = GetTime();
 
   msg_.objects.clear();
 

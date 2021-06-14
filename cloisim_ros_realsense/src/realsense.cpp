@@ -180,10 +180,10 @@ void RealSense::UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const 
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   auto const msg_img = &msg_imgs_[bridge_ptr];
-  msg_img->header.stamp = GetSimTime();
+  msg_img->header.stamp = GetTime();
 
   const auto encoding_arg = GetImageEncondingType(pb_buf_.image().pixel_format());
   const uint32_t cols_arg = pb_buf_.image().width();
@@ -203,7 +203,7 @@ void RealSense::UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const 
 
   // Publish camera info
   auto camera_info_msg = camera_info_managers_[bridge_ptr]->getCameraInfo();
-  camera_info_msg.header.stamp = GetSimTime();
+  camera_info_msg.header.stamp = GetTime();
 
   pubs_[bridge_ptr].publish(*msg_img, camera_info_msg);
 }

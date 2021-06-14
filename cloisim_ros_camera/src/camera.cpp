@@ -94,9 +94,9 @@ void Camera::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_img_.time());
+  SetTime(pb_img_.time());
 
-  msg_img_.header.stamp = GetSimTime();
+  msg_img_.header.stamp = GetTime();
 
   const auto encoding_arg = GetImageEncondingType(pb_img_.image().pixel_format());
   const uint32_t cols_arg = pb_img_.image().width();

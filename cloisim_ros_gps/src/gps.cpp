@@ -93,10 +93,10 @@ void Gps::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   // Fill message with latest sensor data
-  msg_nav_.header.stamp = GetSimTime();
+  msg_nav_.header.stamp = GetTime();
   msg_nav_.latitude = pb_buf_.latitude_deg();
   msg_nav_.longitude = pb_buf_.longitude_deg();
   msg_nav_.altitude = pb_buf_.altitude();
