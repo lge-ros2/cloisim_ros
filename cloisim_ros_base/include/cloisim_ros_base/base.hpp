@@ -79,7 +79,13 @@ namespace cloisim_ros
 
     void PublishTF();
 
-    cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name = "");
+    cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name = "")
+    {
+      auto temp = std::string("");
+      return GetObjectTransform(bridge_ptr, target_name, temp);
+    }
+
+    cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name, std::string &parent_frame_id);
 
     void GetRos2Parameter(zmq::Bridge* const bridge_ptr);
 

@@ -55,9 +55,6 @@ void JointControl::Initialize()
   const auto hashKeySub = GetTargetHashKey("Tx");
   DBG_SIM_INFO("hash Key: info(%s) pub_(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
 
-  // ROS2 Publisher
-  pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", rclcpp::SensorDataQoS());
-
   auto pBridgeData = CreateBridge(hashKeyPub);
   if (pBridgeData != nullptr)
   {
@@ -78,6 +75,9 @@ void JointControl::Initialize()
       SetBufferToSimulator(pBridgeData, msgBuf);
     }
   };
+
+  // ROS2 Publisher
+  pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", rclcpp::SensorDataQoS());
 
   // ROS2 Subscriber
   sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>("joint_command", rclcpp::SensorDataQoS(), callback_sub);
@@ -128,4 +128,6 @@ void JointControl::UpdatePublishingData(const string &buffer)
 
   // publish data
   pub_joint_state_->publish(msg_jointstate_);
+
+  PublishTF();
 }

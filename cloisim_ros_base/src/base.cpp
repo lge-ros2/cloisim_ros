@@ -180,7 +180,7 @@ string Base::GetRobotName()
   return (is_single_mode) ? robotName : string(get_namespace()).substr(1);
 }
 
-msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string target_name)
+msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string target_name, string& parent_frame_id)
 {
   msgs::Pose transform;
   transform.Clear();
@@ -203,6 +203,19 @@ msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string 
         reply.has_value())
     {
       transform.CopyFrom(reply.value().pose3d_value());
+      // DBG_SIM_INFO("transform receivied : %s", transform.name().c_str());
+
+      if (reply.children_size() > 0)
+      {
+        const auto child_param = reply.children(0);
+        if (child_param.name() == "parent_frame_id" && child_param.has_value() &&
+            child_param.value().type() == msgs::Any_ValueType_STRING &&
+            !child_param.value().string_value().empty())
+        {
+          // set parent_frame_id into name if exists.
+          parent_frame_id = child_param.value().string_value();
+        }
+      }
     }
   }
 
