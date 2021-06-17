@@ -122,6 +122,9 @@ void JointControl::GenerateTF(const string &buffer)
 
   static geometry_msgs::msg::TransformStamped newTf;
   newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
+  newTf.header.frame_id = pb_transform_stamped.header().str_id();
+  newTf.child_frame_id = pb_transform_stamped.transform().name();
+  // DBG_SIM_INFO("%ld %ld %s %s", newTf.header.stamp.sec, newTf.header.stamp.nanosec, newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
   SetTf2(newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(), pb_transform_stamped.header().str_id());
   AddTf2(newTf);
   PublishTF();
