@@ -94,7 +94,7 @@ void Micom::Initialize()
 
   // ROS2 Publisher
   pub_battery_ = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
-  pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SensorDataQoS());
+  pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SystemDefaultsQoS());
   pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
 
   auto pBridgeData = CreateBridge();
