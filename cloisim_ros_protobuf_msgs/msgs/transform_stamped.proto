@@ -1,0 +1,22 @@
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface TransformStamped
+/// \brief Message for transform stamped in ROS2 Tf message
+
+import "header.proto";
+import "vector3d.proto";
+import "quaternion.proto";
+
+message TransformStamped
+{
+  required Header header = 1;
+
+  //the frame id of the child frame
+  required string child_frame_id = 2;
+
+  required Vector3d translation = 3;
+
+  required Quaternion rotation = 4;
+}
