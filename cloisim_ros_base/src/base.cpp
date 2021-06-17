@@ -390,5 +390,5 @@ void Base::SetTime(const cloisim::msgs::Time &time)
 
 void Base::SetTime(const int32_t seconds, const uint32_t nanoseconds)
 {
-  m_sim_time = rclcpp::Time(seconds, nanoseconds);
+  m_sim_time = Convert(seconds, nanoseconds);
 }

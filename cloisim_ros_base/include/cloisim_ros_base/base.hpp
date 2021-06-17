@@ -27,6 +27,9 @@
 
 namespace cloisim_ros
 {
+  static rclcpp::Time Convert(const int32_t seconds, const uint32_t nanoseconds) {  return rclcpp::Time(seconds, nanoseconds);  }
+  static rclcpp::Time Convert(const cloisim::msgs::Time &time) {  return Convert(time.sec(), time.nsec());  }
+
   class Base : public rclcpp::Node
   {
   public:
