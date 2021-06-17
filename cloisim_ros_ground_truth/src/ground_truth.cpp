@@ -47,7 +47,7 @@ void GroundTruth::Initialize()
 
   pub_ = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
-  auto pBridgeData = CreateBridge(hashKey);
+  auto pBridgeData = CreateBridge();
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);

@@ -64,8 +64,7 @@ namespace cloisim_ros
 
     rclcpp::Node::SharedPtr GetNode() { return m_node_handle; }
 
-    zmq::Bridge* CreateBridge(const std::string hashKey);
-    zmq::Bridge* GetBridge(const std::string hashKey);
+    zmq::Bridge* CreateBridge();
 
     void CloseBridges();
 
@@ -109,7 +108,7 @@ namespace cloisim_ros
 
   private:
 
-    std::map<std::string, zmq::Bridge *> m_hashkey_bridge_map;
+    std::vector<zmq::Bridge *> m_created_bridges;
 
     bool m_bRunThread;
     std::vector<std::thread> m_threads;

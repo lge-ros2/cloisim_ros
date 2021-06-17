@@ -53,7 +53,7 @@ void Micom::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
-  DBG_SIM_INFO("hash Key: info(%s) pub_(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
+  DBG_SIM_INFO("hash Key: info(%s) pub(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
 
   msg_imu_.header.frame_id = "imu_link";
   msg_odom_.header.frame_id = "odom";
@@ -61,7 +61,7 @@ void Micom::Initialize()
 
   SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
-  info_bridge_ptr = CreateBridge(hashKeyInfo);
+  info_bridge_ptr = CreateBridge();
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
@@ -97,7 +97,7 @@ void Micom::Initialize()
   pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SensorDataQoS());
   pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
 
-  auto pBridgeData = CreateBridge(hashKeyPub);
+  auto pBridgeData = CreateBridge();
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);

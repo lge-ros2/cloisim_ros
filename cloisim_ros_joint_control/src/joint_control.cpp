@@ -45,23 +45,34 @@ JointControl::~JointControl()
 
 void JointControl::Initialize()
 {
-  uint16_t portInfo, portTx, portRx;
-  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
+  uint16_t portInfo, portTx, portRx, portTf;
+  // get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx, uint16_t(0));
+  get_parameter_or("bridge.Tf", portTf, uint16_t(0));
 
-  const auto hashKeyInfo = GetTargetHashKey("Info");
+  // const auto hashKeyInfo = GetTargetHashKey("Info");
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
-  DBG_SIM_INFO("hash Key: info(%s) pub_(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
+  const auto hashKeyTf = GetTargetHashKey("Tf");
+  // DBG_SIM_INFO("hash Key: info(%s) pub_(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+  DBG_SIM_INFO("hash Key: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyPub);
+  auto pBridgeData = CreateBridge();
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
     CreatePublisherThread(pBridgeData);
   }
+
+  auto pBridgeTf = CreateBridge();
+  if (pBridgeTf != nullptr)
+  {
+    pBridgeTf->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
+    // CreatePublisherThread(pBridgeTf);
+  }
+
 
   auto callback_sub = [this, pBridgeData](const control_msgs::msg::JointJog::SharedPtr msg) -> void {
     // const auto duration = msg->duration;

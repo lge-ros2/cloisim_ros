@@ -52,9 +52,9 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
 Base::~Base()
 {
   // DBG_SIM_INFO("Delete");
-  for (auto item : m_hashkey_bridge_map)
+  for (auto item : m_created_bridges)
   {
-    delete item.second;
+    delete item;
   }
 }
 
@@ -120,25 +120,19 @@ void Base::PublishStaticTF()
   }
 }
 
-zmq::Bridge* Base::CreateBridge(const string hashKey)
+zmq::Bridge* Base::CreateBridge()
 {
-  auto bridge_ptr = new zmq::Bridge();
-  m_hashkey_bridge_map[hashKey] = bridge_ptr;
+  const auto bridge_ptr = new zmq::Bridge();
+  m_created_bridges.emplace_back(bridge_ptr);
 
   return bridge_ptr;
 }
 
-zmq::Bridge* Base::GetBridge(const string hashKey)
-{
-  const auto search = m_hashkey_bridge_map.find(hashKey);
-  return (search != m_hashkey_bridge_map.end()) ? search->second : nullptr;
-}
-
 void Base::CloseBridges()
 {
-  for (auto item : m_hashkey_bridge_map)
+  for (auto item : m_created_bridges)
   {
-    (item.second)->Disconnect();
+    item->Disconnect();
   }
 }
 
@@ -199,8 +193,7 @@ msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string 
   else
   {
     if (reply.IsInitialized() &&
-        reply.name() == "transform" &&
-        reply.has_value())
+        reply.name() == "transform" && reply.has_value())
     {
       transform.CopyFrom(reply.value().pose3d_value());
       // DBG_SIM_INFO("transform receivied : %s", transform.name().c_str());
@@ -237,8 +230,7 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
   }
   else
   {
-    if (reply.IsInitialized() &&
-        reply.name() == "ros2")
+    if (reply.IsInitialized() && reply.name() == "ros2")
     {
       for (auto i = 0; i < reply.children_size(); i++)
       {
@@ -260,7 +252,6 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
         }
       }
     }
-
   }
 }
 

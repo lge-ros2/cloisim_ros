@@ -49,8 +49,8 @@ void MultiCamera::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyData);
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
+  auto pBridgeData = CreateBridge();
+  auto info_bridge_ptr = CreateBridge();
 
   if (info_bridge_ptr != nullptr)
   {

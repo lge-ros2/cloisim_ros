@@ -48,9 +48,7 @@ void RealSense::Initialize()
 
   const auto hashKeyInfo = GetTargetHashKey("Info");
 
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
-  // int bridgeIndex = 0;
-  // auto info_bridge_ptr = GetBridge(bridgeIndex);
+  auto info_bridge_ptr = CreateBridge();
 
   string header_frame_id = "_camera_link";
   if (info_bridge_ptr != nullptr)
@@ -76,8 +74,8 @@ void RealSense::Initialize()
     const auto hashKeyInfo = GetTargetHashKey(module_name + "Info");
     DBG_SIM_INFO("topic_name: %s, hash Key: data(%s), info(%s)", topic_base_name_.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
 
-    auto pBridgeCamData = CreateBridge(hashKeyData);
-    auto pBridgeCamInfo = CreateBridge(hashKeyInfo);
+    auto pBridgeCamData = CreateBridge();
+    auto pBridgeCamInfo = CreateBridge();
     if (pBridgeCamInfo != nullptr)
     {
       pBridgeCamInfo->Connect(zmq::Bridge::Mode::CLIENT, portCamInfo, hashKeyInfo);
