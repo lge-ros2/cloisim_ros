@@ -19,6 +19,7 @@
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/twist.pb.h>
+#include <cloisim_msgs/transform_stamped.pb.h>
 
 
 using namespace std;
@@ -70,9 +71,8 @@ void JointControl::Initialize()
   if (pBridgeTf != nullptr)
   {
     pBridgeTf->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    // AddPublisherThread(pBridgeTf);
+    AddPublisherThread(pBridgeTf, bind(&JointControl::GenerateTF, this, std::placeholders::_1));
   }
-
 
   auto callback_sub = [this, pBridgeData](const control_msgs::msg::JointJog::SharedPtr msg) -> void {
     // const auto duration = msg->duration;
@@ -96,7 +96,7 @@ void JointControl::Initialize()
 
 string JointControl::MakeCommandMessage(const string joint_name, const double joint_displacement, const double joint_velocity) const
 {
-  msgs::JointCmd jointCmd;
+  static msgs::JointCmd jointCmd;
 
   jointCmd.set_name(joint_name);
 
@@ -106,13 +106,30 @@ string JointControl::MakeCommandMessage(const string joint_name, const double jo
   auto velocity = jointCmd.mutable_velocity();
   velocity->set_target(joint_velocity);
 
-  string message;
+  static string message;
   jointCmd.SerializeToString(&message);
   return message;
 }
 
+void JointControl::GenerateTF(const string &buffer)
+{
+  static cloisim::msgs::TransformStamped pb_transform_stamped;
+  if (!pb_transform_stamped.ParseFromString(buffer))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+    return;
+  }
+
+  static geometry_msgs::msg::TransformStamped newTf;
+  newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
+  SetTf2(newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(), pb_transform_stamped.header().str_id());
+  AddTf2(newTf);
+  PublishTF();
+}
+
 void JointControl::PublishData(const string &buffer)
 {
+  static cloisim::msgs::JointState_V pb_joint_states;
   if (!pb_joint_states.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
@@ -121,24 +138,23 @@ void JointControl::PublishData(const string &buffer)
 
   SetTime(pb_joint_states.header().stamp());
 
-  msg_jointstate_.header.stamp = GetTime();
-  msg_jointstate_.name.clear();
-  msg_jointstate_.effort.clear();
-  msg_jointstate_.position.clear();
-  msg_jointstate_.velocity.clear();
+  static sensor_msgs::msg::JointState msg_jointstate;
+  msg_jointstate.header.stamp = GetTime();
+  msg_jointstate.name.clear();
+  msg_jointstate.effort.clear();
+  msg_jointstate.position.clear();
+  msg_jointstate.velocity.clear();
 
   for (auto i = 0; i < pb_joint_states.jointstate_size(); i++)
   {
     const auto joint_state = pb_joint_states.jointstate(i);
 
-    msg_jointstate_.name.push_back(joint_state.name());
-    msg_jointstate_.effort.push_back(joint_state.effort());
-    msg_jointstate_.position.push_back(joint_state.position());
-    msg_jointstate_.velocity.push_back(joint_state.velocity());
+    msg_jointstate.name.push_back(joint_state.name());
+    msg_jointstate.effort.push_back(joint_state.effort());
+    msg_jointstate.position.push_back(joint_state.position());
+    msg_jointstate.velocity.push_back(joint_state.velocity());
   }
 
   // publish data
-  pub_joint_state_->publish(msg_jointstate_);
-
-  PublishTF();
+  pub_joint_state_->publish(msg_jointstate);
 }

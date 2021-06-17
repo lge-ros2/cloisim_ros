@@ -37,23 +37,16 @@ namespace cloisim_ros
 
   private:
     void PublishData(const std::string &buffer);
+    void GenerateTF(const std::string &buffer);
     void GetTransformNameInfo(zmq::Bridge *const bridge_ptr);
 
     void JointControlWrite(zmq::Bridge* const bridge_ptr, const std::string &buffer);
-
     std::string MakeCommandMessage(const std::string joint_name, const double joint_displacement, const double joint_velocity) const;
 
   private:
     zmq::Bridge *info_bridge_ptr;
 
     std::map<std::string, std::string> target_transform_name;
-
-    // JointControl msgs
-    cloisim::msgs::JointCmd pb_joint_cmd_;
-    cloisim::msgs::JointState_V pb_joint_states;
-
-    // jointstate msgs
-    sensor_msgs::msg::JointState msg_jointstate_;
 
     // ROS2 JointControl publisher
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_state_;
