@@ -33,8 +33,8 @@ namespace cloisim_ros
   private:
     void Initialize() override;
     void Deinitialize() override { };
-    void UpdatePublishingData(const std::string &buffer) override;
 
+    void PublishData(const std::string &buffer);
     void UpdatePerceptionData();
 
   private:

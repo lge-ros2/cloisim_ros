@@ -55,11 +55,11 @@ void World::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portClock, hashKey);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&World::PublishData, this, std::placeholders::_1));
   }
 }
 
-void World::UpdatePublishingData(const string &buffer)
+void World::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {

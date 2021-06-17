@@ -98,7 +98,7 @@ void MultiCamera::Initialize()
     }
 
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&MultiCamera::PublishData, this, std::placeholders::_1));
   }
 }
 
@@ -110,7 +110,7 @@ void MultiCamera::Deinitialize()
   }
 }
 
-void MultiCamera::UpdatePublishingData(const string &buffer)
+void MultiCamera::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {

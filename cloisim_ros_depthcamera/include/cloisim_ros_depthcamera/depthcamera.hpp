@@ -30,7 +30,9 @@ namespace cloisim_ros
   private:
     void Initialize() override;
     void Deinitialize() override;
-    void UpdatePublishingData(const std::string &buffer) override;
+
+  private:
+    void PublishData(const std::string &buffer);
 
   private:
     // Camera info publisher

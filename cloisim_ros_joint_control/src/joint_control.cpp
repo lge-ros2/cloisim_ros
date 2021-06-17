@@ -63,14 +63,14 @@ void JointControl::Initialize()
   {
     pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&JointControl::PublishData, this, std::placeholders::_1));
   }
 
   auto pBridgeTf = CreateBridge();
   if (pBridgeTf != nullptr)
   {
     pBridgeTf->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    // CreatePublisherThread(pBridgeTf);
+    // AddPublisherThread(pBridgeTf);
   }
 
 
@@ -111,7 +111,7 @@ string JointControl::MakeCommandMessage(const string joint_name, const double jo
   return message;
 }
 
-void JointControl::UpdatePublishingData(const string &buffer)
+void JointControl::PublishData(const string &buffer)
 {
   if (!pb_joint_states.ParseFromString(buffer))
   {

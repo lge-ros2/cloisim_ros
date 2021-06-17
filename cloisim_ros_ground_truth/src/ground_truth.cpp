@@ -51,11 +51,11 @@ void GroundTruth::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&GroundTruth::PublishData, this, std::placeholders::_1));
   }
 }
 
-void GroundTruth::UpdatePublishingData(const string &buffer)
+void GroundTruth::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {

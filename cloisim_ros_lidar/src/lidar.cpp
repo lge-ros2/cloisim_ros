@@ -91,7 +91,7 @@ void Lidar::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Lidar::PublishData, this, std::placeholders::_1));
   }
 }
 
@@ -112,7 +112,7 @@ string Lidar::GetOutputType(zmq::Bridge* const bridge_ptr)
   return "";
 }
 
-void Lidar::UpdatePublishingData(const string &buffer)
+void Lidar::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {

@@ -68,7 +68,7 @@ namespace cloisim_ros
 
     void CloseBridges();
 
-    void CreatePublisherThread(zmq::Bridge* const bridge_ptr, std::function<void(const std::string&)> thread_func);
+    void AddPublisherThread(zmq::Bridge* const bridge_ptr, std::function<void(const std::string&)> thread_func);
 
     std::string GetModelName();
     std::string GetRobotName();

@@ -77,7 +77,7 @@ void Camera::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Camera::PublishData, this, std::placeholders::_1));
   }
 }
 
@@ -86,7 +86,7 @@ void Camera::Deinitialize()
   pub_.shutdown();
 }
 
-void Camera::UpdatePublishingData(const string &buffer)
+void Camera::PublishData(const string &buffer)
 {
   if (!pb_img_.ParseFromString(buffer))
   {

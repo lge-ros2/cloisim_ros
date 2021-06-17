@@ -81,11 +81,11 @@ void Gps::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Gps::PublishData, this, std::placeholders::_1));
   }
 }
 
-void Gps::UpdatePublishingData(const string &buffer)
+void Gps::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {

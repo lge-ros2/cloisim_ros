@@ -102,7 +102,7 @@ void Micom::Initialize()
   {
     pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Micom::PublishData, this, std::placeholders::_1));
   }
 
   auto callback_sub = [this, pBridgeData](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
@@ -202,7 +202,7 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   return message;
 }
 
-void Micom::UpdatePublishingData(const string &buffer)
+void Micom::PublishData(const string &buffer)
 {
   if (!pb_micom_.ParseFromString(buffer))
   {

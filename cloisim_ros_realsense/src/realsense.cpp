@@ -119,7 +119,7 @@ void RealSense::Initialize()
     if (pBridgeCamData != nullptr)
     {
       pBridgeCamData->Connect(zmq::Bridge::Mode::SUB, portCamData, hashKeyData);
-      CreatePublisherThread(pBridgeCamData);
+      AddPublisherThread(pBridgeCamData, bind(&RealSense::PublishData, this, pBridgeCamData, std::placeholders::_1));
     }
   }
 }
@@ -169,7 +169,7 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
-void RealSense::UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const std::string &buffer)
+void RealSense::PublishData(const zmq::Bridge* const bridge_ptr, const std::string &buffer)
 {
   cloisim::msgs::ImageStamped pb_buf_;
   if (!pb_buf_.ParseFromString(buffer))
