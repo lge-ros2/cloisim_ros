@@ -136,24 +136,27 @@ void Base::CloseBridges()
   }
 }
 
-void Base::CreatePublisherThread(zmq::Bridge* const bridge_ptr)
+void Base::CreatePublisherThread(zmq::Bridge *const bridge_ptr, function<void(const string &)> thread_func)
 {
-  m_threads.emplace_back(thread([this, bridge_ptr]() {
-    while (IsRunThread())
-    {
-      void *buffer_ptr = nullptr;
-      int bufferLength = 0;
-      const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength);
-      if (!succeeded || bufferLength < 0)
+  auto new_thread = thread(
+      [this, bridge_ptr, thread_func]()
       {
-        continue;
-      }
+        while (IsRunThread())
+        {
+          void *buffer_ptr = nullptr;
+          int bufferLength = 0;
+          const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength);
+          if (!succeeded || bufferLength < 0)
+          {
+            continue;
+          }
 
-      const string buffer((const char *)buffer_ptr, bufferLength);
-      UpdatePublishingData(buffer);
-      UpdatePublishingData(bridge_ptr, buffer);
-    }
-  }));
+          const string buffer((const char *)buffer_ptr, bufferLength);
+          thread_func(buffer);
+        }
+      });
+
+  m_threads.emplace_back(new_thread);
 }
 
 string Base::GetModelName()
