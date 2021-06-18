@@ -34,7 +34,9 @@ namespace cloisim_ros
   protected:
     void Initialize() override;
     void Deinitialize() override;
-    void UpdatePublishingData(const std::string &buffer) override;
+
+  protected:
+    void PublishData(const std::string &buffer);
 
   private:
     // image buffer from simulatornode_name_

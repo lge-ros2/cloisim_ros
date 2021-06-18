@@ -51,15 +51,15 @@ void World::Initialize()
   // late subscribers can receive the previously published message(s).
   pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
-  auto pBridgeData = CreateBridge(hashKey);
+  auto pBridgeData = CreateBridge();
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portClock, hashKey);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&World::PublishData, this, std::placeholders::_1));
   }
 }
 
-void World::UpdatePublishingData(const string &buffer)
+void World::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {
@@ -67,9 +67,9 @@ void World::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.sim_time());
+  SetTime(pb_buf_.sim_time());
   // const auto realTime = pb_buf_.real_time();
 
-  msg_clock_.clock = GetSimTime();
+  msg_clock_.clock = GetTime();
   pub_->publish(msg_clock_);
 }

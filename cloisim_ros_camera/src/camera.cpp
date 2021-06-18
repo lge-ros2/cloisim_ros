@@ -50,8 +50,8 @@ void Camera::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyData);
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
+  auto pBridgeData = CreateBridge();
+  auto info_bridge_ptr = CreateBridge();
 
   const auto frame_id = GetFrameId("camera_link");
   if (info_bridge_ptr != nullptr)
@@ -61,7 +61,7 @@ void Camera::Initialize()
     GetRos2Parameter(info_bridge_ptr);
 
     const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetupStaticTf2(transform, frame_id + "_link");
+    SetStaticTf2(transform, frame_id + "_link");
 
     camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr);
@@ -77,7 +77,7 @@ void Camera::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Camera::PublishData, this, std::placeholders::_1));
   }
 }
 
@@ -86,7 +86,7 @@ void Camera::Deinitialize()
   pub_.shutdown();
 }
 
-void Camera::UpdatePublishingData(const string &buffer)
+void Camera::PublishData(const string &buffer)
 {
   if (!pb_img_.ParseFromString(buffer))
   {
@@ -94,9 +94,9 @@ void Camera::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_img_.time());
+  SetTime(pb_img_.time());
 
-  msg_img_.header.stamp = GetSimTime();
+  msg_img_.header.stamp = GetTime();
 
   const auto encoding_arg = GetImageEncondingType(pb_img_.image().pixel_format());
   const uint32_t cols_arg = pb_img_.image().width();

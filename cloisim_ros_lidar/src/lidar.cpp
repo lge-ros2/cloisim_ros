@@ -52,8 +52,8 @@ void Lidar::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyData);
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
+  auto pBridgeData = CreateBridge();
+  auto info_bridge_ptr = CreateBridge();
 
   auto output_type = string("LaserScan");
   if (info_bridge_ptr != nullptr)
@@ -68,7 +68,7 @@ void Lidar::Initialize()
     msg_pc2_.header.frame_id = frame_id;
 
     const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetupStaticTf2(transform, frame_id);
+    SetStaticTf2(transform, frame_id);
 
     output_type = GetOutputType(info_bridge_ptr);
   }
@@ -91,7 +91,7 @@ void Lidar::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Lidar::PublishData, this, std::placeholders::_1));
   }
 }
 
@@ -112,7 +112,7 @@ string Lidar::GetOutputType(zmq::Bridge* const bridge_ptr)
   return "";
 }
 
-void Lidar::UpdatePublishingData(const string &buffer)
+void Lidar::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {
@@ -120,7 +120,7 @@ void Lidar::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   if (pub_laser_ != nullptr)
   {
@@ -141,7 +141,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   msg_pc2_.is_dense = true;
 
   // Fill header
-  msg_pc2_.header.stamp = GetSimTime();
+  msg_pc2_.header.stamp = GetTime();
 
   // Cache values that are repeatedly used
   const auto beam_count = pb_buf_.scan().count();
@@ -231,7 +231,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
 
 void Lidar::UpdateLaserData(const double min_intensity)
 {
-  msg_laser_.header.stamp = GetSimTime();
+  msg_laser_.header.stamp = GetTime();
 
   msg_laser_.angle_min = pb_buf_.scan().angle_min();
   msg_laser_.angle_max = pb_buf_.scan().angle_max();

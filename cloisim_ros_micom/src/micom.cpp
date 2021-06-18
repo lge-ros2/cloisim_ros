@@ -50,11 +50,10 @@ void Micom::Initialize()
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx, uint16_t(0));
-
   const auto hashKeyInfo = GetTargetHashKey("Info");
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
-  DBG_SIM_INFO("hash Key: info(%s) pub_(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
+  DBG_SIM_INFO("hash Key: info(%s) pub(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
 
   msg_imu_.header.frame_id = "imu_link";
   msg_odom_.header.frame_id = "odom";
@@ -62,7 +61,7 @@ void Micom::Initialize()
 
   SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
-  info_bridge_ptr = CreateBridge(hashKeyInfo);
+  info_bridge_ptr = CreateBridge();
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
@@ -70,11 +69,11 @@ void Micom::Initialize()
     GetTransformNameInfo(info_bridge_ptr);
 
     std::string base_link_name("base_link");
-    SetupStaticTf2(base_link_name, "base_footprint");
+    SetStaticTf2(base_link_name, "base_footprint");
 
     const auto transform_imu_name = target_transform_name["imu"];
     const auto transform_imu = GetObjectTransform(info_bridge_ptr, transform_imu_name);
-    SetupStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name);
+    SetStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name);
 
     const auto transform_wheel_0_name = target_transform_name["wheels/left"];
     const auto transform_wheel_0 = GetObjectTransform(info_bridge_ptr, transform_wheel_0_name);
@@ -95,15 +94,15 @@ void Micom::Initialize()
 
   // ROS2 Publisher
   pub_battery_ = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
-  pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SensorDataQoS());
+  pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SystemDefaultsQoS());
   pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
 
-  auto pBridgeData = CreateBridge(hashKeyPub);
+  auto pBridgeData = CreateBridge();
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Micom::PublishData, this, std::placeholders::_1));
   }
 
   auto callback_sub = [this, pBridgeData](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
@@ -203,7 +202,7 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   return message;
 }
 
-void Micom::UpdatePublishingData(const string &buffer)
+void Micom::PublishData(const string &buffer)
 {
   if (!pb_micom_.ParseFromString(buffer))
   {
@@ -211,13 +210,13 @@ void Micom::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_micom_.time());
+  SetTime(pb_micom_.time());
 
   //DBG_SIM_WRN("Simulation time %u %u size(%d)",
   //  pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
 
   // reset odom info when sim time is reset
-  if (GetSimTime().seconds() < DBL_EPSILON && GetSimTime().nanoseconds() < 50000000)
+  if (GetTime().seconds() < DBL_EPSILON && GetTime().nanoseconds() < 50000000)
   {
     // DBG_SIM_WRN("Simulation time %u %u size(%d)", pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
     DBG_SIM_WRN("Simulation time has been reset!!!");
@@ -254,9 +253,9 @@ void Micom::UpdateOdom()
     return;
   }
 
-  static rclcpp::Time last_time = GetSimTime();
-  const rclcpp::Duration duration(GetSimTime().nanoseconds() - last_time.nanoseconds());
-  last_time = GetSimTime();
+  static rclcpp::Time last_time = GetTime();
+  const rclcpp::Duration duration(GetTime().nanoseconds() - last_time.nanoseconds());
+  last_time = GetTime();
 
   const auto step_time = duration.seconds();
   const auto wheel_anglular_vel_left = pb_micom_.odom().angular_velocity().left();
@@ -272,7 +271,7 @@ void Micom::UpdateOdom()
   last_rad_[0] += wheel_l_circum;
   last_rad_[1] += wheel_r_circum;
 
-  msg_odom_.header.stamp = GetSimTime();
+  msg_odom_.header.stamp = GetTime();
   SetVector3MessageToGeometry(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
   msg_odom_.pose.pose.position.z = 0.0; // position.z contians yaw value
   SetVector3MessageToGeometry(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
@@ -309,7 +308,7 @@ void Micom::UpdateOdom()
 
 void Micom::UpdateImu()
 {
-  msg_imu_.header.stamp = GetSimTime();
+  msg_imu_.header.stamp = GetTime();
 
   SetQuaternionMessageToGeometry(pb_micom_.imu().orientation(), msg_imu_.orientation);\
 
@@ -351,7 +350,7 @@ void Micom::UpdateImu()
 
 void Micom::UpdateBattery()
 {
-  msg_battery_.header.stamp = GetSimTime();
+  msg_battery_.header.stamp = GetTime();
   msg_battery_.voltage = 0.0;
   msg_battery_.current = 0.0;
 }

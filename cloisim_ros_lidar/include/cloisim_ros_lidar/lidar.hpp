@@ -36,10 +36,11 @@ namespace cloisim_ros
   private:
     void Initialize() override;
     void Deinitialize() override { };
-    void UpdatePublishingData(const std::string &buffer) override;
 
   private:
     std::string GetOutputType(zmq::Bridge* const bridge_ptr);
+
+    void PublishData(const std::string &buffer);
     void UpdatePointCloudData(const double min_intensity = 0.0);
     void UpdateLaserData(const double min_intensity = 0.0);
 

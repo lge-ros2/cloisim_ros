@@ -47,8 +47,8 @@ void Gps::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyData);
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
+  auto pBridgeData = CreateBridge();
+  auto info_bridge_ptr = CreateBridge();
 
   if (info_bridge_ptr != nullptr)
   {
@@ -61,7 +61,7 @@ void Gps::Initialize()
     msg_nav_.header.frame_id = frame_id;
 
     const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetupStaticTf2(transform, frame_id + "_link");
+    SetStaticTf2(transform, frame_id + "_link");
   }
 
   // Fill covariances
@@ -81,11 +81,11 @@ void Gps::Initialize()
   if (pBridgeData != nullptr)
   {
     pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    AddPublisherThread(pBridgeData, bind(&Gps::PublishData, this, std::placeholders::_1));
   }
 }
 
-void Gps::UpdatePublishingData(const string &buffer)
+void Gps::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {
@@ -93,10 +93,10 @@ void Gps::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   // Fill message with latest sensor data
-  msg_nav_.header.stamp = GetSimTime();
+  msg_nav_.header.stamp = GetTime();
   msg_nav_.latitude = pb_buf_.latitude_deg();
   msg_nav_.longitude = pb_buf_.longitude_deg();
   msg_nav_.altitude = pb_buf_.altitude();

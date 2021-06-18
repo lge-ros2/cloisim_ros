@@ -46,7 +46,7 @@ void Actor::Initialize()
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
 
-  control_bridge_ptr = CreateBridge(hashKeySrv);
+  control_bridge_ptr = CreateBridge();
   if (control_bridge_ptr != nullptr)
   {
     control_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);
