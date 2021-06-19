@@ -46,50 +46,51 @@ Micom::~Micom()
 
 void Micom::Initialize()
 {
-  uint16_t portInfo, portTx, portRx;
+  uint16_t portInfo, portTx, portRx, portTf;
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx, uint16_t(0));
+  get_parameter_or("bridge.Tf", portRx, uint16_t(0));
   const auto hashKeyInfo = GetTargetHashKey("Info");
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
-  DBG_SIM_INFO("hash Key: info(%s) pub(%s) sub(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str());
+  const auto hashKeyTf = GetTargetHashKey("Tf");
+  DBG_SIM_INFO("hash Key: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
   msg_imu_.header.frame_id = "imu_link";
   msg_odom_.header.frame_id = "odom";
   msg_odom_.child_frame_id = "base_footprint";
 
-  SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
+  // SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
+
+  std::string base_link_name("base_link");
+  SetStaticTf2(base_link_name, "base_footprint");
 
   info_bridge_ptr = CreateBridge();
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    GetTransformNameInfo(info_bridge_ptr);
+    // GetTransformNameInfo(info_bridge_ptr);
+    // const auto transform_imu_name = target_transform_name["imu"];
+    // const auto transform_imu = GetObjectTransform(info_bridge_ptr, transform_imu_name);
+    // SetStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name);
 
-    std::string base_link_name("base_link");
-    SetStaticTf2(base_link_name, "base_footprint");
+    // const auto transform_wheel_0_name = target_transform_name["wheels/left"];
+    // const auto transform_wheel_0 = GetObjectTransform(info_bridge_ptr, transform_wheel_0_name);
+    // SetTf2(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name + "_link", base_link_name);
 
-    const auto transform_imu_name = target_transform_name["imu"];
-    const auto transform_imu = GetObjectTransform(info_bridge_ptr, transform_imu_name);
-    SetStaticTf2(transform_imu, transform_imu_name + "_link", base_link_name);
+    // const auto init_left_q_msg = &wheel_left_tf_.transform.rotation;
+    // const auto wheel_left_quat = tf2::Quaternion(init_left_q_msg->x, init_left_q_msg->y, init_left_q_msg->z, init_left_q_msg->w);
+    // tf2::Matrix3x3(wheel_left_quat).getRPY(orig_left_wheel_rot_[0], orig_left_wheel_rot_[1], orig_left_wheel_rot_[2]);
 
-    const auto transform_wheel_0_name = target_transform_name["wheels/left"];
-    const auto transform_wheel_0 = GetObjectTransform(info_bridge_ptr, transform_wheel_0_name);
-    SetTf2(wheel_left_tf_, transform_wheel_0, transform_wheel_0_name + "_link", base_link_name);
+    // const auto transform_wheel_1_name = target_transform_name["wheels/right"];
+    // const auto transform_wheel_1 = GetObjectTransform(info_bridge_ptr, transform_wheel_1_name);
+    // SetTf2(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name + "_link", base_link_name);
 
-    const auto init_left_q_msg = &wheel_left_tf_.transform.rotation;
-    const auto wheel_left_quat = tf2::Quaternion(init_left_q_msg->x, init_left_q_msg->y, init_left_q_msg->z, init_left_q_msg->w);
-    tf2::Matrix3x3(wheel_left_quat).getRPY(orig_left_wheel_rot_[0], orig_left_wheel_rot_[1], orig_left_wheel_rot_[2]);
-
-    const auto transform_wheel_1_name = target_transform_name["wheels/right"];
-    const auto transform_wheel_1 = GetObjectTransform(info_bridge_ptr, transform_wheel_1_name);
-    SetTf2(wheel_right_tf_, transform_wheel_1, transform_wheel_1_name + "_link", base_link_name);
-
-    const auto init_right_q_msg = &wheel_right_tf_.transform.rotation;
-    const auto wheel_right_quat = tf2::Quaternion(init_right_q_msg->x, init_right_q_msg->y, init_right_q_msg->z, init_right_q_msg->w);
-    tf2::Matrix3x3(wheel_right_quat).getRPY(orig_right_wheel_rot_[0], orig_right_wheel_rot_[1], orig_right_wheel_rot_[2]);
+    // const auto init_right_q_msg = &wheel_right_tf_.transform.rotation;
+    // const auto wheel_right_quat = tf2::Quaternion(init_right_q_msg->x, init_right_q_msg->y, init_right_q_msg->z, init_right_q_msg->w);
+    // tf2::Matrix3x3(wheel_right_quat).getRPY(orig_right_wheel_rot_[0], orig_right_wheel_rot_[1], orig_right_wheel_rot_[2]);
   }
 
   // ROS2 Publisher
@@ -105,6 +106,13 @@ void Micom::Initialize()
     AddPublisherThread(pBridgeData, bind(&Micom::PublishData, this, std::placeholders::_1));
   }
 
+  auto pBridgeTf = CreateBridge();
+  if (pBridgeTf != nullptr)
+  {
+    pBridgeTf->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
+    AddPublisherThread(pBridgeTf, bind(&Micom::GenerateTF, this, std::placeholders::_1));
+  }
+
   auto callback_sub = [this, pBridgeData](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
     const auto msgBuf = MakeControlMessage(msg);
     SetBufferToSimulator(pBridgeData, msgBuf);
@@ -116,57 +124,57 @@ void Micom::Initialize()
   srv_reset_odom_ = create_service<std_srvs::srv::Empty>("reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
 }
 
-void Micom::GetTransformNameInfo(zmq::Bridge* const bridge_ptr)
-{
-  if (bridge_ptr == nullptr)
-  {
-    return;
-  }
+// void Micom::GetTransformNameInfo(zmq::Bridge* const bridge_ptr)
+// {
+//   if (bridge_ptr == nullptr)
+//   {
+//     return;
+//   }
 
-  const auto reply = RequestReplyMessage(bridge_ptr, "request_transform_name");
+//   const auto reply = RequestReplyMessage(bridge_ptr, "request_transform_name");
 
-  if (reply.IsInitialized() &&
-      (reply.name().compare("ros2") == 0))
-  {
-    auto baseParam = reply.children(0);
-    if (baseParam.IsInitialized() &&
-        baseParam.name() == "transform_name")
-    {
-      auto param0 = baseParam.children(0);
-      if (param0.name() == "imu" && param0.has_value() &&
-          param0.value().type() == msgs::Any_ValueType_STRING &&
-          !param0.value().string_value().empty())
-      {
-        target_transform_name["imu"] = param0.value().string_value();
-      }
+//   if (reply.IsInitialized() &&
+//       (reply.name().compare("ros2") == 0))
+//   {
+//     auto baseParam = reply.children(0);
+//     if (baseParam.IsInitialized() &&
+//         baseParam.name() == "transform_name")
+//     {
+//       auto param0 = baseParam.children(0);
+//       if (param0.name() == "imu" && param0.has_value() &&
+//           param0.value().type() == msgs::Any_ValueType_STRING &&
+//           !param0.value().string_value().empty())
+//       {
+//         target_transform_name["imu"] = param0.value().string_value();
+//       }
 
-      auto param1 = baseParam.children(1);
-      if (param1.name() == "wheels")
-      {
-        auto childParam0 = param1.children(0);
-        if (childParam0.name() == "left" && childParam0.has_value() &&
-            childParam0.value().type() == msgs::Any_ValueType_STRING &&
-            !childParam0.value().string_value().empty())
-        {
-          target_transform_name["wheels/left"] = childParam0.value().string_value();
-        }
+//       auto param1 = baseParam.children(1);
+//       if (param1.name() == "wheels")
+//       {
+//         auto childParam0 = param1.children(0);
+//         if (childParam0.name() == "left" && childParam0.has_value() &&
+//             childParam0.value().type() == msgs::Any_ValueType_STRING &&
+//             !childParam0.value().string_value().empty())
+//         {
+//           target_transform_name["wheels/left"] = childParam0.value().string_value();
+//         }
 
-        auto childParam1 = param1.children(1);
-        if (childParam1.name() == "right" && childParam1.has_value() &&
-            childParam1.value().type() == msgs::Any_ValueType_STRING &&
-            !childParam1.value().string_value().empty())
-        {
-          target_transform_name["wheels/right"] = childParam1.value().string_value();
-        }
-      }
-    }
+//         auto childParam1 = param1.children(1);
+//         if (childParam1.name() == "right" && childParam1.has_value() &&
+//             childParam1.value().type() == msgs::Any_ValueType_STRING &&
+//             !childParam1.value().string_value().empty())
+//         {
+//           target_transform_name["wheels/right"] = childParam1.value().string_value();
+//         }
+//       }
+//     }
 
-    DBG_SIM_INFO("transform name imu:%s, wheels(0/1):%s/%s",
-                 target_transform_name["imu"].c_str(),
-                 target_transform_name["wheels/left"].c_str(),
-                 target_transform_name["wheels/right"].c_str());
-  }
-}
+//     DBG_SIM_INFO("transform name imu:%s, wheels(0/1):%s/%s",
+//                  target_transform_name["imu"].c_str(),
+//                  target_transform_name["wheels/left"].c_str(),
+//                  target_transform_name["wheels/right"].c_str());
+//   }
+// }
 
 void Micom::ResetOdometryCallback(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
@@ -174,8 +182,7 @@ void Micom::ResetOdometryCallback(
     std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/)
 {
   RequestReplyMessage(info_bridge_ptr, "reset_odometry");
-
-  last_rad_.fill(0.0);
+  // last_rad_.fill(0.0);
 }
 
 string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
@@ -220,7 +227,7 @@ void Micom::PublishData(const string &buffer)
   {
     // DBG_SIM_WRN("Simulation time %u %u size(%d)", pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
     DBG_SIM_WRN("Simulation time has been reset!!!");
-    last_rad_.fill(0.0);
+    // last_rad_.fill(0.0);
   }
 
 #if 0
@@ -268,12 +275,13 @@ void Micom::UpdateOdom()
   //         pb_micom_.imu().orientation().z(), pb_micom_.imu().orientation().w());
 
   // circumference of wheel [rad] per step time.
-  last_rad_[0] += wheel_l_circum;
-  last_rad_[1] += wheel_r_circum;
+  // last_rad_[0] += wheel_l_circum;
+  // last_rad_[1] += wheel_r_circum;
 
   msg_odom_.header.stamp = GetTime();
   SetVector3MessageToGeometry(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
   msg_odom_.pose.pose.position.z = 0.0; // position.z contians yaw value
+
   SetVector3MessageToGeometry(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
   SetVector3MessageToGeometry(pb_micom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
 
@@ -290,62 +298,33 @@ void Micom::UpdateOdom()
   // }
 
   // Update TF
-  odom_tf_.header.stamp = msg_odom_.header.stamp;
-  SetPointToGeometry(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
-  odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
-  AddTf2(odom_tf_);
+  // odom_tf_.header.stamp = msg_odom_.header.stamp;
+  // SetPointToGeometry(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
+  // odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
+  // AddTf2(odom_tf_);
 
-  wheel_left_tf_.header.stamp = msg_odom_.header.stamp;
-  tf2_q.setRPY(orig_left_wheel_rot_[0], last_rad_[0], orig_left_wheel_rot_[2]);
-  SetTf2QuaternionToGeometry(tf2_q, wheel_left_tf_.transform.rotation);
-  AddTf2(wheel_left_tf_);
+  // wheel_left_tf_.header.stamp = msg_odom_.header.stamp;
+  // tf2_q.setRPY(orig_left_wheel_rot_[0], last_rad_[0], orig_left_wheel_rot_[2]);
+  // SetTf2QuaternionToGeometry(tf2_q, wheel_left_tf_.transform.rotation);
+  // AddTf2(wheel_left_tf_);
 
-  wheel_right_tf_.header.stamp = msg_odom_.header.stamp;
-  tf2_q.setRPY(orig_right_wheel_rot_[0], last_rad_[1], orig_right_wheel_rot_[2]);
-  SetTf2QuaternionToGeometry(tf2_q, wheel_right_tf_.transform.rotation);
-  AddTf2(wheel_right_tf_);
+  // wheel_right_tf_.header.stamp = msg_odom_.header.stamp;
+  // tf2_q.setRPY(orig_right_wheel_rot_[0], last_rad_[1], orig_right_wheel_rot_[2]);
+  // SetTf2QuaternionToGeometry(tf2_q, wheel_right_tf_.transform.rotation);
+  // AddTf2(wheel_right_tf_);
 }
 
 void Micom::UpdateImu()
 {
   msg_imu_.header.stamp = GetTime();
 
-  SetQuaternionMessageToGeometry(pb_micom_.imu().orientation(), msg_imu_.orientation);\
-
-   // Fill covariances
-  msg_imu_.orientation_covariance[0] = 0.0;
-  msg_imu_.orientation_covariance[1] = 0.0;
-  msg_imu_.orientation_covariance[2] = 0.0;
-  msg_imu_.orientation_covariance[3] = 0.0;
-  msg_imu_.orientation_covariance[4] = 0.0;
-  msg_imu_.orientation_covariance[5] = 0.0;
-  msg_imu_.orientation_covariance[6] = 0.0;
-  msg_imu_.orientation_covariance[7] = 0.0;
-  msg_imu_.orientation_covariance[8] = 0.0;
-
+  SetQuaternionMessageToGeometry(pb_micom_.imu().orientation(), msg_imu_.orientation);
   SetVector3MessageToGeometry(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
-
-  msg_imu_.angular_velocity_covariance[0] = 0.0;
-  msg_imu_.angular_velocity_covariance[1] = 0.0;
-  msg_imu_.angular_velocity_covariance[2] = 0.0;
-  msg_imu_.angular_velocity_covariance[3] = 0.0;
-  msg_imu_.angular_velocity_covariance[4] = 0.0;
-  msg_imu_.angular_velocity_covariance[5] = 0.0;
-  msg_imu_.angular_velocity_covariance[6] = 0.0;
-  msg_imu_.angular_velocity_covariance[7] = 0.0;
-  msg_imu_.angular_velocity_covariance[8] = 0.0;
-
   SetVector3MessageToGeometry(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
 
-  msg_imu_.linear_acceleration_covariance[0] = 0.0;
-  msg_imu_.linear_acceleration_covariance[1] = 0.0;
-  msg_imu_.linear_acceleration_covariance[2] = 0.0;
-  msg_imu_.linear_acceleration_covariance[3] = 0.0;
-  msg_imu_.linear_acceleration_covariance[4] = 0.0;
-  msg_imu_.linear_acceleration_covariance[5] = 0.0;
-  msg_imu_.linear_acceleration_covariance[6] = 0.0;
-  msg_imu_.linear_acceleration_covariance[7] = 0.0;
-  msg_imu_.linear_acceleration_covariance[8] = 0.0;
+  fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
+  fill(begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
+  fill(begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance), 0.0);
 }
 
 void Micom::UpdateBattery()
