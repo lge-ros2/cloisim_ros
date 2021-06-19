@@ -42,9 +42,8 @@ namespace cloisim_ros
   protected:
     virtual void Initialize() = 0;
     virtual void Deinitialize() = 0;
-    // virtual void UpdatePublishingData(const std::string &buffer) { (void)buffer; };
-    // virtual void UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const std::string &buffer) { (void)bridge_ptr; (void)buffer; };
 
+  protected:
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
     void SetStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
@@ -80,6 +79,7 @@ namespace cloisim_ros
     std::string GetTargetHashKey(const std::string value) { return GetMainHashKey() + value; }
 
     void PublishTF();
+    void PublishTF(const geometry_msgs::msg::TransformStamped& tf);
 
     cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name = "")
     {
@@ -97,20 +97,21 @@ namespace cloisim_ros
 
     std::string GetFrameId(const std::string default_frame_id = "base_link");
 
+    static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const std::string request_message, const std::string request_value = "");
+    static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const cloisim::msgs::Param request_message);
+    static cloisim::msgs::Pose IdentityPose();
+
     void SetTime(const cloisim::msgs::Time &time);
     void SetTime(const int32_t seconds, const uint32_t nanoseconds);
     rclcpp::Time GetTime() { return m_sim_time; }
 
   public:
-    static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const std::string request_message, const std::string request_value = "");
-    static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const cloisim::msgs::Param request_message);
-    static cloisim::msgs::Pose IdentityPose();
+    void GenerateTF(const std::string &buffer);
 
   private:
     void PublishStaticTF();
 
   private:
-
     std::vector<zmq::Bridge *> m_created_bridges;
 
     bool m_bRunThread;

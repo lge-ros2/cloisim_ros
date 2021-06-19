@@ -15,6 +15,7 @@
 
 #include "cloisim_ros_base/base.hpp"
 #include "cloisim_ros_base/helper.h"
+#include <cloisim_msgs/transform_stamped.pb.h>
 
 using namespace std;
 using namespace cloisim;
@@ -95,6 +96,29 @@ void Base::Stop()
   Deinitialize();
 
   CloseBridges();
+}
+
+void Base::GenerateTF(const string &buffer)
+{
+  static cloisim::msgs::TransformStamped pb_transform_stamped;
+  if (!pb_transform_stamped.ParseFromString(buffer))
+  {
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+    return;
+  }
+
+  static geometry_msgs::msg::TransformStamped newTf;
+  newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
+  newTf.header.frame_id = pb_transform_stamped.header().str_id();
+  newTf.child_frame_id = pb_transform_stamped.transform().name();
+  // DBG_SIM_INFO("%ld %ld %s %s", newTf.header.stamp.sec, newTf.header.stamp.nanosec, newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
+  SetTf2(newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(), pb_transform_stamped.header().str_id());
+  PublishTF(newTf);
+}
+
+void Base::PublishTF(const geometry_msgs::msg::TransformStamped& tf)
+{
+  m_tf_broadcaster->sendTransform(tf);
 }
 
 void Base::PublishTF()
@@ -238,7 +262,7 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
         const auto param = reply.children(i);
         const auto paramValue = (param.has_value() && param.value().type() == msgs::Any_ValueType_STRING) ? param.value().string_value() : "";
 
-        if (param.name() == "topic_name")
+        if (param.name().compare("topic_name") == 0)
         {
           topic_name_ = paramValue;
           if (!paramValue.empty())
@@ -246,7 +270,7 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
             DBG_SIM_INFO("topic_name: %s", topic_name_.c_str());
           }
         }
-        else if (param.name() == "frame_id")
+        else if (param.name().compare("frame_id") == 0)
         {
           frame_id_list_.push_back(paramValue);
           DBG_SIM_INFO("frame_id: %s", paramValue.c_str());
@@ -367,7 +391,7 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const msgs:
 
 msgs::Pose Base::IdentityPose()
 {
-  msgs::Pose identityTransform;
+  static msgs::Pose identityTransform;
   identityTransform.mutable_position()->set_x(0.0);
   identityTransform.mutable_position()->set_y(0.0);
   identityTransform.mutable_position()->set_z(0.0);

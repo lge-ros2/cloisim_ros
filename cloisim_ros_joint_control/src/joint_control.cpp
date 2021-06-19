@@ -46,8 +46,7 @@ JointControl::~JointControl()
 
 void JointControl::Initialize()
 {
-  uint16_t portInfo, portTx, portRx, portTf;
-  // get_parameter_or("bridge.Info", portInfo, uint16_t(0));
+  uint16_t portTx, portRx, portTf;
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx, uint16_t(0));
   get_parameter_or("bridge.Tf", portTf, uint16_t(0));
@@ -56,7 +55,6 @@ void JointControl::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  // DBG_SIM_INFO("hash Key: info(%s) pub_(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
   DBG_SIM_INFO("hash Key: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
   auto pBridgeData = CreateBridge();
@@ -71,7 +69,7 @@ void JointControl::Initialize()
   if (pBridgeTf != nullptr)
   {
     pBridgeTf->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(pBridgeTf, bind(&JointControl::GenerateTF, this, std::placeholders::_1));
+    AddPublisherThread(pBridgeTf, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
   auto callback_sub = [this, pBridgeData](const control_msgs::msg::JointJog::SharedPtr msg) -> void {
@@ -109,25 +107,6 @@ string JointControl::MakeCommandMessage(const string joint_name, const double jo
   static string message;
   jointCmd.SerializeToString(&message);
   return message;
-}
-
-void JointControl::GenerateTF(const string &buffer)
-{
-  static cloisim::msgs::TransformStamped pb_transform_stamped;
-  if (!pb_transform_stamped.ParseFromString(buffer))
-  {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
-    return;
-  }
-
-  static geometry_msgs::msg::TransformStamped newTf;
-  newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
-  newTf.header.frame_id = pb_transform_stamped.header().str_id();
-  newTf.child_frame_id = pb_transform_stamped.transform().name();
-  // DBG_SIM_INFO("%ld %ld %s %s", newTf.header.stamp.sec, newTf.header.stamp.nanosec, newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
-  SetTf2(newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(), pb_transform_stamped.header().str_id());
-  AddTf2(newTf);
-  PublishTF();
 }
 
 void JointControl::PublishData(const string &buffer)
