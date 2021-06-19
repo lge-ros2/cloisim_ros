@@ -53,15 +53,16 @@ void Camera::Initialize()
   auto pBridgeData = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
-  const auto frame_id = GetFrameId("camera_link");
+  string frame_id = "camera_link";
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
     GetRos2Parameter(info_bridge_ptr);
 
+    frame_id = GetFrameId("camera_link");
     const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetStaticTf2(transform, frame_id + "_link");
+    SetStaticTf2(transform, frame_id);
 
     camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr);

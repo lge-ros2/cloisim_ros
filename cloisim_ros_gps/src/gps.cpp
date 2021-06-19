@@ -57,11 +57,11 @@ void Gps::Initialize()
     GetRos2Parameter(info_bridge_ptr);
 
     // Get frame for message
-    const auto frame_id = GetFrameId();
+    const auto frame_id = GetFrameId("gps_link");
     msg_nav_.header.frame_id = frame_id;
 
     const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetStaticTf2(transform, frame_id + "_link");
+    SetStaticTf2(transform, frame_id);
   }
 
   // Fill covariances

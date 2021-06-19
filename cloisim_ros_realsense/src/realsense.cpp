@@ -50,26 +50,25 @@ void RealSense::Initialize()
 
   auto info_bridge_ptr = CreateBridge();
 
-  string header_frame_id = "_camera_link";
+  string header_frame_id = "realsense_link";
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
     GetActivatedModules(info_bridge_ptr);
 
     const auto transform = GetObjectTransform(info_bridge_ptr);
-    header_frame_id = GetPartsName() + header_frame_id;
+    header_frame_id = GetPartsName() + "_link";
     SetStaticTf2(transform, header_frame_id);
   }
 
   image_transport::ImageTransport it(GetNode());
+  uint16_t portCamData, portCamInfo;
   for (auto module_name : activated_modules_)
   {
-    uint16_t portCamData, portCamInfo;
     get_parameter_or("bridge." + module_name + "Data", portCamData, uint16_t(0));
     get_parameter_or("bridge." + module_name + "Info", portCamInfo, uint16_t(0));
 
     const auto topic_base_name_ = GetPartsName() + "/" + module_name;
-
     const auto hashKeyData = GetTargetHashKey(module_name + "Data");
     const auto hashKeyInfo = GetTargetHashKey(module_name + "Info");
     DBG_SIM_INFO("topic_name: %s, hash Key: data(%s), info(%s)", topic_base_name_.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
