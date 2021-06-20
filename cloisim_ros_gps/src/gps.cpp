@@ -60,8 +60,9 @@ void Gps::Initialize()
     const auto frame_id = GetFrameId("gps_link");
     msg_nav_.header.frame_id = frame_id;
 
-    const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetStaticTf2(transform, frame_id);
+    auto transform_pose = GetObjectTransform(info_bridge_ptr);
+    transform_pose.set_name(frame_id);
+    SetStaticTf2(transform_pose);
   }
 
   // Fill covariances

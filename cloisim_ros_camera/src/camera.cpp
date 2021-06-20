@@ -61,8 +61,9 @@ void Camera::Initialize()
     GetRos2Parameter(info_bridge_ptr);
 
     frame_id = GetFrameId("camera_link");
-    const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetStaticTf2(transform, frame_id);
+    auto transform_pose = GetObjectTransform(info_bridge_ptr);
+    transform_pose.set_name(frame_id);
+    SetStaticTf2(transform_pose);
 
     camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr);

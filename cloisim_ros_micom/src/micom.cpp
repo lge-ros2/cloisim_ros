@@ -151,51 +151,32 @@ void Micom::GetStaticTransforms(zmq::Bridge *const bridge_ptr)
 
   const auto reply = RequestReplyMessage(bridge_ptr, "request_static_transforms");
 
+
   if (reply.IsInitialized() &&
       (reply.name().compare("static_transforms") == 0))
   {
+    auto pose = cloisim::msgs::Pose();
     for (auto link : reply.children())
     {
       if (link.IsInitialized() && link.has_name() && link.has_value())
       {
-        const auto parent_frame_id = (link.value().type() == msgs::Any_ValueType_STRING && link.value().string_value().compare("parent_frame_id") == 0) ? link.value().string_value() : "base_link";
+        const auto parent_frame_id = (link.value().type() == msgs::Any_ValueType_STRING && link.name().compare("parent_frame_id") == 0) ? link.value().string_value() : "base_link";
 
-        auto child_frame_id = string("");
-        auto pose = cloisim::msgs::Pose();
-
-        for (auto child : link.children())
+        if (link.children_size() == 1)
         {
+          const auto child = link.children(0);
+
           if (child.has_name() && child.has_value())
           {
-            if (child.name().compare("child_frame_id") == 0)
+            if ((child.name().compare("pose") == 0) && child.value().type() == msgs::Any_ValueType_POSE3D)
             {
-              child_frame_id = (child.value().type() == msgs::Any_ValueType_STRING) ? child.value().string_value() : "___unknown_child_frame_id___";
-            }
-            else if (child.name().compare("position") == 0)
-            {
-              const auto position = child.value().vector3d_value();
-              pose.mutable_position()->set_x(position.x());
-              pose.mutable_position()->set_y(position.y());
-              pose.mutable_position()->set_z(position.z());
-            }
-            else if (child.name().compare("orientation") == 0)
-            {
-              const auto orientation = child.value().quaternion_value();
-              pose.mutable_orientation()->set_x(orientation.x());
-              pose.mutable_orientation()->set_y(orientation.y());
-              pose.mutable_orientation()->set_z(orientation.z());
-              pose.mutable_orientation()->set_w(orientation.w());
-            }
-            else
-            {
-              DBG_SIM_WRN("Unknown field: %s", child.name().c_str());
+              pose = child.value().pose3d_value();
             }
           }
         }
 
-        SetStaticTf2(pose, child_frame_id, parent_frame_id);
-
-        DBG_SIM_MSG("static transform %s -> %s", child_frame_id.c_str(), parent_frame_id.c_str());
+        SetStaticTf2(pose, parent_frame_id);
+        DBG_SIM_MSG("static transform %s -> %s", pose.name().c_str(), parent_frame_id.c_str());
       }
     }
   }

@@ -56,9 +56,10 @@ void RealSense::Initialize()
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
     GetActivatedModules(info_bridge_ptr);
 
-    const auto transform = GetObjectTransform(info_bridge_ptr);
+    auto transform_pose = GetObjectTransform(info_bridge_ptr);
     header_frame_id = GetPartsName() + "_link";
-    SetStaticTf2(transform, header_frame_id);
+    transform_pose.set_name(header_frame_id);
+    SetStaticTf2(transform_pose);
   }
 
   image_transport::ImageTransport it(GetNode());
@@ -78,9 +79,10 @@ void RealSense::Initialize()
     if (cam_info_bridge_info != nullptr)
     {
       cam_info_bridge_info->Connect(zmq::Bridge::Mode::CLIENT, portCamInfo, hashKeyInfo);
-      const auto transform = GetObjectTransform(cam_info_bridge_info, module_name);
+      auto transform_pose = GetObjectTransform(cam_info_bridge_info, module_name);
       const auto child_frame_id = GetPartsName() + "_camera_" + module_name + "_frame";
-      SetStaticTf2(transform, child_frame_id, header_frame_id);
+      transform_pose.set_name(child_frame_id);
+      SetStaticTf2(transform_pose, header_frame_id);
 
       const auto camInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
 
