@@ -100,20 +100,27 @@ void Base::Stop()
 
 void Base::GenerateTF(const string &buffer)
 {
-  static cloisim::msgs::TransformStamped pb_transform_stamped;
+  cloisim::msgs::TransformStamped pb_transform_stamped;
   if (!pb_transform_stamped.ParseFromString(buffer))
   {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+    DBG_SIM_ERR("%s: Parsing error, size(%d)", get_name(), buffer.length());
     return;
   }
 
-  static geometry_msgs::msg::TransformStamped newTf;
-  newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
-  newTf.header.frame_id = pb_transform_stamped.header().str_id();
-  newTf.child_frame_id = pb_transform_stamped.transform().name();
-  // DBG_SIM_INFO("%ld %ld %s %s", newTf.header.stamp.sec, newTf.header.stamp.nanosec, newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
-  SetTf2(newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(), pb_transform_stamped.header().str_id());
-  PublishTF(newTf);
+  if (pb_transform_stamped.header().has_str_id() && pb_transform_stamped.transform().has_name())
+  {
+    geometry_msgs::msg::TransformStamped newTf;
+    newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
+    newTf.header.frame_id = pb_transform_stamped.header().str_id();
+    newTf.child_frame_id = pb_transform_stamped.transform().name();
+    // DBG_SIM_INFO("%ld %ld %s %s", newTf.header.stamp.sec, newTf.header.stamp.nanosec, newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
+    SetTf2(newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(), pb_transform_stamped.header().str_id());
+    PublishTF(newTf);
+  }
+  else
+  {
+    DBG_SIM_WRN("empty child frame id or parent frame id");
+  }
 }
 
 void Base::PublishTF(const geometry_msgs::msg::TransformStamped& tf)
@@ -135,7 +142,7 @@ void Base::PublishStaticTF()
   // Update timestamp
   for (auto &_tf : m_static_tf_list)
   {
-    _tf.header.stamp = m_sim_time;
+    _tf.header.stamp = GetTime();
   }
 
   if (m_static_tf_broadcaster != nullptr && m_static_tf_list.size() > 0)
@@ -301,7 +308,7 @@ bool Base::SetBufferToSimulator(zmq::Bridge* const bridge_ptr, const string &buf
 {
   if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr)
   {
-    return bridge_ptr->Send(buffer.data(), buffer.size());;
+    return bridge_ptr->Send(buffer.data(), buffer.size());
   }
 
   return false;

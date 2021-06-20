@@ -36,8 +36,8 @@ namespace cloisim_ros
     void Deinitialize() override { };
 
   private:
+    void GetStaticTransforms(zmq::Bridge *const bridge_ptr);
     void PublishData(const std::string &buffer);
-    // void GetTransformNameInfo(zmq::Bridge *const bridge_ptr);
 
     void ResetOdometryCallback(
         const std::shared_ptr<rmw_request_id_t> /*request_header*/,
@@ -55,24 +55,16 @@ namespace cloisim_ros
   private:
     zmq::Bridge *info_bridge_ptr;
 
-    // std::map<std::string, std::string> target_transform_name;
-
     // Micom msgs
     cloisim::msgs::Micom pb_micom_;
-
-    // std::array<double, 2> last_rad_ = {0, 0};
 
     // IMU msgs
     sensor_msgs::msg::Imu msg_imu_;
 
-    // Odometry msgs
-    // geometry_msgs::msg::TransformStamped odom_tf_;
-    // geometry_msgs::msg::TransformStamped wheel_left_tf_;
-    // geometry_msgs::msg::TransformStamped wheel_right_tf_;
-    nav_msgs::msg::Odometry msg_odom_;
+    geometry_msgs::msg::TransformStamped odom_tf_;
 
-    // std::array<double, 3> orig_left_wheel_rot_;
-    // std::array<double, 3> orig_right_wheel_rot_;
+    // Odometry msgs
+    nav_msgs::msg::Odometry msg_odom_;
 
     // Battery
     sensor_msgs::msg::BatteryState msg_battery_;

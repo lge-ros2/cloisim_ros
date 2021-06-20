@@ -39,7 +39,7 @@ namespace cloisim_ros
     void PublishData(const std::string &buffer);
 
   private:
-    // image buffer from simulatornode_name_
+    // image buffer from simulator
     cloisim::msgs::ImageStamped pb_img_;
 
     // message for ROS2 communictaion

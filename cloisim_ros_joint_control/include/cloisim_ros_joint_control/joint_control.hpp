@@ -37,7 +37,6 @@ namespace cloisim_ros
 
   private:
     void PublishData(const std::string &buffer);
-    void GenerateTF(const std::string &buffer);
 
     void JointControlWrite(zmq::Bridge* const bridge_ptr, const std::string &buffer);
     std::string MakeCommandMessage(const std::string joint_name, const double joint_displacement, const double joint_velocity) const;
