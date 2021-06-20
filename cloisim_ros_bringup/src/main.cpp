@@ -50,7 +50,7 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
 
       if (!node_type.compare("MICOM"))
       {
-        num_of_threads += 4;
+        num_of_threads += 5;
 
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);

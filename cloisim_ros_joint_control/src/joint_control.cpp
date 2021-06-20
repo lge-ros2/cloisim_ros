@@ -111,7 +111,7 @@ string JointControl::MakeCommandMessage(const string joint_name, const double jo
 
 void JointControl::PublishData(const string &buffer)
 {
-  static cloisim::msgs::JointState_V pb_joint_states;
+  cloisim::msgs::JointState_V pb_joint_states;
   if (!pb_joint_states.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
@@ -120,7 +120,7 @@ void JointControl::PublishData(const string &buffer)
 
   SetTime(pb_joint_states.header().stamp());
 
-  static sensor_msgs::msg::JointState msg_jointstate;
+  sensor_msgs::msg::JointState msg_jointstate;
   msg_jointstate.header.stamp = GetTime();
   msg_jointstate.name.clear();
   msg_jointstate.effort.clear();
