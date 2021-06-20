@@ -57,22 +57,22 @@ void JointControl::Initialize()
   const auto hashKeyTf = GetTargetHashKey("Tf");
   DBG_SIM_INFO("hash Key: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
-  auto pBridgeData = CreateBridge();
-  if (pBridgeData != nullptr)
+  auto data_bridge_ptr = CreateBridge();
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddPublisherThread(pBridgeData, bind(&JointControl::PublishData, this, std::placeholders::_1));
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
+    AddPublisherThread(data_bridge_ptr, bind(&JointControl::PublishData, this, std::placeholders::_1));
   }
 
-  auto pBridgeTf = CreateBridge();
-  if (pBridgeTf != nullptr)
+  auto tf_bridge_ptr = CreateBridge();
+  if (tf_bridge_ptr != nullptr)
   {
-    pBridgeTf->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(pBridgeTf, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
+    AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, pBridgeData](const control_msgs::msg::JointJog::SharedPtr msg) -> void {
+  auto callback_sub = [this, data_bridge_ptr](const control_msgs::msg::JointJog::SharedPtr msg) -> void {
     // const auto duration = msg->duration;
     for (size_t i = 0; i < msg->joint_names.size(); i++)
     {
@@ -81,7 +81,7 @@ void JointControl::Initialize()
       const auto velocity = msg->velocities[i];
 
       const auto msgBuf = MakeCommandMessage(joint_name, displacement, velocity);
-      SetBufferToSimulator(pBridgeData, msgBuf);
+      SetBufferToSimulator(data_bridge_ptr, msgBuf);
     }
   };
 

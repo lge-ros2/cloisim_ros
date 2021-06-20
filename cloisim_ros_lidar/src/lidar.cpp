@@ -52,7 +52,7 @@ void Lidar::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge();
+  auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
   auto output_type = string("LaserScan");
@@ -88,10 +88,10 @@ void Lidar::Initialize()
     DBG_SIM_ERR("Failed to create publisher, invalid output_type: %s", output_type.c_str());
   }
 
-  if (pBridgeData != nullptr)
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(pBridgeData, bind(&Lidar::PublishData, this, std::placeholders::_1));
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    AddPublisherThread(data_bridge_ptr, bind(&Lidar::PublishData, this, std::placeholders::_1));
   }
 }
 

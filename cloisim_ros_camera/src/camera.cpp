@@ -50,7 +50,7 @@ void Camera::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge();
+  auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
   string frame_id = "camera_link";
@@ -75,10 +75,10 @@ void Camera::Initialize()
   image_transport::ImageTransport it(GetNode());
   pub_ = it.advertiseCamera(topic_base_name_ + "/image_raw", 1);
 
-  if (pBridgeData != nullptr)
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(pBridgeData, bind(&Camera::PublishData, this, std::placeholders::_1));
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    AddPublisherThread(data_bridge_ptr, bind(&Camera::PublishData, this, std::placeholders::_1));
   }
 }
 

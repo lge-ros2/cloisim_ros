@@ -47,11 +47,11 @@ void GroundTruth::Initialize()
 
   pub_ = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
-  auto pBridgeData = CreateBridge();
-  if (pBridgeData != nullptr)
+  auto data_bridge_ptr = CreateBridge();
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
-    AddPublisherThread(pBridgeData, bind(&GroundTruth::PublishData, this, std::placeholders::_1));
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
+    AddPublisherThread(data_bridge_ptr, bind(&GroundTruth::PublishData, this, std::placeholders::_1));
   }
 }
 

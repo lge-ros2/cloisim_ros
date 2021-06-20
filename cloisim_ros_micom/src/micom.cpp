@@ -82,24 +82,24 @@ void Micom::Initialize()
     pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
   }
 
-  auto pBridgeData = CreateBridge();
-  if (pBridgeData != nullptr)
+  auto data_bridge_ptr = CreateBridge();
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddPublisherThread(pBridgeData, bind(&Micom::PublishData, this, std::placeholders::_1));
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
+    AddPublisherThread(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
   }
 
-  auto pBridgeTf = CreateBridge();
-  if (pBridgeTf != nullptr)
+  auto tf_bridge_ptr = CreateBridge();
+  if (tf_bridge_ptr != nullptr)
   {
-    pBridgeTf->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(pBridgeTf, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
+    AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, pBridgeData](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
+  auto callback_sub = [this, data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
     const auto msgBuf = MakeControlMessage(msg);
-    SetBufferToSimulator(pBridgeData, msgBuf);
+    SetBufferToSimulator(data_bridge_ptr, msgBuf);
   };
 
   // ROS2 Subscriber

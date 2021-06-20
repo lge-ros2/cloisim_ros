@@ -49,7 +49,7 @@ void MultiCamera::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge();
+  auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
   if (info_bridge_ptr != nullptr)
@@ -97,8 +97,8 @@ void MultiCamera::Initialize()
       SetCameraInfoInManager(camera_info_manager_.back(), camSensorMsg, frame_id);
     }
 
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(pBridgeData, bind(&MultiCamera::PublishData, this, std::placeholders::_1));
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    AddPublisherThread(data_bridge_ptr, bind(&MultiCamera::PublishData, this, std::placeholders::_1));
   }
 }
 

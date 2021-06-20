@@ -47,7 +47,7 @@ void Gps::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge();
+  auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
   if (info_bridge_ptr != nullptr)
@@ -78,10 +78,10 @@ void Gps::Initialize()
   // ROS2 Publisher
   pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
 
-  if (pBridgeData != nullptr)
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(pBridgeData, bind(&Gps::PublishData, this, std::placeholders::_1));
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    AddPublisherThread(data_bridge_ptr, bind(&Gps::PublishData, this, std::placeholders::_1));
   }
 }
 
