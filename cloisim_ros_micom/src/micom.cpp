@@ -199,6 +199,7 @@ void Micom::PublishData(const string &buffer)
   UpdateBattery();
 
   // publish data
+  PublishTF(odom_tf_);
   pub_odom_->publish(msg_odom_);
   pub_imu_->publish(msg_imu_);
   pub_battery_->publish(msg_battery_);
@@ -234,8 +235,6 @@ void Micom::UpdateOdom()
   odom_tf_.header.stamp = msg_odom_.header.stamp;
   SetPointToGeometry(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
   odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
-
-  PublishTF(odom_tf_);
 }
 
 void Micom::UpdateImu()
