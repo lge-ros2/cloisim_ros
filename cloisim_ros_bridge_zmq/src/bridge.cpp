@@ -441,7 +441,7 @@ bool Bridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode)
 
   if ((bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
-    DBG_SIM_ERR("failed to receive ZMQ message: err(%s) length(%d)", zmq_strerror(zmq_errno()), bufferLength);
+    DBG_SIM_ERR("failed to receive message(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return false;
   }
 
@@ -463,7 +463,7 @@ bool Bridge::Send(const void* buffer, const int bufferLength, bool isNonBlocking
   zmq_msg_t msg;
   if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0)
   {
-    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer msg(%p) or pSockTx_(%p)", (void*)&msg, pSockTx_);
+    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer, msg(%p) or pSockTx_(%p)", (void*)&msg, pSockTx_);
     return false;
   }
 

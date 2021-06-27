@@ -1,9 +1,9 @@
-/**
+ /**
  *  @file   main.cpp
- *  @date   2020-04-08
+ *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 packages that helps to control unity simulation
+ *        ROS2 Node that controls joint_control board for simulation.
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory
@@ -13,17 +13,16 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include "cloisim_ros_joint_control/joint_control.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
-#include "cloisim_ros_groundtruth/ground_truth.hpp"
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_groundtruth");
-  bringup_param_node->IsSingleMode(true);
-  bringup_param_node->TargetPartsType("GROUNDTRUTH");
+  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_joint_control");
+  bringup_param_node->TargetPartsType("JOINTCONTROL");
   executor.add_node(bringup_param_node);
 
   const auto filtered_result = bringup_param_node->GetBringUpList(true);
@@ -33,8 +32,15 @@ int main(int argc, char** argv)
   {
     rclcpp::NodeOptions node_options;
     bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
+
+    const auto is_single_mode = bringup_param_node->IsSingleMode();
+    const auto model_name = bringup_param_node->TargetModel();
     const auto node_name = bringup_param_node->TargetPartsName();
-    node = std::make_shared<cloisim_ros::GroundTruth>(node_options, node_name);
+
+    if (is_single_mode)
+      node = std::make_shared<cloisim_ros::JointControl>(node_options, node_name);
+    else
+      node = std::make_shared<cloisim_ros::JointControl>(node_options, node_name, model_name);
   }
 
   if (node != nullptr)

@@ -49,8 +49,8 @@ void MultiCamera::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyData);
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
+  auto data_bridge_ptr = CreateBridge();
+  auto info_bridge_ptr = CreateBridge();
 
   if (info_bridge_ptr != nullptr)
   {
@@ -61,8 +61,9 @@ void MultiCamera::Initialize()
     image_transport::ImageTransport it(GetNode());
     for (auto frame_id : frame_id_list_)
     {
-      const auto transform = GetObjectTransform(info_bridge_ptr, frame_id);
-      SetupStaticTf2(transform, GetPartsName() + "_" + frame_id);
+      auto transform_pose = GetObjectTransform(info_bridge_ptr, frame_id);
+      transform_pose.set_name(GetPartsName() + "_" + frame_id);
+      SetStaticTf2(transform_pose);
 
       // Image publisher
       const auto topic_base_name_ = GetPartsName() + "/" + frame_id;
@@ -97,8 +98,8 @@ void MultiCamera::Initialize()
       SetCameraInfoInManager(camera_info_manager_.back(), camSensorMsg, frame_id);
     }
 
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    AddPublisherThread(data_bridge_ptr, bind(&MultiCamera::PublishData, this, std::placeholders::_1));
   }
 }
 
@@ -110,7 +111,7 @@ void MultiCamera::Deinitialize()
   }
 }
 
-void MultiCamera::UpdatePublishingData(const string &buffer)
+void MultiCamera::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {
@@ -118,7 +119,7 @@ void MultiCamera::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   for (auto i = 0; i < pb_buf_.image_size(); i++)
   {
@@ -129,13 +130,13 @@ void MultiCamera::UpdatePublishingData(const string &buffer)
     const uint32_t step_arg = img->step();
 
     auto const msg_img = &msg_imgs_[i];
-    msg_img->header.stamp = GetSimTime();
+    msg_img->header.stamp = GetTime();
     sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                            reinterpret_cast<const void *>(img->data().data()));
 
     // Publish camera info
     auto camera_info_msg = camera_info_manager_[i]->getCameraInfo();
-    camera_info_msg.header.stamp = GetSimTime();
+    camera_info_msg.header.stamp = GetTime();
     pubs_.at(i).publish(*msg_img, camera_info_msg);
   }
 }

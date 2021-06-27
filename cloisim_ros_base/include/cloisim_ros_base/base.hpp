@@ -27,6 +27,9 @@
 
 namespace cloisim_ros
 {
+  static rclcpp::Time Convert(const int32_t seconds, const uint32_t nanoseconds) {  return rclcpp::Time(seconds, nanoseconds);  }
+  static rclcpp::Time Convert(const cloisim::msgs::Time &time) {  return Convert(time.sec(), time.nsec());  }
+
   class Base : public rclcpp::Node
   {
   public:
@@ -39,18 +42,15 @@ namespace cloisim_ros
   protected:
     virtual void Initialize() = 0;
     virtual void Deinitialize() = 0;
-    virtual void UpdatePublishingData(const std::string &buffer) { (void)buffer; };
-    virtual void UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const std::string &buffer) { (void)bridge_ptr; (void)buffer; };
 
+  protected:
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
     void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
-    void SetupStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
-    void SetupStaticTf2(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
+    void SetStaticTf2(const std::string child_frame_id, const std::string header_frame_id);
+    void SetStaticTf2(const cloisim::msgs::Pose transform, const std::string parent_header_frame_id = "base_link");
 
     void Start(const bool enable_tf_publish = true);
     void Stop();
-
-    void SetupStaticTf2Message(const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string parent_frame_id = "base_link");
 
     void AddTf2(const geometry_msgs::msg::TransformStamped tf)
     {
@@ -66,12 +66,11 @@ namespace cloisim_ros
 
     rclcpp::Node::SharedPtr GetNode() { return m_node_handle; }
 
-    zmq::Bridge* CreateBridge(const std::string hashKey);
-    zmq::Bridge* GetBridge(const std::string hashKey);
+    zmq::Bridge* CreateBridge();
 
     void CloseBridges();
 
-    void CreatePublisherThread(zmq::Bridge* const bridge_ptr);
+    void AddPublisherThread(zmq::Bridge* const bridge_ptr, std::function<void(const std::string&)> thread_func);
 
     std::string GetModelName();
     std::string GetRobotName();
@@ -80,30 +79,40 @@ namespace cloisim_ros
     std::string GetTargetHashKey(const std::string value) { return GetMainHashKey() + value; }
 
     void PublishTF();
+    void PublishTF(const geometry_msgs::msg::TransformStamped& tf);
 
-    cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name = "");
+    cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name = "")
+    {
+      auto temp = std::string("");
+      return GetObjectTransform(bridge_ptr, target_name, temp);
+    }
+
+    cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name, std::string &parent_frame_id);
 
     void GetRos2Parameter(zmq::Bridge* const bridge_ptr);
 
-    bool GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
+    static bool GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
+
+    static bool SetBufferToSimulator(zmq::Bridge* const bridge_ptr, const std::string &buffer);
 
     std::string GetFrameId(const std::string default_frame_id = "base_link");
 
-    void SetSimTime(const cloisim::msgs::Time &time);
-    void SetSimTime(const int32_t seconds, const uint32_t nanoseconds);
-    rclcpp::Time GetSimTime() { return m_sim_time; }
-
-  public:
     static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const std::string request_message, const std::string request_value = "");
     static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const cloisim::msgs::Param request_message);
     static cloisim::msgs::Pose IdentityPose();
+
+    void SetTime(const cloisim::msgs::Time &time);
+    void SetTime(const int32_t seconds, const uint32_t nanoseconds);
+    rclcpp::Time GetTime() { return m_sim_time; }
+
+  public:
+    void GenerateTF(const std::string &buffer);
 
   private:
     void PublishStaticTF();
 
   private:
-
-    std::map<std::string, zmq::Bridge *> m_hashkey_bridge_map;
+    std::vector<zmq::Bridge *> m_created_bridges;
 
     bool m_bRunThread;
     std::vector<std::thread> m_threads;

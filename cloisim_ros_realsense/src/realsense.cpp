@@ -48,53 +48,52 @@ void RealSense::Initialize()
 
   const auto hashKeyInfo = GetTargetHashKey("Info");
 
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
-  // int bridgeIndex = 0;
-  // auto info_bridge_ptr = GetBridge(bridgeIndex);
+  auto info_bridge_ptr = CreateBridge();
 
-  string header_frame_id = "_camera_link";
+  string header_frame_id = "realsense_link";
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
     GetActivatedModules(info_bridge_ptr);
 
-    const auto transform = GetObjectTransform(info_bridge_ptr);
-    header_frame_id = GetPartsName() + header_frame_id;
-    SetupStaticTf2(transform, header_frame_id);
+    auto transform_pose = GetObjectTransform(info_bridge_ptr);
+    header_frame_id = GetPartsName() + "_link";
+    transform_pose.set_name(header_frame_id);
+    SetStaticTf2(transform_pose);
   }
 
   image_transport::ImageTransport it(GetNode());
+  uint16_t portCamData, portCamInfo;
   for (auto module_name : activated_modules_)
   {
-    uint16_t portCamData, portCamInfo;
     get_parameter_or("bridge." + module_name + "Data", portCamData, uint16_t(0));
     get_parameter_or("bridge." + module_name + "Info", portCamInfo, uint16_t(0));
 
     const auto topic_base_name_ = GetPartsName() + "/" + module_name;
-
     const auto hashKeyData = GetTargetHashKey(module_name + "Data");
     const auto hashKeyInfo = GetTargetHashKey(module_name + "Info");
     DBG_SIM_INFO("topic_name: %s, hash Key: data(%s), info(%s)", topic_base_name_.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
 
-    auto pBridgeCamData = CreateBridge(hashKeyData);
-    auto pBridgeCamInfo = CreateBridge(hashKeyInfo);
-    if (pBridgeCamInfo != nullptr)
+    auto cam_data_bridge_ptr = CreateBridge();
+    auto cam_info_bridge_info = CreateBridge();
+    if (cam_info_bridge_info != nullptr)
     {
-      pBridgeCamInfo->Connect(zmq::Bridge::Mode::CLIENT, portCamInfo, hashKeyInfo);
-      const auto transform = GetObjectTransform(pBridgeCamInfo, module_name);
+      cam_info_bridge_info->Connect(zmq::Bridge::Mode::CLIENT, portCamInfo, hashKeyInfo);
+      auto transform_pose = GetObjectTransform(cam_info_bridge_info, module_name);
       const auto child_frame_id = GetPartsName() + "_camera_" + module_name + "_frame";
-      SetupStaticTf2(transform, child_frame_id, header_frame_id);
+      transform_pose.set_name(child_frame_id);
+      SetStaticTf2(transform_pose, header_frame_id);
 
       const auto camInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
 
-      const auto camSensorMsg = GetCameraSensorMessage(pBridgeCamInfo);
+      const auto camSensorMsg = GetCameraSensorMessage(cam_info_bridge_info);
       SetCameraInfoInManager(camInfoManager, camSensorMsg, module_name);
 
-      camera_info_managers_[pBridgeCamData] = camInfoManager;
+      camera_info_managers_[cam_data_bridge_ptr] = camInfoManager;
     }
 
     const auto topic_name = (module_name.find("depth") == string::npos)? "image_raw":"image_rect_raw";
-    pubs_[pBridgeCamData] = it.advertiseCamera(topic_base_name_ + "/" + topic_name, 1);
+    pubs_[cam_data_bridge_ptr] = it.advertiseCamera(topic_base_name_ + "/" + topic_name, 1);
 
     // handling parameters for image_transport plugin
     const auto format_value = get_parameter("format");
@@ -116,12 +115,12 @@ void RealSense::Initialize()
     sensor_msgs::msg::Image msg_img;
     msg_img.header.frame_id = module_name;
 
-    msg_imgs_[pBridgeCamData] = msg_img;
+    msg_imgs_[cam_data_bridge_ptr] = msg_img;
 
-    if (pBridgeCamData != nullptr)
+    if (cam_data_bridge_ptr != nullptr)
     {
-      pBridgeCamData->Connect(zmq::Bridge::Mode::SUB, portCamData, hashKeyData);
-      CreatePublisherThread(pBridgeCamData);
+      cam_data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portCamData, hashKeyData);
+      AddPublisherThread(cam_data_bridge_ptr, bind(&RealSense::PublishData, this, cam_data_bridge_ptr, std::placeholders::_1));
     }
   }
 }
@@ -171,7 +170,7 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
-void RealSense::UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const std::string &buffer)
+void RealSense::PublishData(const zmq::Bridge* const bridge_ptr, const std::string &buffer)
 {
   cloisim::msgs::ImageStamped pb_buf_;
   if (!pb_buf_.ParseFromString(buffer))
@@ -180,10 +179,10 @@ void RealSense::UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const 
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   auto const msg_img = &msg_imgs_[bridge_ptr];
-  msg_img->header.stamp = GetSimTime();
+  msg_img->header.stamp = GetTime();
 
   const auto encoding_arg = GetImageEncondingType(pb_buf_.image().pixel_format());
   const uint32_t cols_arg = pb_buf_.image().width();
@@ -203,7 +202,7 @@ void RealSense::UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const 
 
   // Publish camera info
   auto camera_info_msg = camera_info_managers_[bridge_ptr]->getCameraInfo();
-  camera_info_msg.header.stamp = GetSimTime();
+  camera_info_msg.header.stamp = GetTime();
 
   pubs_[bridge_ptr].publish(*msg_img, camera_info_msg);
 }

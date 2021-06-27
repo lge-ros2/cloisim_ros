@@ -14,7 +14,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_groundtruth/ground_truth.hpp"
+#include "cloisim_ros_ground_truth/ground_truth.hpp"
 #include <cloisim_ros_base/helper.h>
 
 using namespace std;
@@ -28,7 +28,7 @@ GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string 
 }
 
 GroundTruth::GroundTruth()
-  : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_groundtruth")
+  : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_ground_truth")
 {
 }
 
@@ -47,15 +47,15 @@ void GroundTruth::Initialize()
 
   pub_ = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
-  auto pBridgeData = CreateBridge(hashKey);
-  if (pBridgeData != nullptr)
+  auto data_bridge_ptr = CreateBridge();
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
-    CreatePublisherThread(pBridgeData);
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
+    AddPublisherThread(data_bridge_ptr, bind(&GroundTruth::PublishData, this, std::placeholders::_1));
   }
 }
 
-void GroundTruth::UpdatePublishingData(const string &buffer)
+void GroundTruth::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {
@@ -63,7 +63,7 @@ void GroundTruth::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.header().stamp());
+  SetTime(pb_buf_.header().stamp());
 
   UpdatePerceptionData();
 
@@ -72,7 +72,7 @@ void GroundTruth::UpdatePublishingData(const string &buffer)
 
 void GroundTruth::UpdatePerceptionData()
 {
-  msg_.header.stamp = GetSimTime();
+  msg_.header.stamp = GetTime();
 
   msg_.objects.clear();
 

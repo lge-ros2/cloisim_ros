@@ -50,18 +50,20 @@ void Camera::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyData);
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
+  auto data_bridge_ptr = CreateBridge();
+  auto info_bridge_ptr = CreateBridge();
 
-  const auto frame_id = GetFrameId("camera_link");
+  string frame_id = "camera_link";
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
     GetRos2Parameter(info_bridge_ptr);
 
-    const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetupStaticTf2(transform, frame_id + "_link");
+    frame_id = GetFrameId("camera_link");
+    auto transform_pose = GetObjectTransform(info_bridge_ptr);
+    transform_pose.set_name(frame_id);
+    SetStaticTf2(transform_pose);
 
     camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr);
@@ -74,10 +76,10 @@ void Camera::Initialize()
   image_transport::ImageTransport it(GetNode());
   pub_ = it.advertiseCamera(topic_base_name_ + "/image_raw", 1);
 
-  if (pBridgeData != nullptr)
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    AddPublisherThread(data_bridge_ptr, bind(&Camera::PublishData, this, std::placeholders::_1));
   }
 }
 
@@ -86,7 +88,7 @@ void Camera::Deinitialize()
   pub_.shutdown();
 }
 
-void Camera::UpdatePublishingData(const string &buffer)
+void Camera::PublishData(const string &buffer)
 {
   if (!pb_img_.ParseFromString(buffer))
   {
@@ -94,9 +96,9 @@ void Camera::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_img_.time());
+  SetTime(pb_img_.time());
 
-  msg_img_.header.stamp = GetSimTime();
+  msg_img_.header.stamp = GetTime();
 
   const auto encoding_arg = GetImageEncondingType(pb_img_.image().pixel_format());
   const uint32_t cols_arg = pb_img_.image().width();

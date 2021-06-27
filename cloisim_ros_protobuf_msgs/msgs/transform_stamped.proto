@@ -1,0 +1,17 @@
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface TransformStamped
+/// \brief Message for transform stamped in ROS2 Tf message
+
+import "header.proto";
+import "pose.proto";
+
+message TransformStamped
+{
+  required Header header = 1;
+
+  // set the frame id of the child frame in Pose.name
+  required Pose transform = 2;
+}

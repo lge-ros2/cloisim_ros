@@ -32,8 +32,10 @@ namespace cloisim_ros
 
   private:
     void Initialize() override;
-    void Deinitialize() override { };
-    void UpdatePublishingData(const std::string &buffer) override;
+    void Deinitialize() override {};
+
+  private:
+    void PublishData(const std::string &buffer);
 
   private:
     cloisim::msgs::WorldStatistics pb_buf_;

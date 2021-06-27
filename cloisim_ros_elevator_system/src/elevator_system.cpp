@@ -1,5 +1,5 @@
 /**
- *  @file   elevatorsystem.cpp
+ *  @file   elevator_system.cpp
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_elevatorsystem/elevatorsystem.hpp"
+#include "cloisim_ros_elevator_system/elevator_system.hpp"
 
 using namespace std;
 using namespace placeholders;
@@ -32,7 +32,7 @@ ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string
 }
 
 ElevatorSystem::ElevatorSystem()
-    : ElevatorSystem(rclcpp::NodeOptions(), "cloisim_ros_elevatorsystem")
+    : ElevatorSystem(rclcpp::NodeOptions(), "cloisim_ros_elevator_system")
 {
 }
 
@@ -50,7 +50,7 @@ void ElevatorSystem::Initialize()
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
 
-  control_bridge_ptr = CreateBridge(hashKeySrv);
+  control_bridge_ptr = CreateBridge();
   if (control_bridge_ptr != nullptr)
   {
     control_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);

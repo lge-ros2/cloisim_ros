@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_groundtruth)
+project(cloisim_ros_elevator_system)
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
@@ -11,12 +11,12 @@ cloisim_ros_package()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
-find_package(perception_msgs REQUIRED)
+find_package(elevator_system_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
-  perception_msgs
+  elevator_system_msgs
   cloisim_ros_base
   cloisim_ros_bringup_param
 )
@@ -26,7 +26,7 @@ set(dependencies
 ################################################################################
 add_library(
   ${PROJECT_NAME}_core SHARED
-  src/ground_truth.cpp
+  src/elevator_system.cpp
 )
 
 target_include_directories(

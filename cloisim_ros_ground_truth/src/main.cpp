@@ -1,9 +1,9 @@
 /**
  *  @file   main.cpp
- *  @date   2021-01-14
+ *  @date   2020-04-08
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 package for elevator system
+ *        ROS2 packages that helps to control unity simulation
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory
@@ -13,26 +13,18 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_elevatorsystem/elevatorsystem.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
+#include "cloisim_ros_ground_truth/ground_truth.hpp"
 
-using namespace std::literals;
-
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
-  // Force flush of the stdout buffer.
-  // This ensures a correct sync of all prints
-  // even when executed simultaneously within the launch file.
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
-
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
-  rclcpp::sleep_for(1000ms);
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_elevatorsystem");
-  executor.add_node(bringup_param_node);
+  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_ground_truth");
   bringup_param_node->IsSingleMode(true);
-  bringup_param_node->TargetPartsType("ELEVATOR");
+  bringup_param_node->TargetPartsType("GROUNDTRUTH");
+  executor.add_node(bringup_param_node);
 
   const auto filtered_result = bringup_param_node->GetBringUpList(true);
 
@@ -42,7 +34,7 @@ int main(int argc, char *argv[])
     rclcpp::NodeOptions node_options;
     bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
     const auto node_name = bringup_param_node->TargetPartsName();
-    node = std::make_shared<cloisim_ros::ElevatorSystem>(node_options, node_name);
+    node = std::make_shared<cloisim_ros::GroundTruth>(node_options, node_name);
   }
 
   if (node != nullptr)
@@ -52,6 +44,5 @@ int main(int argc, char *argv[])
 
   executor.spin();
   rclcpp::shutdown();
-
   return 0;
 }

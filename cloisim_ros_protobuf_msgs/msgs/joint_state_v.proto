@@ -1,0 +1,18 @@
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface JointState_V
+/// \brief Message for cloisim_ros_joint_control
+
+import "joint_state.proto";
+import "header.proto";
+
+message JointState_V
+{
+  /// \brief header data.
+  required Header header          = 1;
+
+  /// \brief joint states header data.
+  repeated JointState JointState  = 2;
+}

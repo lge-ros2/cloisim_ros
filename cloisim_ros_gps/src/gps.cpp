@@ -47,8 +47,8 @@ void Gps::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
   DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
-  auto pBridgeData = CreateBridge(hashKeyData);
-  auto info_bridge_ptr = CreateBridge(hashKeyInfo);
+  auto data_bridge_ptr = CreateBridge();
+  auto info_bridge_ptr = CreateBridge();
 
   if (info_bridge_ptr != nullptr)
   {
@@ -57,11 +57,12 @@ void Gps::Initialize()
     GetRos2Parameter(info_bridge_ptr);
 
     // Get frame for message
-    const auto frame_id = GetFrameId();
+    const auto frame_id = GetFrameId("gps_link");
     msg_nav_.header.frame_id = frame_id;
 
-    const auto transform = GetObjectTransform(info_bridge_ptr);
-    SetupStaticTf2(transform, frame_id + "_link");
+    auto transform_pose = GetObjectTransform(info_bridge_ptr);
+    transform_pose.set_name(frame_id);
+    SetStaticTf2(transform_pose);
   }
 
   // Fill covariances
@@ -78,14 +79,14 @@ void Gps::Initialize()
   // ROS2 Publisher
   pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
 
-  if (pBridgeData != nullptr)
+  if (data_bridge_ptr != nullptr)
   {
-    pBridgeData->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    CreatePublisherThread(pBridgeData);
+    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
+    AddPublisherThread(data_bridge_ptr, bind(&Gps::PublishData, this, std::placeholders::_1));
   }
 }
 
-void Gps::UpdatePublishingData(const string &buffer)
+void Gps::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {
@@ -93,10 +94,10 @@ void Gps::UpdatePublishingData(const string &buffer)
     return;
   }
 
-  SetSimTime(pb_buf_.time());
+  SetTime(pb_buf_.time());
 
   // Fill message with latest sensor data
-  msg_nav_.header.stamp = GetSimTime();
+  msg_nav_.header.stamp = GetTime();
   msg_nav_.latitude = pb_buf_.latitude_deg();
   msg_nav_.longitude = pb_buf_.longitude_deg();
   msg_nav_.altitude = pb_buf_.altitude();

@@ -47,7 +47,7 @@ void DepthCamera::Deinitialize()
   DBG_SIM_INFO("DepthCamera Deinitialization");
 }
 
-void DepthCamera::UpdatePublishingData(const string &buffer)
+void DepthCamera::PublishData(const string &buffer)
 {
-  Camera::UpdatePublishingData(buffer);
+  Camera::PublishData(buffer);
 }

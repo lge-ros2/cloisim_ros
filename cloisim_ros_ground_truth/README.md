@@ -1,13 +1,13 @@
 # CLOiSim-ROS GroundTruth Plugin
 
 ```shell
-ros2 run cloisim_ros_groundtruth standalone
+ros2 run cloisim_ros_ground_truth standalone
 ```
 
 or
 
 ```shell
-ros2 run cloisim_ros_groundtruth standalone --ros-args -p target_parts_name:=cloisim_groudtruth
+ros2 run cloisim_ros_ground_truth standalone --ros-args -p target_parts_name:=cloisim_groudtruth
 ```
 
 Examples of outputs (ros2 topic echo /ground_truth)

@@ -34,8 +34,9 @@ namespace cloisim_ros
   private:
     void Initialize() override;
     void Deinitialize() override;
-    void UpdatePublishingData(const zmq::Bridge* const bridge_ptr, const std::string &buffer) override;
 
+  private:
+    void PublishData(const zmq::Bridge* const bridge_ptr, const std::string &buffer);
     void GetActivatedModules(zmq::Bridge *const bridge_ptr);
 
   private:
