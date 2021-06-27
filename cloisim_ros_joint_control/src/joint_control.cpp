@@ -82,7 +82,7 @@ void JointControl::Initialize()
       // DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
       const auto msgBuf = MakeCommandMessage(joint_name, displacement, velocity);
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
-      rclcpp::sleep_for(1ms);
+      rclcpp::sleep_for(5ms);
     }
   };
 
