@@ -237,8 +237,8 @@ void Lidar::UpdateLaserData(const double min_intensity)
   msg_laser_.angle_min = pb_buf_.scan().angle_min();
   msg_laser_.angle_max = pb_buf_.scan().angle_max();
   msg_laser_.angle_increment = pb_buf_.scan().angle_step();
-  msg_laser_.time_increment = 0;
-  msg_laser_.scan_time = 0;
+  msg_laser_.time_increment = 0; // instantaneous simulator scan
+  msg_laser_.scan_time = 0; // not sure whether this is correct
   msg_laser_.range_min = pb_buf_.scan().range_min();
   msg_laser_.range_max = pb_buf_.scan().range_max();
 
