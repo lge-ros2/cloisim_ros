@@ -320,7 +320,7 @@ bool Bridge::Connect(const unsigned char mode, const uint16_t port, const string
 
 bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
 {
-  size_t nHashTag = hash<string>{}(hashKey);
+  const auto nHashTag = hash<string>{}(hashKey);
   if (zmq_setsockopt(pSub_, ZMQ_SUBSCRIBE, &nHashTag, tagSize))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
