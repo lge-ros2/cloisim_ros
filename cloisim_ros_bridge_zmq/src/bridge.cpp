@@ -320,7 +320,7 @@ bool Bridge::Connect(const unsigned char mode, const uint16_t port, const string
 
 bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
 {
-  const auto nHashTag = hash<string>{}(hashKey);
+  const auto nHashTag = GetHashCode(hashKey);
   if (zmq_setsockopt(pSub_, ZMQ_SUBSCRIBE, &nHashTag, tagSize))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
@@ -328,7 +328,7 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
   }
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), nHashTag);
 
   if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0)
   {
@@ -341,10 +341,10 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
 
 bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
 {
-  m_nHashTagTx = hash<string>{}(hashKey);
+  m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0)
   {
@@ -357,10 +357,10 @@ bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
 
 bool Bridge::ConnectService(const uint16_t port, const string hashKey)
 {
-  m_nHashTagTx = hash<string>{}(hashKey);
+  m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0)
   {
@@ -373,10 +373,10 @@ bool Bridge::ConnectService(const uint16_t port, const string hashKey)
 
 bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
 {
-  m_nHashTagTx = hash<string>{}(hashKey);
+  m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("address(%s)", bridgeAddress.c_str());
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
   if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectClient Err:" + string(zmq_strerror(zmq_errno()));

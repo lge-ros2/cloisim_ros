@@ -207,7 +207,7 @@ void Micom::PublishData(const string &buffer)
 
 void Micom::UpdateOdom()
 {
-  if (!pb_micom_.has_odom() || !pb_micom_.has_imu())
+  if (!pb_micom_.has_odom())
   {
     return;
   }
@@ -239,6 +239,11 @@ void Micom::UpdateOdom()
 
 void Micom::UpdateImu()
 {
+  if (!pb_micom_.has_imu())
+  {
+    return;
+  }
+
   msg_imu_.header.stamp = GetTime();
 
   SetQuaternionMessageToGeometry(pb_micom_.imu().orientation(), msg_imu_.orientation);
