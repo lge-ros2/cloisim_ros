@@ -74,7 +74,7 @@ namespace cloisim_ros
       void* pRep_;
 
       zmq_msg_t m_msgRx; // for subscriber and reply
-      size_t m_nHashTagTx; // for publisher and request
+      std::size_t m_nHashTagTx; // for publisher and request
 
       void* pSockTx_; // for Send function
       void* pSockRx_; // for Recieve function
@@ -108,6 +108,11 @@ namespace cloisim_ros
       std::string GetAddress(const uint16_t port)
       {
         return std::string((useTCP)? "tcp":"udp") + "://" + bridgeAddr_ + ":" + std::to_string(port);
+      }
+
+      std::size_t GetHashCode(const std::string value)
+      {
+        return std::hash<std::string>{}(value);
       }
     };
   }
