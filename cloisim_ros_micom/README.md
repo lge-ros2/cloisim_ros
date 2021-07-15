@@ -11,11 +11,11 @@ ros2 run cloisim_ros_micom standalone
 or
 
 ```shell
-ros2 run cloisim_ros_micom standalone --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=micom
+ros2 run cloisim_ros_micom standalone --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=RobotControl
 ```
 
 or
 
 ```shell
-ros2 run cloisim_ros_micom standalone --ros-args -p target_model:=cloi1 -p target_parts_name:=micom
+ros2 run cloisim_ros_micom standalone --ros-args -p target_model:=cloi1 -p target_parts_name:=RobotControl
 ```
