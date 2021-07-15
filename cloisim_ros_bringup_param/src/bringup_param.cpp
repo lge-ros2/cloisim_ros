@@ -61,7 +61,6 @@ void BringUpParam::RequestBringUpList()
   auto count = maxRetryNum;
   while (count-- > 0)
   {
-    // ws_service_ptr_->SetTargetModel(target_model);
     const auto payload = ws_service_ptr_->Run();
     reader.parse(payload, root, false);
 
@@ -83,7 +82,7 @@ void BringUpParam::RequestBringUpList()
 Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
 {
   Json::Value root;
-  // cout << result_map << endl;
+  // cout << result << endl;
   for (auto it = result.begin(); it != result.end(); it++)
   {
     const auto node_namespace = it.key().asString();
@@ -105,8 +104,6 @@ Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
           root[node_namespace] = node_list;
         else
           root[node_namespace] = Json::Value();
-
-        return root;
       }
     }
   }
@@ -136,11 +133,13 @@ void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::
 void BringUpParam::StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
 {
   // cout << item << endl;
-  const auto model_name = item.begin().key().asString();
+  // const auto model_name = ;
   // cout << "model_name: " << model_name << endl;
+  // cout << "model_name: " << TargetModel() << endl;
   if (TargetModel().empty())
-    TargetModel(model_name);
+    TargetModel(item.begin().key().asString());
 
+  const auto model_name = TargetModel();
   const auto isResultEmpty = item[model_name].empty();
   const auto first_iteration = (isResultEmpty) ? Json::ValueConstIterator() : item[model_name].begin();
 

@@ -151,7 +151,6 @@ void Micom::GetStaticTransforms(zmq::Bridge *const bridge_ptr)
 
   const auto reply = RequestReplyMessage(bridge_ptr, "request_static_transforms");
 
-
   if (reply.IsInitialized() &&
       (reply.name().compare("static_transforms") == 0))
   {
