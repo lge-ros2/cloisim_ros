@@ -76,23 +76,6 @@ void MultiCamera::Initialize()
 
       pubs_.push_back(it.advertiseCamera(topic_base_name_ + "/image_raw", 1));
 
-      // handling parameters for image_transport plugin
-      const auto format_value = get_parameter("format");
-      const auto jpeg_quality_value = get_parameter("jpeg_quality");
-      const auto png_level_value = get_parameter("png_level");
-
-      undeclare_parameter("format");
-      undeclare_parameter("jpeg_quality");
-      undeclare_parameter("png_level");
-
-      declare_parameters(frame_id,
-                         map<string, string>{
-                             {"format", format_value.as_string()}});
-      declare_parameters(frame_id,
-                         map<string, int>{
-                             {"jpeg_quality", jpeg_quality_value.as_int()},
-                             {"png_level", png_level_value.as_int()}});
-
       camera_info_manager_.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
       const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr, frame_id);
       SetCameraInfoInManager(camera_info_manager_.back(), camSensorMsg, frame_id);

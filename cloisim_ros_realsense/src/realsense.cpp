@@ -95,23 +95,6 @@ void RealSense::Initialize()
     const auto topic_name = (module_name.find("depth") == string::npos)? "image_raw":"image_rect_raw";
     pubs_[cam_data_bridge_ptr] = it.advertiseCamera(topic_base_name_ + "/" + topic_name, 1);
 
-    // handling parameters for image_transport plugin
-    const auto format_value = get_parameter("format");
-    const auto jpeg_quality_value = get_parameter("jpeg_quality");
-    const auto png_level_value = get_parameter("png_level");
-
-    undeclare_parameter("format");
-    undeclare_parameter("jpeg_quality");
-    undeclare_parameter("png_level");
-
-    declare_parameters(module_name,
-                       map<string, string>{
-                           {"format", format_value.as_string()}});
-    declare_parameters(module_name,
-                       map<string, int>{
-                           {"jpeg_quality", jpeg_quality_value.as_int()},
-                           {"png_level", png_level_value.as_int()}});
-
     sensor_msgs::msg::Image msg_img;
     msg_img.header.frame_id = module_name;
 
