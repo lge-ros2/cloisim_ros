@@ -50,8 +50,6 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
 
       if (!node_type.compare("MICOM"))
       {
-        num_of_threads += 5;
-
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
         else
@@ -59,8 +57,6 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("JOINTCONTROL"))
       {
-        num_of_threads += 2;
-
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::JointControl>(node_options, node_name);
         else
@@ -68,8 +64,6 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("LIDAR") || !node_type.compare("LASER"))
       {
-        num_of_threads += 1;
-
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name);
         else
@@ -77,7 +71,7 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("CAMERA"))
       {
-        num_of_threads += 5;
+        num_of_threads += 3;
 
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Camera>(node_options, node_name);
@@ -86,7 +80,7 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("DEPTHCAMERA"))
       {
-        num_of_threads += 5;
+        num_of_threads += 3;
 
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name);
@@ -95,7 +89,7 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("MULTICAMERA"))
       {
-        num_of_threads += 5;
+        num_of_threads += 4;
 
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name);
@@ -104,7 +98,7 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("REALSENSE"))
       {
-        num_of_threads += 20;
+        num_of_threads += 9;
 
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
@@ -113,8 +107,6 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
       }
       else if (!node_type.compare("GPS"))
       {
-        num_of_threads += 1;
-
         if (g_isSingleMode)
           node = std::make_shared<cloisim_ros::Gps>(node_options, node_name);
         else
