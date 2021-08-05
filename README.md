@@ -2,10 +2,19 @@
 
 ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot simulator).
 
-## Prerequisite
+## Download CLOiSim Simulator
 
-- Download CLOiSim Simulator
-  - CLOiSim: Latest [link](https://github.com/lge-ros2/cloisim/releases/latest), All Releases [link](https://github.com/lge-ros2/cloisim/releases)
+  - Latest version: [link](https://github.com/lge-ros2/cloisim/releases/latest)
+  - All Releases: [link](https://github.com/lge-ros2/cloisim/releases)
+
+## Install ROS2 foxy
+
+  follow the guideline on below link.
+  
+  https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html
+
+
+## Prerequisite
 
 ```shell
 sudo apt update
