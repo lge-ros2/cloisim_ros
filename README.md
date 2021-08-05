@@ -59,8 +59,9 @@ export FASTRTPS_DEFAULT_PROFILES_FILE=/home/cloi/src/cloisim_ros/fastrtps_shared
 
 #### Turn off single mode(=multi robot mode)
 
-**Strongly recommend to use this method.**
-Apply namespaceas each robot as a multi robot mode
+Apply namespaceas each robot as a multi robot mode.
+
+**(Strongly recommend to use this method.)**
 
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py
@@ -104,23 +105,25 @@ docker build -t cloisim_ros .
 
 You can add possible parameters as described above. ex) target_model, target_parts_type or target_parts_name
 
+#### multi robot mode
+
 ```shell
 docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
 ```
 
-or
+#### single robot mode
 
 ```shell
 docker run -it --rm --net=host -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=True
 ```
 
-with default network driver(bridge)
+#### multi robot mode with default network driver(bridge)
 
 ```shell
 docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros
 ```
 
-or
+#### single robot mode with default network driver(bridge)
 
 ```shell
 docker run -it --rm -e CLOISIM_BRIDGE_IP='192.168.0.125' -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID cloisim_ros single_mode:=True
