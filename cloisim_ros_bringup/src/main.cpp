@@ -41,7 +41,7 @@ void bringup_target_parts_by_name(const Json::Value item, const string node_type
 
     cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(item, node_options);
 
-    num_of_threads_t num_of_threads = 2; // default tf and tf_static for robot specific type
+    num_of_threads_t num_of_threads = 1; // default tf and tf_static for robot specific type
 
     if (cloisim_ros::BringUpParam::IsRobotSpecificType(node_type))
     {
