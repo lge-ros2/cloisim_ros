@@ -298,6 +298,7 @@ bool Base::GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffe
   const auto succeeded = bridge_ptr->Receive(ppBbuffer, bufferLength, isNonBlockingMode);
   if (!succeeded || bufferLength < 0)
   {
+    DBG_SIM_ERR("Bridge Ptr: %p", bridge_ptr);
     return false;
   }
 
