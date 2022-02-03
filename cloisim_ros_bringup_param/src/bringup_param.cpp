@@ -53,6 +53,11 @@ BringUpParam::BringUpParam(const string basename)
   RequestBringUpList();
 }
 
+BringUpParam::~BringUpParam()
+{
+  delete ws_service_ptr_;
+}
+
 void BringUpParam::RequestBringUpList()
 {
   Json::Reader reader;
@@ -113,7 +118,7 @@ Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
 
 Json::Value BringUpParam::GetBringUpList(const bool filterByParameters)
 {
-  return (filterByParameters)? GetFilteredListByParameters(result_map_):result_map_;
+  return (filterByParameters) ? GetFilteredListByParameters(result_map_) : result_map_;
 }
 
 void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)

@@ -33,6 +33,7 @@ namespace cloisim_ros
 
   public:
     BringUpParam(const string basename = "cloisim_ros");
+    virtual ~BringUpParam();
 
     bool IsSingleMode() const { return is_single_mode; }
     string TargetModel() const { return target_model; }
