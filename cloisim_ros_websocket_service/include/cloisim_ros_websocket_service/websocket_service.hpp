@@ -15,6 +15,8 @@
 #ifndef _CLOISIM_ROS_WEBSOCKET_SERVICE_HPP_
 #define _CLOISIM_ROS_WEBSOCKET_SERVICE_HPP_
 
+#define ASIO_STANDALONE
+
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 
