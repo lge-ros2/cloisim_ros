@@ -28,7 +28,7 @@ namespace cloisim_ros
   class BringUpParam : public rclcpp::Node
   {
   private:
-    const int maxRetryNum = 30;
+    const int maxRetryNum = 10;
     const int waitingSeconds = 3;
 
   public:
