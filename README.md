@@ -4,15 +4,14 @@ ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot
 
 ## Download CLOiSim Simulator
 
-  - Latest version: [link](https://github.com/lge-ros2/cloisim/releases/latest)
-  - All Releases: [link](https://github.com/lge-ros2/cloisim/releases)
+- Latest version: [link](https://github.com/lge-ros2/cloisim/releases/latest)
+- All Releases: [link](https://github.com/lge-ros2/cloisim/releases)
 
 ## Install ROS2 foxy
 
   follow the guideline on below link.
-  
-  https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html
 
+  <https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html>
 
 ## Prerequisite
 
@@ -61,7 +60,7 @@ export FASTRTPS_DEFAULT_PROFILES_FILE=/home/cloi/src/cloisim_ros/fastrtps_shared
 
 Apply namespaceas each robot as a multi robot mode.
 
-**(Strongly recommend to use this method.)**
+**Strongly recommend to use this method.**
 
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py
