@@ -20,8 +20,9 @@ bool BringUpParam::IsRobotSpecificType(const string node_type)
 {
   return (!node_type.compare("MICOM") || !node_type.compare("JOINTCONTROL") ||
           !node_type.compare("LIDAR") || !node_type.compare("LASER") ||
-          !node_type.compare("CAMERA") || !node_type.compare("DEPTHCAMERA") || !node_type.compare("MULTICAMERA") || !node_type.compare("REALSENSE") ||
-          !node_type.compare("GPS"));
+          !node_type.compare("CAMERA") || !node_type.compare("DEPTHCAMERA") ||
+          !node_type.compare("MULTICAMERA") || !node_type.compare("REALSENSE") ||
+          !node_type.compare("GPS") || !node_type.compare("IMU"));
 }
 
 bool BringUpParam::IsWorldSpecificType(const string node_type)

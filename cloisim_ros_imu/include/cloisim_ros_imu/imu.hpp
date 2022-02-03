@@ -13,21 +13,21 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_GPS_HPP_
-#define _CLOISIM_ROS_GPS_HPP_
+#ifndef _CLOISIM_ROS_IMU_HPP_
+#define _CLOISIM_ROS_IMU_HPP_
 
 #include <cloisim_ros_base/base.hpp>
-#include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include <cloisim_msgs/gps.pb.h>
+#include <sensor_msgs/msg/imu.hpp>
+#include <cloisim_msgs/imu.pb.h>
 
 namespace cloisim_ros
 {
-  class Gps : public Base
+  class Imu : public Base
   {
   public:
-    explicit Gps(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
-    explicit Gps(const std::string namespace_ = "");
-    ~Gps();
+    explicit Imu(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+    explicit Imu(const std::string namespace_ = "");
+    ~Imu();
 
   private:
     void Initialize() override;
@@ -38,13 +38,13 @@ namespace cloisim_ros
 
   private:
     // buffer from simulation
-    cloisim::msgs::GPS pb_buf_;
+    cloisim::msgs::IMU pb_buf_;
 
-    // message for ROS2 communictaion
-    sensor_msgs::msg::NavSatFix msg_nav_;
+    // IMU msgs
+    sensor_msgs::msg::Imu msg_imu_;
 
     // publisher
-    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub_;
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
   };
 }
 #endif
