@@ -401,7 +401,7 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const msgs:
 
 msgs::Pose Base::IdentityPose()
 {
-  static msgs::Pose identityTransform;
+  msgs::Pose identityTransform;
   identityTransform.mutable_position()->set_x(0.0);
   identityTransform.mutable_position()->set_y(0.0);
   identityTransform.mutable_position()->set_z(0.0);
