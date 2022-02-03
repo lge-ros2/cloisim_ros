@@ -51,6 +51,7 @@ WebSocketService::WebSocketService(const string bridge_ip, const string service_
   // Register our message handler
   c.set_open_handler(bind(&WebSocketService::on_open, this, placeholders::_1));
   c.set_message_handler(bind(&WebSocketService::on_message, this, placeholders::_1, placeholders::_2));
+  // cout << "WebsocketService created" << endl;
 }
 
 void WebSocketService::on_message(websocketpp::connection_hdl hdl, client::message_ptr msg)
@@ -65,19 +66,22 @@ void WebSocketService::on_open(websocketpp::connection_hdl hdl)
 {
   const string request_msg = "{'command':'device_list', 'filter':'" + target_filter + "'}";
 
-  // std::cout << "Open: " << std::endl;
+  // std::cout << "Open: " << request_msg << std::endl;
   c.send(hdl, request_msg, websocketpp::frame::opcode::value::TEXT);
 }
 
 string WebSocketService::Run()
 {
+  const auto target_uri = uri + "/control";
+  // cout << target_uri << endl;
   try
   {
     websocketpp::lib::error_code ec;
-    client::connection_ptr con = c.get_connection(uri + "/control", ec);
+    auto con = c.get_connection(target_uri, ec);
+
     if (ec)
     {
-      cout << "could not create connection because: " << ec.message() << endl;
+      cout << "could not create connection because: " << ec.message() << " target_uri: " << target_uri << endl;
     }
     else
     {
@@ -97,8 +101,16 @@ string WebSocketService::Run()
   {
     cout << "Exception:" << e.what() << endl;
   }
+  catch (websocketpp::lib::error_code e)
+  {
+    std::cout << e.message() << std::endl;
+  }
+  catch (...)
+  {
+    std::cout << "other exception" << std::endl;
+  }
 
-  // cout << result << endl << result.size() << endl;
+  // cout << payload << endl << payload.size() << endl;
 
   return payload;
 }

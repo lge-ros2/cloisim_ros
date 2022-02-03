@@ -95,7 +95,7 @@ void JointControl::Initialize()
 
 string JointControl::MakeCommandMessage(const string joint_name, const double joint_displacement, const double joint_velocity) const
 {
-  static msgs::JointCmd jointCmd;
+  msgs::JointCmd jointCmd;
 
   jointCmd.set_name(joint_name);
 
@@ -105,7 +105,7 @@ string JointControl::MakeCommandMessage(const string joint_name, const double jo
   auto velocity = jointCmd.mutable_velocity();
   velocity->set_target(joint_velocity);
 
-  static string message;
+  string message;
   jointCmd.SerializeToString(&message);
   return message;
 }
