@@ -20,6 +20,7 @@ import "imu.proto";
 import "battery.proto";
 import "pose.proto";
 import "vector3d.proto";
+// import "twist.proto";
 
 message Micom
 {
@@ -44,6 +45,7 @@ message Micom
     required Wheel angular_velocity = 1;
     optional Wheel linear_velocity  = 2;
     optional Vector3d pose          = 3;
+    // optional Twist twist = 4;
     optional Vector3d twist_linear  = 4;
     optional Vector3d twist_angular = 5;
   }
