@@ -19,8 +19,8 @@
 #include <image_transport/image_transport.hpp>
 #include <camera_info_manager/camera_info_manager.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
-#include <cloisim_msgs/image_stamped.pb.h>
-#include <cloisim_msgs/camerasensor.pb.h>
+#include <sensor_msgs/msg/imu.hpp>
+#include <tuple>
 
 namespace cloisim_ros
 {
@@ -36,11 +36,14 @@ namespace cloisim_ros
     void Deinitialize() override;
 
   private:
-    void PublishData(const zmq::Bridge* const bridge_ptr, const std::string &buffer);
+    void InitializeCam(const std::string module_name, zmq::Bridge* const info_ptr, zmq::Bridge* const data_ptr);
+    void InitializeImu(zmq::Bridge* const info_ptr, zmq::Bridge* const data_ptr);
+    void PublishImgData(const zmq::Bridge* const bridge_ptr, const std::string &buffer);
+    void PublishImuData(const std::string &buffer);
     void GetActivatedModules(zmq::Bridge *const bridge_ptr);
 
   private:
-    std::vector<std::string> activated_modules_;
+    std::vector<std::tuple<std::string, std::string>> activated_modules_;
 
     // message for ROS2 communictaion
     std::map<const zmq::Bridge* const, sensor_msgs::msg::Image> msg_imgs_;
@@ -50,6 +53,12 @@ namespace cloisim_ros
 
     // Image publisher
     std::map<const zmq::Bridge* const, image_transport::CameraPublisher> pubs_;
+
+    // IMU msgs
+    sensor_msgs::msg::Imu msg_imu_;
+
+    // publisher
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
   };
 }
 #endif

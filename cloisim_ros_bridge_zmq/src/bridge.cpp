@@ -328,7 +328,7 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
   }
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", this, bridgeAddress.c_str(), nHashTag);
+  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), nHashTag);
 
   if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0)
   {
@@ -344,7 +344,7 @@ bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", this, bridgeAddress.c_str(), m_nHashTagTx);
+  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0)
   {
@@ -360,7 +360,7 @@ bool Bridge::ConnectService(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", this, bridgeAddress.c_str(), m_nHashTagTx);
+  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0)
   {
@@ -376,7 +376,7 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", this, bridgeAddress.c_str(), m_nHashTagTx);
+  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectClient Err:" + string(zmq_strerror(zmq_errno()));
