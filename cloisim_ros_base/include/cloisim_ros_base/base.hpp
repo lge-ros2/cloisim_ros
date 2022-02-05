@@ -112,7 +112,7 @@ namespace cloisim_ros
     void PublishStaticTF();
 
   private:
-    std::vector<zmq::Bridge *> m_created_bridges;
+    std::vector<std::unique_ptr<zmq::Bridge>> m_created_bridges;
 
     bool m_bRunThread;
     std::vector<std::thread> m_threads;
