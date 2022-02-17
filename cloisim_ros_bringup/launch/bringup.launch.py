@@ -12,6 +12,7 @@ from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.actions import SetEnvironmentVariable
 from launch.substitutions import LaunchConfiguration
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -22,12 +23,17 @@ def generate_launch_description():
     _target_parts_name = LaunchConfiguration('target_parts_name')
     _scan = LaunchConfiguration('scan')
 
+
     cloisim_ros_cmd = Node(
         package="cloisim_ros_bringup",
         executable="bringup",
         output='screen',
         remappings=[('scan',_scan)],
-        parameters=[{'single_mode': _single_mode, 'target_model': _target_model, 'target_parts_type': _target_parts_type, 'target_parts_name': _target_parts_name}])
+        parameters=[{'single_mode': _single_mode,
+                     'target_model': ParameterValue(_target_model, value_type=str),
+                     'target_parts_type': ParameterValue(_target_parts_type, value_type=str),
+                     'target_parts_name': ParameterValue(_target_parts_name, value_type=str),
+                     }])
 
     declare_launch_argument_sm = DeclareLaunchArgument(
         'single_mode',
