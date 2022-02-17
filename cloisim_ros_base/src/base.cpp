@@ -53,10 +53,7 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
 Base::~Base()
 {
   // DBG_SIM_INFO("Delete");
-  for (auto item : m_created_bridges)
-  {
-    delete item;
-  }
+  m_created_bridges.clear();
 }
 
 void Base::Start(const bool enable_tf_publish)
@@ -153,15 +150,13 @@ void Base::PublishStaticTF()
 
 zmq::Bridge* Base::CreateBridge()
 {
-  const auto bridge_ptr = new zmq::Bridge();
-  m_created_bridges.emplace_back(bridge_ptr);
-
-  return bridge_ptr;
+  m_created_bridges.emplace_back(std::make_unique<zmq::Bridge>());
+  return m_created_bridges.back().get();
 }
 
 void Base::CloseBridges()
 {
-  for (auto item : m_created_bridges)
+  for (auto& item : m_created_bridges)
   {
     item->Disconnect();
   }
