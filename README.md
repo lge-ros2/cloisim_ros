@@ -1,4 +1,4 @@
-# cloisim_ros (foxy version)
+# cloisim_ros (humble version)
 
 ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot simulator).
 
@@ -7,11 +7,11 @@ ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot
 - Latest version: [link](https://github.com/lge-ros2/cloisim/releases/latest)
 - All Releases: [link](https://github.com/lge-ros2/cloisim/releases)
 
-## Install ROS2 foxy
+## Install ROS2 humble
 
   follow the guideline on below link.
 
-  <https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html>
+  <https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html>
 
 ## Prerequisite
 
@@ -20,7 +20,7 @@ sudo apt update
 sudo apt install -y python3-rosdep
 sudo rosdep init
 rosdep update
-rosdep install -y -r -q --from-paths src --ignore-src --rosdistro foxy
+rosdep install -y -r -q --from-paths src --ignore-src --rosdistro humble
 ```
 
 ## Build
@@ -28,7 +28,7 @@ rosdep install -y -r -q --from-paths src --ignore-src --rosdistro foxy
 Set up ROS2 environment first
 
 ```shell
-source /opt/ros2/foxy/setup.bash
+source /opt/ros2/humble/setup.bash
 colcon build --symlink-install --packages-up-to cloisim_ros_bringup
 ```
 
@@ -41,7 +41,7 @@ export CLOISIM_BRIDGE_IP='xxx.xxx.xxx.xxx'
 export CLOISIM_SERVICE_PORT=8080
 ```
 
-check here [details](https://github.com/lge-ros2/cloisim_ros/tree/foxy/cloisim_ros_bringup) for bring-up guide
+check here [details](https://github.com/lge-ros2/cloisim_ros/tree/humble/cloisim_ros_bringup) for bring-up guide
 
 ### Run cloisim_ros (robot + world)
 
@@ -95,7 +95,7 @@ Run below command after clone this repository(this branch).
 ### Build Docker image
 
 ```shell
-git clone https://github.com/lge-ros2/cloisim_ros.git -b foxy
+git clone https://github.com/lge-ros2/cloisim_ros.git -b humble
 cd cloisim_ros
 docker build -t cloisim_ros .
 ```
@@ -139,5 +139,6 @@ docker run -it --rm -e CLOISIM_BRIDGE_IP=$CLOISIM_BRIDGE_IP -e ROS_DOMAIN_ID=$RO
 ## Version info
 
 - Please refer to each branch for ROS2 distro-version you want
-  - [dashing](https://github.com/lge-ros2/sim_device/tree/dashing)
+  - [humble](https://github.com/lge-ros2/cloisim_ros/tree/humble)
   - [foxy](https://github.com/lge-ros2/cloisim_ros/tree/foxy)
+  - [dashing](https://github.com/lge-ros2/sim_device/tree/dashing)
