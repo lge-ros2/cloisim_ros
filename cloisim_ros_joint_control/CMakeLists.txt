@@ -11,12 +11,14 @@ cloisim_ros_package()
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
+  std_srvs
   sensor_msgs
   control_msgs
   cloisim_ros_base
