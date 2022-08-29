@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "/opt/ros/foxy/include",
+                "/opt/ros/humble/include",
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/../../install/perception_msgs/include/",
                 "${workspaceFolder}/../../install/elevator_system_msgs/include/",
