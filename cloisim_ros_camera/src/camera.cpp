@@ -60,7 +60,7 @@ void Camera::Initialize()
 
     GetRos2Parameter(info_bridge_ptr);
 
-    frame_id = GetFrameId("camera_link");
+    frame_id = GetPartsName() + "_" + GetFrameId("camera_link");
     auto transform_pose = GetObjectTransform(info_bridge_ptr);
     transform_pose.set_name(frame_id);
     SetStaticTf2(transform_pose);
