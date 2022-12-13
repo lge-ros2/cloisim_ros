@@ -1,4 +1,4 @@
-FROM ros:foxy-ros-base
+FROM ros:humble-ros-base
 
 ENV HOSTNAME cloisim_ros
 

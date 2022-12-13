@@ -178,9 +178,10 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   string moduleListStr;
   const auto reply = RequestReplyMessage(bridge_ptr, "request_module_list");
 
-  if (reply.ByteSize() <= 0)
+  const auto reply_size = reply.ByteSizeLong();
+  if (reply_size <= 0)
   {
-    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply.ByteSize());
+    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply_size);
   }
   else
   {
