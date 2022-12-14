@@ -192,7 +192,7 @@ string Base::GetModelName()
 
 string Base::GetRobotName()
 {
-  bool is_single_mode;
+  bool is_single_mode = false;
   get_parameter("single_mode", is_single_mode);
 
   string robotName;
@@ -213,9 +213,9 @@ msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string 
 
   const auto reply = RequestReplyMessage(bridge_ptr, "request_transform", target_name);
 
-  if (reply.ByteSize() <= 0)
+  if (reply.ByteSizeLong() <= 0)
   {
-    DBG_SIM_ERR("Faild to get object transform, length(%ld)", reply.ByteSize());
+    DBG_SIM_ERR("Faild to get object transform, length(%ld)", reply.ByteSizeLong());
   }
   else
   {
@@ -251,9 +251,9 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
 
   const auto reply = RequestReplyMessage(bridge_ptr, "request_ros2");
 
-  if (reply.ByteSize() <= 0)
+  if (reply.ByteSizeLong() <= 0)
   {
-    DBG_SIM_ERR("Faild to get ROS2 common info, length(%ld)", reply.ByteSize());
+    DBG_SIM_ERR("Faild to get ROS2 common info, length(%ld)", reply.ByteSizeLong());
   }
   else
   {
