@@ -232,13 +232,6 @@ void RealSense::PublishImgData(const zmq::Bridge* const bridge_ptr, const std::s
   sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
                          reinterpret_cast<const void *>(pb_buf_.image().data().data()));
 
-  if ((encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0) ||
-      (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_16SC1) == 0) ||
-      (encoding_arg.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0))
-  {
-    msg_img->is_bigendian = true;
-  }
-
   // Publish camera info
   auto camera_info_msg = camera_info_managers_[bridge_ptr]->getCameraInfo();
   camera_info_msg.header.stamp = GetTime();
