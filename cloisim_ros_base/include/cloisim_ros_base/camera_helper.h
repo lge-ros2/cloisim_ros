@@ -34,7 +34,7 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
   switch (pixel_format)
   {
     case 1:
-      encoding = sensor_msgs::image_encodings::MONO8;
+      encoding = sensor_msgs::image_encodings::TYPE_8UC1;
       break;
 
     case 2:
