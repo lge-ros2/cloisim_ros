@@ -58,6 +58,7 @@ set(dependencies
 add_executable(
   ${STANDALONE_EXEC_NAME}
   src/main.cpp
+  src/bringup.cpp
 )
 
 ament_target_dependencies(
