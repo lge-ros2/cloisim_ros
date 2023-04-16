@@ -23,14 +23,14 @@ using namespace cloisim_ros::zmq;
 #define DEFAULT_CLOISIM_BRIDGE_IP "127.0.0.1"
 
 Bridge::Bridge()
-  : pCtx_(nullptr)
-  , pPub_(nullptr)
-  , pSub_(nullptr)
-  , pReq_(nullptr)
-  , pRep_(nullptr)
-  , pSockTx_(nullptr)
-  , pSockRx_(nullptr)
-  , lastErrMsg("")
+    : pCtx_(nullptr)
+    , pPub_(nullptr)
+    , pSub_(nullptr)
+    , pReq_(nullptr)
+    , pRep_(nullptr)
+    , pSockTx_(nullptr)
+    , pSockRx_(nullptr)
+    , lastErrMsg("")
 {
   const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
 
@@ -48,7 +48,6 @@ Bridge::Bridge()
 
   // DBG_SIM_INFO("bridge_ip = %s", bridgeAddr_.c_str());
 }
-
 
 Bridge::~Bridge()
 {
@@ -96,7 +95,7 @@ bool Bridge::Setup(const unsigned char mode)
   return result;
 }
 
-bool Bridge::SetupCommon(void* const targetSocket)
+bool Bridge::SetupCommon(void *const targetSocket)
 {
   if (zmq_setsockopt(targetSocket, ZMQ_CONNECT_TIMEOUT, &connect_timeout, sizeof(connect_timeout)))
   {
@@ -328,7 +327,8 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
   }
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), nHashTag);
+  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), nHashTag);
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), nHashTag);
 
   if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0)
   {
@@ -344,7 +344,8 @@ bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0)
   {
@@ -360,7 +361,8 @@ bool Bridge::ConnectService(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0)
   {
@@ -376,7 +378,9 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const string bridgeAddress = GetAddress(port);
-  DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
+
   if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0)
   {
     lastErrMsg = "ConnectClient Err:" + string(zmq_strerror(zmq_errno()));
@@ -418,7 +422,7 @@ bool Bridge::Disconnect(const unsigned char mode)
   return result;
 }
 
-bool Bridge::CloseSocket(void*& target)
+bool Bridge::CloseSocket(void *&target)
 {
   if (target == nullptr)
   {
@@ -431,11 +435,11 @@ bool Bridge::CloseSocket(void*& target)
   return true;
 }
 
-bool Bridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode)
+bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
 {
   if (&m_msgRx == nullptr || pSockRx_ == nullptr)
   {
-    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer m_msgRx(%p) or pSockRx_(%p)", (void*)&m_msgRx, pSockRx_);
+    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer m_msgRx(%p) or pSockRx_(%p)", (void *)&m_msgRx, pSockRx_);
     return false;
   }
 
@@ -452,24 +456,24 @@ bool Bridge::Receive(void** buffer, int& bufferLength, bool isNonBlockingMode)
 
   // Get only Contents without tag
   auto ptr = static_cast<unsigned char *>(*buffer);
-  *buffer = (void* )(ptr + tagSize);
+  *buffer = (void *)(ptr + tagSize);
   bufferLength -= tagSize;
 
   return true;
 }
 
-bool Bridge::Send(const void* buffer, const int bufferLength, bool isNonBlockingMode)
+bool Bridge::Send(const void *buffer, const int bufferLength, bool isNonBlockingMode)
 {
   zmq_msg_t msg;
   if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0)
   {
-    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer, msg(%p) or pSockTx_(%p)", (void*)&msg, pSockTx_);
+    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer, msg(%p) or pSockTx_(%p)", (void *)&msg, pSockTx_);
     return false;
   }
 
   // Set hash Tag
   memcpy(zmq_msg_data(&msg), &m_nHashTagTx, tagSize);
-  memcpy((void*)((uint8_t*)zmq_msg_data(&msg) + tagSize), buffer, bufferLength);
+  memcpy((void *)((uint8_t *)zmq_msg_data(&msg) + tagSize), buffer, bufferLength);
 
   /* Send the message to the socket */
   if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0) < 0)
@@ -477,7 +481,7 @@ bool Bridge::Send(const void* buffer, const int bufferLength, bool isNonBlocking
     return false;
   }
 
-	zmq_msg_close(&msg);
+  zmq_msg_close(&msg);
 
   return true;
 }
