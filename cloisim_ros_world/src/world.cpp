@@ -15,8 +15,8 @@
  */
 
 #include "cloisim_ros_world/world.hpp"
-#include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/any.pb.h>
+#include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/time.pb.h>
 
 using namespace std;
@@ -24,13 +24,13 @@ using namespace cloisim;
 using namespace cloisim_ros;
 
 World::World(const rclcpp::NodeOptions &options_, const std::string node_name)
-  : Base(node_name, options_)
+    : Base(node_name, options_)
 {
   Start(false);
 }
 
 World::World()
-  : World(rclcpp::NodeOptions(), "cloisim_ros_world")
+    : World(rclcpp::NodeOptions(), "cloisim_ros_world")
 {
 }
 
@@ -43,8 +43,7 @@ void World::Initialize()
 {
   uint16_t portClock;
   get_parameter_or("bridge.Clock", portClock, uint16_t(0));
-
-  const auto hashKey = GetModelName() + GetPartsName() +  "Clock";
+  const auto hashKey = GetModelName() + GetPartsName() + "Clock";
   DBG_SIM_INFO("hash Key: %s", hashKey.c_str());
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
