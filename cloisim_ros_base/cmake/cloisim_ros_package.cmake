@@ -17,6 +17,7 @@ macro(cloisim_ros_package)
     add_compile_options(-Wall -Wextra -Wpedantic -Wdeprecated -fPIC)
     add_compile_options(-Wno-unused-function)
     add_compile_options(-fstack-protector -O2)
+    # add_compile_options(-fstack-protector -O0 -g)
     # add_compile_options(-Werror)
   endif()
 
