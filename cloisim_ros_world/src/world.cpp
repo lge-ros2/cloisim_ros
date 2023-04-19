@@ -36,6 +36,7 @@ World::World()
 
 World::~World()
 {
+  // cout << "~World()" << endl;
   Stop();
 }
 
@@ -58,6 +59,12 @@ void World::Initialize()
   }
 }
 
+void World::Deinitialize()
+{
+  // cout << "World::Deinitialize()" << endl;
+  pub_.reset();
+}
+
 void World::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
@@ -67,7 +74,10 @@ void World::PublishData(const string &buffer)
   }
 
   SetTime(pb_buf_.sim_time());
-  // const auto realTime = pb_buf_.real_time();
+
+#if 0
+  const auto realTime = pb_buf_.real_time();
+#endif
 
   msg_clock_.clock = GetTime();
   pub_->publish(msg_clock_);
