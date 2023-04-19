@@ -157,11 +157,11 @@ bool Bridge::SetupSubscriber()
     return false;
   }
 
-  // if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
-  // {
-  //   lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
-  //   return false;
-  // }
+  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
+  {
+    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    return false;
+  }
 
   if (zmq_msg_init(&m_msgRx) < 0)
   {
@@ -289,29 +289,19 @@ bool Bridge::Connect(const unsigned char mode, const uint16_t port, const string
   {
     // socket connect
     if (mode & Mode::SUB)
-    {
       result &= ConnectSubscriber(port, hashKey);
-    }
 
     if (mode & Mode::PUB)
-    {
       result &= ConnectPublisher(port, hashKey);
-    }
 
     if (mode & Mode::SERVICE)
-    {
       result &= ConnectService(port, hashKey);
-    }
 
     if (mode & Mode::CLIENT)
-    {
       result &= ConnectClient(port, hashKey);
-    }
 
     if (!result)
-    {
       DBG_SIM_ERR("Connect()::%s", lastErrMsg.c_str());
-    }
   }
 
   return result;
@@ -326,7 +316,7 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
     return false;
   }
 
-  const string bridgeAddress = GetAddress(port);
+  const auto bridgeAddress = GetAddress(port);
   // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), nHashTag);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), nHashTag);
 
@@ -343,7 +333,7 @@ bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
 {
   m_nHashTagTx = GetHashCode(hashKey);
 
-  const string bridgeAddress = GetAddress(port);
+  const auto bridgeAddress = GetAddress(port);
   // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
@@ -360,7 +350,7 @@ bool Bridge::ConnectService(const uint16_t port, const string hashKey)
 {
   m_nHashTagTx = GetHashCode(hashKey);
 
-  const string bridgeAddress = GetAddress(port);
+  const auto bridgeAddress = GetAddress(port);
   // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
@@ -377,7 +367,7 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
 {
   m_nHashTagTx = GetHashCode(hashKey);
 
-  const string bridgeAddress = GetAddress(port);
+  const auto bridgeAddress = GetAddress(port);
   // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
@@ -392,17 +382,13 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
 
 bool Bridge::Disconnect(const unsigned char mode)
 {
-  bool result = true;
+  // DBG_SIM_WRN("Bridge disconnect");
+  auto result = true;
 
   if ((mode == 0 || (mode & Mode::SUB)) && pSub_)
   {
     zmq_msg_close(&m_msgRx);
     result &= CloseSocket(pSub_);
-  }
-
-  if ((mode == 0 || (mode & Mode::PUB)) && pPub_)
-  {
-    result &= CloseSocket(pPub_);
   }
 
   if ((mode == 0 || (mode & Mode::SERVICE)) && pRep_)
@@ -411,10 +397,11 @@ bool Bridge::Disconnect(const unsigned char mode)
     result &= CloseSocket(pRep_);
   }
 
+  if ((mode == 0 || (mode & Mode::PUB)) && pPub_)
+    result &= CloseSocket(pPub_);
+
   if ((mode == 0 || (mode & Mode::CLIENT)) && pReq_)
-  {
     result &= CloseSocket(pReq_);
-  }
 
   pSockTx_ = nullptr;
   pSockRx_ = nullptr;
@@ -426,6 +413,7 @@ bool Bridge::CloseSocket(void *&target)
 {
   if (target == nullptr)
   {
+    DBG_SIM_ERR("null target");
     return false;
   }
 
@@ -450,9 +438,7 @@ bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
   }
 
   if ((*buffer = zmq_msg_data(&m_msgRx)) == nullptr)
-  {
     return false;
-  }
 
   // Get only Contents without tag
   auto ptr = static_cast<unsigned char *>(*buffer);
@@ -499,13 +485,9 @@ std::string Bridge::RequestReply(std::string request_data)
     const auto succeeded = Receive(&buffer_ptr, bufferLength);
 
     if (succeeded)
-    {
       reply_data.assign(static_cast<char *>(buffer_ptr), bufferLength);
-    }
     else
-    {
       DBG_SIM_ERR("Faild to get reply buffer, length(%d)", bufferLength);
-    }
   }
 
   return reply_data;
