@@ -15,15 +15,95 @@
 #include <cloisim_ros_base/base.hpp>
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 #include <thread>
-#include <vector>
 
 using namespace std;
 
-extern vector<shared_ptr<cloisim_ros::Base>> g_rclcpp_node_list;
-extern rclcpp::NodeOptions g_default_node_options;
-extern bool g_isSingleMode;
+#define INFO_ONCE RCLCPP_INFO_STREAM_ONCE
+#define WARN_ONCE RCLCPP_WARN_STREAM_ONCE
+#define ERR_ONCE RCLCPP_ERROR_STREAM_ONCE
+#define INFO RCLCPP_INFO_STREAM
+#define WARN RCLCPP_WARN_STREAM
+#define ERR RCLCPP_ERROR_STREAM
 
-void bringup_cloisim_ros(const Json::Value result_map, const string target_model, const string target_parts_type, const string target_parts_name);
+extern map<tuple<string, string, string>, tuple<bool, bool, shared_ptr<cloisim_ros::Base>>> g_node_map_list;
+
+void make_bringup_list(const Json::Value result_map, const string target_model, const string target_parts_type, const string target_parts_name, const bool is_single_mode);
+
+void remove_all_bringup_nodes(rclcpp::Executor& executor, const rclcpp::Logger& logger)
+{
+  ERR(logger, "Remove all nodes=" << g_node_map_list.size());
+  for (auto it = g_node_map_list.cbegin(); it != g_node_map_list.cend(); it++)
+  {
+    const auto& key = it->first;
+    const auto& value = it->second;
+
+    const auto node = get<2>(value);
+    executor.remove_node(node);
+    const auto node_info = get<0>(key) + "/" + get<1>(key) + "/" + get<2>(key);
+    WARN(logger, " > Node removed=" << node_info);
+  }
+
+  g_node_map_list.clear();
+  // ERR(logger, "Remove all nodes finished");
+}
+
+void add_all_bringup_nodes(rclcpp::Executor& executor, const rclcpp::Logger& logger)
+{
+  (void)logger;
+
+  for (auto it = g_node_map_list.begin(); it != g_node_map_list.end();)
+  {
+    const auto& key = it->first;
+    auto& value = it->second;
+
+    const auto node_info = get<0>(key) + "/" + get<1>(key) + "/" + get<2>(key);
+    const auto node = get<2>(value);
+    if (get<0>(value) == false)
+    {
+      WARN(logger, "New Node added(" << node_info << ")");
+      executor.add_node(node);
+      get<0>(value) = true;  // set to true for marking added_node
+      ++it;
+    }
+    else if (get<1>(value) == true)
+    {
+      executor.remove_node(node);
+      g_node_map_list.erase(it++);
+      // INFO(logger, "Node removed: " << node_info);
+    }
+    else
+    {
+      // INFO(logger, "Already node added: " << node_info);
+      ++it;
+    }
+  }
+}
+
+void bringup_process(std::shared_ptr<cloisim_ros::BringUpParam> param_node, rclcpp::Executor& executor, const rclcpp::Logger& logger)
+{
+  const auto bringup_list_map = param_node->GetBringUpList();
+  if (bringup_list_map.empty())
+  {
+    INFO(logger, ">> Check if CLOiSim is launched first!!!");
+
+    if (g_node_map_list.size() > 0)
+      remove_all_bringup_nodes(executor, logger);
+
+    rclcpp::sleep_for(500ms);
+  }
+  else
+  {
+    const auto is_single_mode = param_node->IsSingleMode();
+    const auto targetModel = param_node->TargetModel();
+    const auto targetPartsType = param_node->TargetPartsType();
+    const auto targetPartsName = param_node->TargetPartsName();
+    // cout << targetModel << ":" << targetPartsType << ":" << targetPartsName << endl;
+
+    make_bringup_list(bringup_list_map, targetModel, targetPartsType, targetPartsName, is_single_mode);
+
+    add_all_bringup_nodes(executor, logger);
+  }
+}
 
 int main(int argc, char** argv)
 {
@@ -31,45 +111,53 @@ int main(int argc, char** argv)
 
   rclcpp::executors::MultiThreadedExecutor executor;
 
-  std::thread main_node_thread;
+  const auto param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_bringup");
+  const auto logger = param_node->get_logger();
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_bringup");
-  executor.add_node(bringup_param_node);
+  executor.add_node(param_node);
 
-  g_isSingleMode = bringup_param_node->IsSingleMode();
+  auto running_thread = true;
 
-  const auto targetModel = bringup_param_node->TargetModel();
-  const auto targetPartsType = bringup_param_node->TargetPartsType();
-  const auto targetPartsName = bringup_param_node->TargetPartsName();
-  const auto result_map = bringup_param_node->GetBringUpList();
+  auto thread = std::make_unique<std::thread>(
+      [&]()
+      {
+        static const int maxRetryNum = 5;
+        static const auto waitingTime = 3s;
+        static const auto periodicCheckTime = 2s;
 
-  if (result_map.empty())
-    cout << " >>>>> Failed to get bringup list!! Check CLOiSim status first!!!" << endl;
-  else
-  {
-    g_default_node_options.append_parameter_override("single_mode", bool(g_isSingleMode));
+        auto retry_count = maxRetryNum;
+        while (retry_count-- > 0 && running_thread)
+        {
+          bringup_process(param_node, executor, logger);
 
-    bringup_cloisim_ros(result_map, targetModel, targetPartsType, targetPartsName);
-  }
+          // INFO(logger, "bringup_process() size=" << g_node_map_list.size());
+          if (g_node_map_list.size() == 0)
+          {
+            INFO(logger, "Failed to connect to the CLOiSim. "
+                             << "Wait " << to_string(waitingTime.count()) << "sec and retry to connnect. "
+                             << "Remained retrial=" << retry_count);
+            this_thread::sleep_for(waitingTime);
+          }
+          else
+          {
+            retry_count = maxRetryNum;
+            this_thread::sleep_for(periodicCheckTime);
+          }
+        }
 
-  auto cnt = 1;
-  while (cnt-- > 0)
-  {
-    main_node_thread = std::thread([&executor]()
-                                   {
-                                        for (auto it = g_rclcpp_node_list.begin(); it != g_rclcpp_node_list.end(); ++it)
-                                        {
-                                          rclcpp::sleep_for(10ms);
-                                          cout << "node added: " << (*it)->get_name() << endl;
-                                          executor.add_node(*it);
-                                        } });
-  }
+        ERR_ONCE(logger, "Finally, failed to connect CLOiSim.");
+        kill(getpid(), SIGINT);
+      });
 
-  cout << "Spinning MultiThreadedExecutor NumberOfThread=" << executor.get_number_of_threads() << endl;
+  WARN_ONCE(logger, "Spinning MultiThreadedExecutor NumOfThread=" << executor.get_number_of_threads());
   executor.spin();
 
+  running_thread = false;
+
+  if (thread->joinable())
+    thread->join();
+
   rclcpp::shutdown();
-  main_node_thread.join();
 
   return 0;
 }

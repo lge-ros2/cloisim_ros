@@ -39,6 +39,7 @@ BringUpParam::BringUpParam(const string basename)
     , target_model("")
     , target_parts_type("")
     , target_parts_name("")
+    , ws_service_ptr_(nullptr)
 {
   get_parameter("single_mode", is_single_mode);
   get_parameter("target_model", target_model);
@@ -46,43 +47,75 @@ BringUpParam::BringUpParam(const string basename)
   get_parameter("target_parts_name", target_parts_name);
 
   RCLCPP_INFO_ONCE(this->get_logger(),
-                   "BringUpParams => single mode: %d, target model: %s, target_parts_type: %s, target_parts_name: %s",
+                   "Params > single_mode(%d) target_model(%s) target_parts_type(%s) target_parts_name(%s)",
                    is_single_mode, target_model.c_str(), target_parts_type.c_str(), target_parts_name.c_str());
-
-  ws_service_ptr_ = new WebSocketService();
-
-  RequestBringUpList();
 }
 
 BringUpParam::~BringUpParam()
 {
-  delete ws_service_ptr_;
+  // cout << __FUNCTION__ << " destructor called" << endl;
+  if (ws_service_ptr_ != nullptr)
+  {
+    delete ws_service_ptr_;
+    ws_service_ptr_ = nullptr;
+  }
 }
 
-void BringUpParam::RequestBringUpList()
+Json::Value BringUpParam::RequestBringUpList()
 {
   Json::Reader reader;
-  Json::Value root;
+  Json::Value result = Json::nullValue;
 
-  auto count = maxRetryNum;
-  while (count-- > 0)
+  if (ws_service_ptr_ == nullptr)
+    ws_service_ptr_ = new WebSocketService();
+
+  ws_service_ptr_->Run();
+
+  while (true)
   {
-    const auto payload = ws_service_ptr_->Run();
-    reader.parse(payload, root, false);
+    ws_service_ptr_->Request();
 
-    const auto result_map = root["result"];
-    if (result_map.size() > 1)
+    // cout << "start to load payload" << endl;
+    const auto payload = ws_service_ptr_->PopPayload();
+
+    if (payload.empty())
     {
-      result_map_ = result_map;
-      break;
+      if (ws_service_ptr_->IsConnected() == false)
+      {
+        // cout << "Not connected yet" << endl;
+        result = Json::nullValue;
+
+        delete ws_service_ptr_;
+        ws_service_ptr_ = nullptr;
+
+        break;
+      }
+      else
+      {
+        cout << "PayLoad is empty" << endl;
+        continue;
+      }
     }
+    else
+    {
+      Json::Value root;
+      reader.parse(payload, root, false);
 
-    cout << "Failed to get all target information " << endl
-         << "Wait " << waitingSeconds << " sec and retry to get object info.... " << endl
-         << "remained retrial count: " << count << endl;
+      if (root["result"].size() > 0)
+      {
+        // cout << "There is node map list: " << result_map_.size() << endl;
+        result = root["result"];
+        break;
+      }
+      else
+      {
+        result = Json::nullValue;
+        // cout << "There is no node map list" << endl;
+      }
+    }
+  };
 
-    sleep(waitingSeconds);
-  }
+  return result;
 }
 
 Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
@@ -119,12 +152,13 @@ Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
 
 Json::Value BringUpParam::GetBringUpList(const bool filterByParameters)
 {
-  return (filterByParameters) ? GetFilteredListByParameters(result_map_) : result_map_;
+  const auto bringup_map_list = RequestBringUpList();
+  return (filterByParameters) ? GetFilteredListByParameters(bringup_map_list) : bringup_map_list;
 }
 
 void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
 {
-  if (!item.isNull() )
+  if (!item.isNull())
   {
     for (auto it = item.begin(); it != item.end(); ++it)
     {
@@ -139,9 +173,7 @@ void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::
 void BringUpParam::StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
 {
   // cout << item << endl;
-  // const auto model_name = ;
-  // cout << "model_name: " << model_name << endl;
-  // cout << "model_name: " << TargetModel() << endl;
+  // cout << "model_name: " << model_name << ", " << TargetModel() << endl;
   if (TargetModel().empty())
     TargetModel(item.begin().key().asString());
 
