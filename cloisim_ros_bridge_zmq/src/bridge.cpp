@@ -34,15 +34,10 @@ Bridge::Bridge()
 {
   const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
 
-  if (env_bridge_ip == nullptr)
-  {
-    // DBG_SIM_WRN("env for CLOISIM_BRIDGE_IP is null, will use default.");
-    SetBridgeAddress(DEFAULT_CLOISIM_BRIDGE_IP);
-  }
-  else
-  {
-    SetBridgeAddress(string(env_bridge_ip));
-  }
+  // if (env_bridge_ip == nullptr)
+  //   DBG_SIM_WRN("env for CLOISIM_BRIDGE_IP is null, will use default.");
+
+  SetBridgeAddress((env_bridge_ip == nullptr) ? DEFAULT_CLOISIM_BRIDGE_IP : string(env_bridge_ip));
 
   pCtx_ = zmq_ctx_new();
 
@@ -68,29 +63,19 @@ bool Bridge::Setup(const unsigned char mode)
   bool result = true;
 
   if (mode & Mode::SUB)
-  {
     result &= SetupSubscriber();
-  }
 
   if (mode & Mode::PUB)
-  {
     result &= SetupPublisher();
-  }
 
   if (mode & Mode::SERVICE)
-  {
     result &= SetupService();
-  }
 
   if (mode & Mode::CLIENT)
-  {
     result &= SetupClient();
-  }
 
   if (result == false)
-  {
     DBG_SIM_ERR("Error::%s", lastErrMsg.c_str());
-  }
 
   return result;
 }
@@ -147,9 +132,7 @@ bool Bridge::SetupSubscriber()
   }
 
   if (!SetupCommon(pSub_))
-  {
     return false;
-  }
 
   if (zmq_setsockopt(pSub_, ZMQ_CONFLATE, &keep_only_last_msg, sizeof(keep_only_last_msg)))
   {
@@ -191,9 +174,7 @@ bool Bridge::SetupPublisher()
   pPub_ = zmq_socket(pCtx_, ZMQ_PUB);
 
   if (!SetupCommon(pPub_))
-  {
     return false;
-  }
 
   pSockTx_ = pPub_;
 
@@ -217,9 +198,7 @@ bool Bridge::SetupService()
   pRep_ = zmq_socket(pCtx_, ZMQ_REP);
 
   if (!SetupCommon(pRep_))
-  {
     return false;
-  }
 
   if (zmq_setsockopt(pRep_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
   {
@@ -256,9 +235,7 @@ bool Bridge::SetupClient()
   pReq_ = zmq_socket(pCtx_, ZMQ_REQ);
 
   if (!SetupCommon(pReq_))
-  {
     return false;
-  }
 
   if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
   {

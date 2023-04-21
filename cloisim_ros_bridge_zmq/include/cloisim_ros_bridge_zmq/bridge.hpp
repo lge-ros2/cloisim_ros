@@ -62,7 +62,7 @@ class Bridge
   const int reconnect_ivl_min = 1000;
   const int reconnect_ivl_max = 5000;
   const int lingerPeriod = 0;
-  const int recv_timeout = 900;  // milliseconds
+  const int recv_timeout = 1500;  // milliseconds
 
   std::string bridgeAddr_;
 
