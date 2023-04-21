@@ -18,31 +18,31 @@
 #define _CLOISIM_ROS_WORLD_HPP_
 
 #include <cloisim_ros_base/base.hpp>
-#include <cloisim_msgs/world_stats.pb.h>
 #include <rosgraph_msgs/msg/clock.hpp>
+#include <cloisim_msgs/world_stats.pb.h>
 
 namespace cloisim_ros
 {
-  class World : public Base
-  {
-  public:
-    explicit World(const rclcpp::NodeOptions &options_, const std::string node_name);
-    explicit World();
-    virtual ~World();
+class World : public Base
+{
+ public:
+  explicit World(const rclcpp::NodeOptions &options_, const std::string node_name);
+  explicit World();
+  ~World();
 
-  private:
-    void Initialize() override;
-    void Deinitialize() override {};
+ private:
+  void Initialize() override;
+  void Deinitialize() override;
 
-  private:
-    void PublishData(const std::string &buffer);
+ private:
+  void PublishData(const std::string &buffer);
 
-  private:
-    cloisim::msgs::WorldStatistics pb_buf_;
+ private:
+  cloisim::msgs::WorldStatistics pb_buf_;
 
-    rosgraph_msgs::msg::Clock msg_clock_;
+  rosgraph_msgs::msg::Clock msg_clock_;
 
-    rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub_;
-  };
-}
+  rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub_;
+};
+}  // namespace cloisim_ros
 #endif

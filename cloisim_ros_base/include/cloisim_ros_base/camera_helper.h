@@ -75,9 +75,9 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
 }
 
 static void SetCameraInfoInManager(
-  std::shared_ptr<camera_info_manager::CameraInfoManager> infoManager,
-  const cloisim::msgs::CameraSensor &msg,
-  const std::string frame_id)
+    std::shared_ptr<camera_info_manager::CameraInfoManager> infoManager,
+    const cloisim::msgs::CameraSensor& msg,
+    const std::string frame_id)
 {
   if (infoManager == nullptr)
   {
@@ -146,8 +146,8 @@ static void SetCameraInfoInManager(
 }
 
 static cloisim::msgs::CameraSensor GetCameraSensorMessage(
-  cloisim_ros::zmq::Bridge* const bridge_ptr,
-  const std::string camera_name = "")
+    cloisim_ros::zmq::Bridge* const bridge_ptr,
+    const std::string camera_name = "")
 {
   cloisim::msgs::Param request_msg;
   request_msg.set_name("request_camera_info");
@@ -164,13 +164,13 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
   cloisim::msgs::CameraSensor cameraSensorInfo;
   if (reply.size() <= 0)
   {
-    DBG_SIM_ERR("Faild to get camera info, length(%ld)", reply.size());
+    DBG_SIM_ERR("Failed to get camera info, length(%ld)", reply.size());
   }
   else
   {
     if (cameraSensorInfo.ParseFromString(reply) == false)
     {
-      DBG_SIM_ERR("Faild to Parsing Proto buffer buffer_ptr(%p) length(%ld)", reply.data(), reply.size());
+      DBG_SIM_ERR("Failed to Parsing Proto buffer buffer_ptr(%p) length(%ld)", reply.data(), reply.size());
     }
   }
 

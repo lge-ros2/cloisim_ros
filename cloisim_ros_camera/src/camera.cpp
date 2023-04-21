@@ -12,11 +12,11 @@
  *         All Rights are Reserved.
  */
 #include <cloisim_ros_camera/camera.hpp>
-#include <cloisim_ros_base/camera_helper.h>
-#include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/fill_image.hpp>
-#include <tf2/LinearMath/Quaternion.h>
+#include <sensor_msgs/image_encodings.hpp>
 #include <cloisim_msgs/param.pb.h>
+#include <cloisim_ros_base/camera_helper.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
 using namespace chrono_literals;
@@ -42,13 +42,14 @@ Camera::~Camera()
 
 void Camera::Initialize()
 {
-  uint16_t portInfo, portData;;
+  uint16_t portInfo, portData;
+  ;
   get_parameter_or("bridge.Data", portData, uint16_t(0));
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 
   const auto hashKeyData = GetTargetHashKey("Data");
   const auto hashKeyInfo = GetTargetHashKey("Info");
-  DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
+  DBG_SIM_INFO("hashKey: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();

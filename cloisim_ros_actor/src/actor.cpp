@@ -41,7 +41,7 @@ void Actor::Initialize()
 {
   const auto nodeName = GetPartsName();
   const auto hashKeySrv = GetModelName() + nodeName + "Control";
-  DBG_SIM_INFO("hash Key srv: %s", hashKeySrv.c_str());
+  DBG_SIM_INFO("hashKey: srv(%s)", hashKeySrv.c_str());
 
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));

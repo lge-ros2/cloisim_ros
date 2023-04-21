@@ -13,21 +13,21 @@
  */
 
 #include "cloisim_ros_realsense/realsense.hpp"
-#include <cloisim_ros_base/helper.h>
-#include <cloisim_ros_base/camera_helper.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/fill_image.hpp>
-#include <cloisim_msgs/image_stamped.pb.h>
+#include <sensor_msgs/image_encodings.hpp>
 #include <cloisim_msgs/camerasensor.pb.h>
+#include <cloisim_msgs/image_stamped.pb.h>
 #include <cloisim_msgs/imu.pb.h>
+#include <cloisim_ros_base/camera_helper.h>
+#include <cloisim_ros_base/helper.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
 using namespace chrono_literals;
 using namespace cloisim;
 using namespace cloisim_ros;
 
-RealSense::RealSense(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+RealSense::RealSense(const rclcpp::NodeOptions& options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
 {
   Start();
@@ -77,7 +77,7 @@ void RealSense::Initialize()
     const auto hashKeyData = GetTargetHashKey(module_name + "Data");
     const auto hashKeyInfo = GetTargetHashKey(module_name + "Info");
 
-    DBG_SIM_INFO("module_name: %s, hash Key: data(%s), info(%s)", module_name.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
+    DBG_SIM_INFO("module: %s, hashKey: data(%s), info(%s)", module_name.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
 
     auto info_bridge_info = CreateBridge();
     if (info_bridge_info->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo))
@@ -181,7 +181,7 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   const auto reply_size = reply.ByteSizeLong();
   if (reply_size <= 0)
   {
-    DBG_SIM_ERR("Faild to get activated module info, length(%ld)", reply_size);
+    DBG_SIM_ERR("Failed to get activated module info, length(%ld)", reply_size);
   }
   else
   {
@@ -210,7 +210,7 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
-void RealSense::PublishImgData(const zmq::Bridge* const bridge_ptr, const std::string &buffer)
+void RealSense::PublishImgData(const zmq::Bridge* const bridge_ptr, const std::string& buffer)
 {
   cloisim::msgs::ImageStamped pb_buf_;
   if (!pb_buf_.ParseFromString(buffer))
@@ -231,7 +231,7 @@ void RealSense::PublishImgData(const zmq::Bridge* const bridge_ptr, const std::s
 
   // Copy from src to image_msg
   sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-                         reinterpret_cast<const void *>(pb_buf_.image().data().data()));
+                         reinterpret_cast<const void*>(pb_buf_.image().data().data()));
 
   // Publish camera info
   auto camera_info_msg = camera_info_managers_[bridge_ptr]->getCameraInfo();
@@ -240,8 +240,7 @@ void RealSense::PublishImgData(const zmq::Bridge* const bridge_ptr, const std::s
   pubs_[bridge_ptr].publish(*msg_img, camera_info_msg);
 }
 
-
-void RealSense::PublishImuData(const string &buffer)
+void RealSense::PublishImuData(const string& buffer)
 {
   cloisim::msgs::IMU pb_buf_;
   if (!pb_buf_.ParseFromString(buffer))

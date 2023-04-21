@@ -14,9 +14,9 @@
  */
 
 #include "cloisim_ros_lidar/lidar.hpp"
-#include <cloisim_msgs/param.pb.h>
-#include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <algorithm>
+#include <sensor_msgs/point_cloud2_iterator.hpp>
+#include <cloisim_msgs/param.pb.h>
 
 using namespace std;
 using namespace cloisim;
@@ -50,7 +50,7 @@ void Lidar::Initialize()
 
   const auto hashKeyData = GetTargetHashKey("Data");
   const auto hashKeyInfo = GetTargetHashKey("Info");
-  DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
+  DBG_SIM_INFO("hashKey: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
@@ -78,7 +78,6 @@ void Lidar::Initialize()
   if (output_type.compare("LaserScan") == 0)
   {
     pub_laser_ = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
-
   }
   else if (output_type.compare("PointCloud2") == 0)
   {
@@ -96,7 +95,7 @@ void Lidar::Initialize()
   }
 }
 
-string Lidar::GetOutputType(zmq::Bridge* const bridge_ptr)
+string Lidar::GetOutputType(zmq::Bridge *const bridge_ptr)
 {
   const auto reply = RequestReplyMessage(bridge_ptr, "request_output_type");
 
@@ -237,14 +236,14 @@ void Lidar::UpdateLaserData(const double min_intensity)
   msg_laser_.angle_min = pb_buf_.scan().angle_min();
   msg_laser_.angle_max = pb_buf_.scan().angle_max();
   msg_laser_.angle_increment = pb_buf_.scan().angle_step();
-  msg_laser_.time_increment = 0; // instantaneous simulator scan
-  msg_laser_.scan_time = 0; // not sure whether this is correct
+  msg_laser_.time_increment = 0;  // instantaneous simulator scan
+  msg_laser_.scan_time = 0;       // not sure whether this is correct
   msg_laser_.range_min = pb_buf_.scan().range_min();
   msg_laser_.range_max = pb_buf_.scan().range_max();
 
   const auto beam_count = pb_buf_.scan().count();
   const auto vertical_beam_count = pb_buf_.scan().vertical_count();
-  //DBG_SIM_INFO("num_beams:%d", num_beams);
+  // DBG_SIM_INFO("num_beams:%d", num_beams);
 
   const auto start = (vertical_beam_count / 2) * beam_count;
 
@@ -263,5 +262,6 @@ void Lidar::UpdateLaserData(const double min_intensity)
       pb_buf_.scan().intensities().begin() + start,
       pb_buf_.scan().intensities().begin() + start + beam_count,
       msg_laser_.intensities.begin(),
-      [min_intensity](double i) -> double { return i > min_intensity ? i : min_intensity; });
+      [min_intensity](double i) -> double
+      { return i > min_intensity ? i : min_intensity; });
 }

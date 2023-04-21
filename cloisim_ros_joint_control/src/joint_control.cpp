@@ -14,13 +14,12 @@
  */
 
 #include "cloisim_ros_joint_control/joint_control.hpp"
-#include <cloisim_ros_base/helper.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Matrix3x3.h>
 #include <cloisim_msgs/param.pb.h>
-#include <cloisim_msgs/twist.pb.h>
 #include <cloisim_msgs/transform_stamped.pb.h>
-
+#include <cloisim_msgs/twist.pb.h>
+#include <cloisim_ros_base/helper.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
 using namespace chrono_literals;
@@ -55,7 +54,7 @@ void JointControl::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  DBG_SIM_INFO("hash Key: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+  DBG_SIM_INFO("hashKey: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr)
@@ -72,7 +71,8 @@ void JointControl::Initialize()
     AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, data_bridge_ptr](const control_msgs::msg::JointJog::SharedPtr msg) -> void {
+  auto callback_sub = [this, data_bridge_ptr](const control_msgs::msg::JointJog::SharedPtr msg) -> void
+  {
     // const auto duration = msg->duration;
     for (size_t i = 0; i < msg->joint_names.size(); i++)
     {

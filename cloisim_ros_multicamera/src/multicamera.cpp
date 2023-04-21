@@ -14,9 +14,9 @@
 
 #include "cloisim_ros_multicamera/multicamera.hpp"
 #include <sensor_msgs/fill_image.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include <cloisim_ros_base/camera_helper.h>
 #include <cloisim_msgs/param.pb.h>
+#include <cloisim_ros_base/camera_helper.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
 using namespace chrono_literals;
@@ -47,7 +47,7 @@ void MultiCamera::Initialize()
 
   const auto hashKeyData = GetTargetHashKey("Data");
   const auto hashKeyInfo = GetTargetHashKey("Info");
-  DBG_SIM_INFO("hash Key: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
+  DBG_SIM_INFO("hashKey: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
