@@ -433,7 +433,7 @@ bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
 
   if ((bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
-    DBG_SIM_ERR("failed to receive message(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
+    DBG_SIM_ERR("Failed to receive message len(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return false;
   }
 
@@ -487,7 +487,7 @@ std::string Bridge::RequestReply(std::string request_data)
     if (succeeded)
       reply_data.assign(static_cast<char *>(buffer_ptr), bufferLength);
     else
-      DBG_SIM_ERR("Faild to get reply buffer, length(%d)", bufferLength);
+      DBG_SIM_ERR("Failed to get reply buffer, length(%d)", bufferLength);
   }
 
   return reply_data;

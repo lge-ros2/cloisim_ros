@@ -45,7 +45,7 @@ void ElevatorSystem::Initialize()
 {
   const auto nodeName = GetPartsName();
   const auto hashKeySrv = GetModelName() + nodeName + "Control";
-  DBG_SIM_INFO("hash Key srv: %s", hashKeySrv.c_str());
+  DBG_SIM_INFO("hashKey: srv(%s)", hashKeySrv.c_str());
 
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
@@ -107,8 +107,8 @@ void ElevatorSystem::CallElevator(
     const shared_ptr<srv::CallElevator::Response> response)
 {
   const auto message = CreateRequest("call_elevator",
-                               request->current_floor,
-                               request->target_floor);
+                                     request->current_floor,
+                                     request->target_floor);
 
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
@@ -129,14 +129,14 @@ void ElevatorSystem::GetElevatorCalled(
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
   if (reply.IsInitialized())
   {
-      response->result = GetResultFromResponse(reply);
+    response->result = GetResultFromResponse(reply);
 
-      const auto result_param = reply.children(2);
-      if (result_param.IsInitialized())
-      {
-        const auto elevator_index = (result_param.name().compare("elevator_index") != 0) ? "":result_param.value().string_value();
-        response->elevator_index = elevator_index;
-      }
+    const auto result_param = reply.children(2);
+    if (result_param.IsInitialized())
+    {
+      const auto elevator_index = (result_param.name().compare("elevator_index") != 0) ? "" : result_param.value().string_value();
+      response->elevator_index = elevator_index;
+    }
   }
 }
 
@@ -230,17 +230,17 @@ void ElevatorSystem::IsDoorOpened(
 }
 
 void ElevatorSystem::ReserveElevator(
-  const shared_ptr<rmw_request_id_t> /*request_header*/,
-  const shared_ptr<srv::ReturnBool::Request> /*request*/,
-  const shared_ptr<srv::ReturnBool::Response> response)
+    const shared_ptr<rmw_request_id_t> /*request_header*/,
+    const shared_ptr<srv::ReturnBool::Request> /*request*/,
+    const shared_ptr<srv::ReturnBool::Response> response)
 {
   response->result = srv_mode_;
 }
 
 void ElevatorSystem::ReleaseElevator(
-  const shared_ptr<rmw_request_id_t> /*request_header*/,
-  const shared_ptr<srv::ReturnBool::Request> /*request*/,
-  const shared_ptr<srv::ReturnBool::Response> response)
+    const shared_ptr<rmw_request_id_t> /*request_header*/,
+    const shared_ptr<srv::ReturnBool::Request> /*request*/,
+    const shared_ptr<srv::ReturnBool::Response> response)
 {
   response->result = srv_mode_;
 }

@@ -14,11 +14,11 @@
  */
 
 #include "cloisim_ros_micom/micom.hpp"
-#include <cloisim_ros_base/helper.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Matrix3x3.h>
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/twist.pb.h>
+#include <cloisim_ros_base/helper.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
 using namespace chrono_literals;
@@ -53,7 +53,7 @@ void Micom::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  DBG_SIM_INFO("hash Key: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+  DBG_SIM_INFO("hashKey: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
   SetStaticTf2("base_link", "base_footprint");
 
@@ -97,7 +97,8 @@ void Micom::Initialize()
     AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
+  auto callback_sub = [this, data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void
+  {
     const auto msgBuf = MakeControlMessage(msg);
     SetBufferToSimulator(data_bridge_ptr, msgBuf);
   };
@@ -191,7 +192,7 @@ void Micom::PublishData(const string &buffer)
 
   SetTime(pb_micom_.time());
 
-  //DBG_SIM_WRN("Simulation time %u %u size(%d)", pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
+  // DBG_SIM_WRN("Simulation time %u %u size(%d)", pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
 
   UpdateOdom();
   UpdateImu();
@@ -213,7 +214,7 @@ void Micom::UpdateOdom()
 
   msg_odom_.header.stamp = GetTime();
   SetVector3MessageToGeometry(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
-  msg_odom_.pose.pose.position.z = 0.0; // position.z contians yaw value
+  msg_odom_.pose.pose.position.z = 0.0;  // position.z contians yaw value
 
   tf2::Quaternion tf2_q;
   tf2_q.setRPY(0.0, 0.0, pb_micom_.odom().pose().z());

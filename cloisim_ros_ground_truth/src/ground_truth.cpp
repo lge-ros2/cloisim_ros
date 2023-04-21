@@ -22,13 +22,13 @@ using namespace cloisim;
 using namespace cloisim_ros;
 
 GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name)
-  : Base(node_name, options_)
+    : Base(node_name, options_)
 {
   Start(false);
 }
 
 GroundTruth::GroundTruth()
-  : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_ground_truth")
+    : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_ground_truth")
 {
 }
 
@@ -43,7 +43,7 @@ void GroundTruth::Initialize()
   get_parameter_or("bridge.Data", portData, uint16_t(0));
 
   const auto hashKey = GetModelName() + GetPartsName() + "Data";
-  DBG_SIM_INFO("hash Key: %s", hashKey.c_str());
+  DBG_SIM_INFO("hashKey: %s", hashKey.c_str());
 
   pub_ = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
@@ -81,7 +81,7 @@ void GroundTruth::UpdatePerceptionData()
     const auto pb_perception = pb_buf_.perception(i);
 
     auto object_info_msg = perception_msgs::msg::ObjectInfo();
-    const auto perception_time =  pb_perception.header().stamp();
+    const auto perception_time = pb_perception.header().stamp();
     object_info_msg.header.stamp = rclcpp::Time(perception_time.sec(), perception_time.nsec());
     object_info_msg.tracking_id = pb_perception.tracking_id();
     object_info_msg.class_id = pb_perception.class_id();

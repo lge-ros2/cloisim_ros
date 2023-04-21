@@ -219,7 +219,7 @@ msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string 
     }
   }
   else
-    DBG_SIM_ERR("Faild to get object transform, length(%ld)", reply.ByteSizeLong());
+    DBG_SIM_ERR("Failed to get object transform, length(%ld)", reply.ByteSizeLong());
 
   return transform;
 }
@@ -254,7 +254,7 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
       }
     }
     else
-      DBG_SIM_ERR("Faild to get ROS2 common info, length(%ld)", reply.ByteSizeLong());
+      DBG_SIM_ERR("Failed to get ROS2 common info, length(%ld)", reply.ByteSizeLong());
   }
 }
 
@@ -262,14 +262,14 @@ bool Base::GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffe
 {
   if (bridge_ptr == nullptr)
   {
-    DBG_SIM_ERR("sim bridge is null!!");
+    DBG_SIM_ERR("Sim Bridge is NULL!!");
     return false;
   }
 
   const auto succeeded = bridge_ptr->Receive(ppBbuffer, bufferLength, isNonBlockingMode);
   if (!succeeded || bufferLength < 0)
   {
-    DBG_SIM_ERR("Error, bridge_ptr(%p) bufferLength(%d)", bridge_ptr, bufferLength);
+    // DBG_SIM_WRN("Wrong bufferLength(%d)", bufferLength);
     return false;
   }
 
@@ -330,10 +330,10 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const strin
   if (serialized_reply_data.size() > 0)
   {
     if (reply.ParseFromString(serialized_reply_data) == false)
-      DBG_SIM_ERR("Faild to parse serialized buffer, buffer_ptr(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
+      DBG_SIM_ERR("Failed to parse serialized buffer, buffer_ptr(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
   }
   else
-    DBG_SIM_ERR("Faild to get reply data, length(%ld)", serialized_reply_data.size());
+    DBG_SIM_ERR("Failed to get reply data, length(%ld)", serialized_reply_data.size());
 
   return reply;
 }
