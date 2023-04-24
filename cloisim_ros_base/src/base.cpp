@@ -230,8 +230,9 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
     return;
 
   const auto reply = RequestReplyMessage(bridge_ptr, "request_ros2");
-
   if (reply.ByteSizeLong() <= 0)
+    DBG_SIM_ERR("Failed to get ROS2 common info, length(%ld)", reply.ByteSizeLong());
+  else
   {
     if (reply.IsInitialized() && reply.name() == "ros2")
     {
@@ -253,8 +254,6 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
         }
       }
     }
-    else
-      DBG_SIM_ERR("Failed to get ROS2 common info, length(%ld)", reply.ByteSizeLong());
   }
 }
 

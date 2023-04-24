@@ -31,7 +31,7 @@ void make_bringup_list(const Json::Value result_map, const string target_model, 
 
 void remove_all_bringup_nodes(rclcpp::Executor& executor, const rclcpp::Logger& logger)
 {
-  ERR(logger, "Remove all nodes=" << g_node_map_list.size());
+  ERR(logger, "Remove all nodes(" << g_node_map_list.size() << ")");
   for (auto it = g_node_map_list.cbegin(); it != g_node_map_list.cend(); it++)
   {
     const auto& key = it->first;
@@ -40,7 +40,7 @@ void remove_all_bringup_nodes(rclcpp::Executor& executor, const rclcpp::Logger& 
     const auto node = get<2>(value);
     executor.remove_node(node);
     const auto node_info = get<0>(key) + "/" + get<1>(key) + "/" + get<2>(key);
-    WARN(logger, " > Node removed=" << node_info);
+    WARN(logger, "> Node(" << node_info << ") removed");
   }
 
   g_node_map_list.clear();
