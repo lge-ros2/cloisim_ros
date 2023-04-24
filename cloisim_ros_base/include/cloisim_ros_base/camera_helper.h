@@ -163,15 +163,11 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
 
   cloisim::msgs::CameraSensor cameraSensorInfo;
   if (reply.size() <= 0)
-  {
     DBG_SIM_ERR("Failed to get camera info, length(%ld)", reply.size());
-  }
   else
   {
     if (cameraSensorInfo.ParseFromString(reply) == false)
-    {
       DBG_SIM_ERR("Failed to Parsing Proto buffer buffer_ptr(%p) length(%ld)", reply.data(), reply.size());
-    }
   }
 
   return cameraSensorInfo;
