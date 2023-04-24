@@ -67,7 +67,7 @@ void MultiCamera::Initialize()
 
       // Image publisher
       const auto topic_base_name_ = GetPartsName() + "/" + frame_id;
-      DBG_SIM_INFO("topic_base_name:%s", topic_base_name_.c_str());
+      // DBG_SIM_INFO("topic_base_name: %s", topic_base_name_.c_str());
 
       sensor_msgs::msg::Image msg_img;
       msg_img.header.frame_id = frame_id;
@@ -88,14 +88,16 @@ void MultiCamera::Initialize()
 
 void MultiCamera::Deinitialize()
 {
-  for (auto pub_ : pubs_)
-  {
+  for (auto &pub_ : pubs_)
     pub_.shutdown();
-  }
+  pubs_.clear();
 }
 
 void MultiCamera::PublishData(const string &buffer)
 {
+  if (pubs_.size() == 0)
+    return;
+
   if (!pb_buf_.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
@@ -103,6 +105,13 @@ void MultiCamera::PublishData(const string &buffer)
   }
 
   SetTime(pb_buf_.time());
+
+  if (int(camera_info_manager_.size()) != pb_buf_.image_size())
+  {
+    DBG_SIM_ERR("camera_info_manager is not ready for multi-camera %d != %d",
+                camera_info_manager_.size(), pb_buf_.image_size());
+    return;
+  }
 
   for (auto i = 0; i < pb_buf_.image_size(); i++)
   {
@@ -120,6 +129,7 @@ void MultiCamera::PublishData(const string &buffer)
     // Publish camera info
     auto camera_info_msg = camera_info_manager_[i]->getCameraInfo();
     camera_info_msg.header.stamp = GetTime();
+
     pubs_.at(i).publish(*msg_img, camera_info_msg);
   }
 }

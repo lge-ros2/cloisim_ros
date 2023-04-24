@@ -162,10 +162,9 @@ void RealSense::InitializeImu(zmq::Bridge* const info_ptr, zmq::Bridge* const da
 
 void RealSense::Deinitialize()
 {
-  for (auto pub : pubs_)
-  {
+  for (auto& pub : pubs_)
     pub.second.shutdown();
-  }
+  pubs_.clear();
 }
 
 void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
