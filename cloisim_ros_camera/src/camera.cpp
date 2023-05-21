@@ -43,7 +43,6 @@ Camera::~Camera()
 void Camera::Initialize()
 {
   uint16_t portInfo, portData;
-  ;
   get_parameter_or("bridge.Data", portData, uint16_t(0));
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
 

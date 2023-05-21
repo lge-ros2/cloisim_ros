@@ -25,6 +25,7 @@
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_multicamera/multicamera.hpp>
 #include <cloisim_ros_realsense/realsense.hpp>
+#include <cloisim_ros_sonar/sonar.hpp>
 #include <cloisim_ros_world/world.hpp>
 
 using namespace std;
@@ -104,6 +105,13 @@ static shared_ptr<cloisim_ros::Base> make_device_node(rclcpp::NodeOptions& node_
       node = std::make_shared<cloisim_ros::Imu>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Imu>(node_options, node_name, model_name);
+  }
+  else if (!node_type.compare("SONAR"))
+  {
+    if (enable_single_mode)
+      node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name);
+    else
+      node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name, model_name);
   }
 
   return node;

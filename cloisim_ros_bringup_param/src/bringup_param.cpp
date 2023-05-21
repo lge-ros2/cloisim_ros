@@ -22,12 +22,14 @@ bool BringUpParam::IsRobotSpecificType(const string node_type)
           !node_type.compare("LIDAR") || !node_type.compare("LASER") ||
           !node_type.compare("CAMERA") || !node_type.compare("DEPTHCAMERA") ||
           !node_type.compare("MULTICAMERA") || !node_type.compare("REALSENSE") ||
-          !node_type.compare("GPS") || !node_type.compare("IMU"));
+          !node_type.compare("GPS") || !node_type.compare("IMU") ||
+          !node_type.compare("SONAR"));
 }
 
 bool BringUpParam::IsWorldSpecificType(const string node_type)
 {
-  return (!node_type.compare("ELEVATOR") || !node_type.compare("ACTOR") || !node_type.compare("WORLD") || !node_type.compare("GROUNDTRUTH"));
+  return (!node_type.compare("ELEVATOR") || !node_type.compare("WORLD") ||
+          !node_type.compare("ACTOR") || !node_type.compare("GROUNDTRUTH"));
 }
 
 BringUpParam::BringUpParam(const string basename)

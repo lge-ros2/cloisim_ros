@@ -1,9 +1,9 @@
 /**
- *  @file   imu.cpp
- *  @date   2021-01-14
+ *  @file   sonar.cpp
+ *  @date   2023-05-21
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 imu class for simulator
+ *        ROS2 Sonar class for simulator
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory
@@ -13,32 +13,32 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_imu/imu.hpp"
+#include "cloisim_ros_sonar/sonar.hpp"
 #include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
 using namespace cloisim_ros;
 
-Imu::Imu(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+Sonar::Sonar(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
 {
-  topic_name_ = "imu";
+  topic_name_ = "range";
 
   Start();
 }
 
-Imu::Imu(const string namespace_)
-    : Imu(rclcpp::NodeOptions(), "cloisim_ros_imu", namespace_)
+Sonar::Sonar(const string namespace_)
+    : Sonar(rclcpp::NodeOptions(), "cloisim_ros_sonar", namespace_)
 {
 }
 
-Imu::~Imu()
+Sonar::~Sonar()
 {
   Stop();
 }
 
-void Imu::Initialize()
+void Sonar::Initialize()
 {
   uint16_t portInfo, portData;
   get_parameter_or("bridge.Data", portData, uint16_t(0));
@@ -58,8 +58,8 @@ void Imu::Initialize()
     GetRos2Parameter(info_bridge_ptr);
 
     // Get frame for message
-    const auto frame_id = GetFrameId("imu_link");
-    msg_imu_.header.frame_id = frame_id;
+    const auto frame_id = GetFrameId("sonar_link");
+    msg_range_.header.frame_id = frame_id;
 
     auto transform_pose = GetObjectTransform(info_bridge_ptr);
     transform_pose.set_name(frame_id);
@@ -67,16 +67,17 @@ void Imu::Initialize()
   }
 
   // ROS2 Publisher
-  pub_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name_, rclcpp::SensorDataQoS());
+  const auto new_topic = GetPartsName() + "/" + topic_name_;
+  pub_ = this->create_publisher<sensor_msgs::msg::Range>(new_topic, rclcpp::SensorDataQoS());
 
   if (data_bridge_ptr != nullptr)
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&Imu::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr, bind(&Sonar::PublishData, this, std::placeholders::_1));
   }
 }
 
-void Imu::PublishData(const string &buffer)
+void Sonar::PublishData(const string &buffer)
 {
   if (!pb_buf_.ParseFromString(buffer))
   {
@@ -84,18 +85,19 @@ void Imu::PublishData(const string &buffer)
     return;
   }
 
-  SetTime(pb_buf_.stamp());
+  SetTime(pb_buf_.time());
 
   // Fill message with latest sensor data
-  msg_imu_.header.stamp = GetTime();
+  msg_range_.header.stamp = GetTime();
+  msg_range_.radiation_type = sensor_msgs::msg::Range::ULTRASOUND;
+  if (pb_buf_.sonar().has_radius())
+    msg_range_.field_of_view = pb_buf_.sonar().radius();
+  if (pb_buf_.sonar().has_range_min())
+    msg_range_.min_range = pb_buf_.sonar().range_min();
+  if (pb_buf_.sonar().has_range_max())
+    msg_range_.max_range = pb_buf_.sonar().range_max();
+  if (pb_buf_.sonar().has_range())
+    msg_range_.range = (float)pb_buf_.sonar().range();
 
-  SetQuaternionMessageToGeometry(pb_buf_.orientation(), msg_imu_.orientation);
-  SetVector3MessageToGeometry(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
-  SetVector3MessageToGeometry(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
-
-  fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
-  fill(begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
-  fill(begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance), 0.0);
-
-  pub_->publish(msg_imu_);
+  pub_->publish(msg_range_);
 }
