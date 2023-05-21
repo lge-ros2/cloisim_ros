@@ -1,9 +1,9 @@
 /**
- *  @file   gps.hpp
+ *  @file   imu.hpp
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 GPS class for simulator
+ *        ROS2 imu class for simulator
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory
@@ -22,29 +22,29 @@
 
 namespace cloisim_ros
 {
-  class Imu : public Base
-  {
-  public:
-    explicit Imu(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
-    explicit Imu(const std::string namespace_ = "");
-    ~Imu();
+class Imu : public Base
+{
+ public:
+  explicit Imu(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Imu(const std::string namespace_ = "");
+  ~Imu();
 
-  private:
-    void Initialize() override;
-    void Deinitialize() override { };
+ private:
+  void Initialize() override;
+  void Deinitialize() override{};
 
-  private:
-    void PublishData(const std::string &buffer);
+ private:
+  void PublishData(const std::string &buffer);
 
-  private:
-    // buffer from simulation
-    cloisim::msgs::IMU pb_buf_;
+ private:
+  // buffer from simulation
+  cloisim::msgs::IMU pb_buf_;
 
-    // IMU msgs
-    sensor_msgs::msg::Imu msg_imu_;
+  // IMU msgs
+  sensor_msgs::msg::Imu msg_imu_;
 
-    // publisher
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
-  };
-}
+  // publisher
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
+};
+}  // namespace cloisim_ros
 #endif

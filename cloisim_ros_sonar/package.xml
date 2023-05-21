@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>cloisim_ros_multicamera</name>
+  <name>cloisim_ros_sonar</name>
   <version>3.3.0</version>
-  <description>virtual multi-camera for simulator</description>
-  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
+  <description>virtual sonar for simulation</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
-  <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>
+  <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -14,9 +13,6 @@
   <depend>cloisim_ros_bringup_param</depend>
   <depend>cloisim_ros_base</depend>
   <depend>sensor_msgs</depend>
-  <depend>camera_info_manager</depend>
-  <depend>image_transport</depend>
-  <depend>image_transport_plugins</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

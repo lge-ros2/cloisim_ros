@@ -16,10 +16,16 @@
 
 using namespace cloisim_ros;
 
+namespace
+{
+constexpr auto DEFAULT_WS_SERVICE_PORT = "8080";
+constexpr auto DEFAULT_WS_SERVICE_BRIDGE_ADDRESS = "127.0.0.1";
+}  // namespace
+
 WebSocketService::WebSocketService()
 {
   const auto env_service_port = getenv("CLOISIM_SERVICE_PORT");
-  const auto service_port = string((env_service_port == nullptr) ? "8080" : env_service_port);
+  const auto service_port = string((env_service_port == nullptr) ? DEFAULT_WS_SERVICE_PORT : env_service_port);
 
   new (this) WebSocketService(service_port);
 }
@@ -27,7 +33,7 @@ WebSocketService::WebSocketService()
 WebSocketService::WebSocketService(const string service_port)
 {
   const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
-  const auto bridge_ip = string((env_bridge_ip == nullptr) ? "127.0.0.1" : env_bridge_ip);
+  const auto bridge_ip = string((env_bridge_ip == nullptr) ? DEFAULT_WS_SERVICE_BRIDGE_ADDRESS : env_bridge_ip);
 
   new (this) WebSocketService(bridge_ip, service_port);
 }
