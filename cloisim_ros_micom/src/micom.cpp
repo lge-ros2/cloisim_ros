@@ -55,14 +55,18 @@ void Micom::Initialize()
   const auto hashKeyTf = GetTargetHashKey("Tf");
   DBG_SIM_INFO("hashKey: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
-  SetStaticTf2("base_link", "base_footprint");
-
   info_bridge_ptr = CreateBridge();
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
     GetStaticTransforms(info_bridge_ptr);
+
+    {
+      auto base_link_pose = IdentityPose();
+      base_link_pose.set_name("base_link");
+      SetStaticTf2(base_link_pose, "base_footprint");
+    }
   }
 
   pub_battery_ = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
@@ -130,7 +134,6 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   angular_ptr->set_z(msg->angular.z);
 
   // DBG_SIM_INFO("%f %f", linear_ptr->x(), angular_ptr->z());
-
   // m/s velocity input
   // double vel_left_wheel = (vel_lin - (vel_rot * (0.50f) / 2.0));
   // double vel_right_wheel = (vel_lin + (vel_rot * (0.50f) / 2.0));
