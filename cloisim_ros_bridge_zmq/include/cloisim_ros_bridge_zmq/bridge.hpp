@@ -16,7 +16,7 @@
 #ifndef _CLOISIM_ROS_BRIDGE_ZMQ_HPP_
 #define _CLOISIM_ROS_BRIDGE_ZMQ_HPP_
 
-#include "debug_log.h"
+#include "log.h"
 #include <string>
 #include <zmq.h>
 
@@ -76,8 +76,8 @@ class Bridge
   zmq_msg_t m_msgRx;         // for subscriber and reply
   std::size_t m_nHashTagTx;  // for publisher and request
 
-  void* pSockTx_;  // for Send function
-  void* pSockRx_;  // for Recieve function
+  void* pSockTx_;            // for Send function
+  void* pSockRx_;            // for Recieve function
 
   std::string lastErrMsg;
 

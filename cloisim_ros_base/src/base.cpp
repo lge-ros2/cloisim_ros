@@ -283,13 +283,6 @@ void Base::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const msgs::
   SetQuaternionMessageToGeometry(transform.orientation(), target_msg.transform.rotation);
 }
 
-void Base::SetStaticTf2(const string child_frame_id, const string header_frame_id)
-{
-  auto emptyPose = IdentityPose();
-  emptyPose.set_name(child_frame_id);
-  SetStaticTf2(emptyPose, header_frame_id);
-}
-
 void Base::SetStaticTf2(const msgs::Pose transform, const string parent_header_frame_id)
 {
   geometry_msgs::msg::TransformStamped static_tf;
