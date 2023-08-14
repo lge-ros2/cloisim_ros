@@ -227,7 +227,10 @@ void make_bringup_list(
     if (!target_model.empty() && target_model.compare(item_name) != 0)
       continue;
     else
+    {
       parse_target_model(item_list, item_name, target_parts_type, target_parts_name);
+      this_thread::sleep_for(100ms);
+    }
   }
 
   // for (auto& it : loaded_key_list)
