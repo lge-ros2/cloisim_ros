@@ -119,7 +119,7 @@ void RealSense::InitializeCam(const string module_name, zmq::Bridge* const info_
     camera_info_managers_[data_ptr] = camInfoManager;
   }
 
-  const auto topic_name = (module_name.find("depth") == string::npos) ? "image_raw" : "image_rect_raw";
+  const auto topic_name = (module_name == "depth") ? "image_rect_raw" : "image_raw";
 
   image_transport::ImageTransport it(GetNode());
 
