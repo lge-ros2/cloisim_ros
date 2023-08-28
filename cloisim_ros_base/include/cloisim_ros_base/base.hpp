@@ -73,6 +73,8 @@ class Base : public rclcpp::Node
   void PublishTF();
   void PublishTF(const geometry_msgs::msg::TransformStamped& tf);
 
+  void GetStaticTransforms(zmq::Bridge *const bridge_ptr);
+
   cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name = "");
 
   cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name, std::string& parent_frame_id);

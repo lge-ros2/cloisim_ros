@@ -45,16 +45,24 @@ JointControl::~JointControl()
 
 void JointControl::Initialize()
 {
-  uint16_t portTx, portRx, portTf;
+  uint16_t portInfo, portTx, portRx, portTf;
+  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx, uint16_t(0));
   get_parameter_or("bridge.Tf", portTf, uint16_t(0));
 
-  // const auto hashKeyInfo = GetTargetHashKey("Info");
+  const auto hashKeyInfo = GetTargetHashKey("Info");
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
   DBG_SIM_INFO("hashKey: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+
+  auto info_bridge_ptr = CreateBridge();
+  if (info_bridge_ptr != nullptr)
+  {
+    info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
+    GetStaticTransforms(info_bridge_ptr);
+  }
 
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr)
@@ -82,7 +90,7 @@ void JointControl::Initialize()
       // DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
       const auto msgBuf = MakeCommandMessage(joint_name, displacement, velocity);
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
-      rclcpp::sleep_for(5ms);
+      rclcpp::sleep_for(500us);
     }
   };
 

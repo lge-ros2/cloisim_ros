@@ -145,45 +145,6 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   return message;
 }
 
-void Micom::GetStaticTransforms(zmq::Bridge *const bridge_ptr)
-{
-  if (bridge_ptr == nullptr)
-  {
-    return;
-  }
-
-  const auto reply = RequestReplyMessage(bridge_ptr, "request_static_transforms");
-
-  if (reply.IsInitialized() &&
-      (reply.name().compare("static_transforms") == 0))
-  {
-    auto pose = cloisim::msgs::Pose();
-    for (auto link : reply.children())
-    {
-      if (link.IsInitialized() && link.has_name() && link.has_value())
-      {
-        const auto parent_frame_id = (link.value().type() == msgs::Any_ValueType_STRING && link.name().compare("parent_frame_id") == 0) ? link.value().string_value() : "base_link";
-
-        if (link.children_size() == 1)
-        {
-          const auto child = link.children(0);
-
-          if (child.has_name() && child.has_value())
-          {
-            if ((child.name().compare("pose") == 0) && child.value().type() == msgs::Any_ValueType_POSE3D)
-            {
-              pose = child.value().pose3d_value();
-            }
-          }
-        }
-
-        SetStaticTf2(pose, parent_frame_id);
-        DBG_SIM_MSG("static transform %s -> %s", pose.name().c_str(), parent_frame_id.c_str());
-      }
-    }
-  }
-}
-
 void Micom::PublishData(const string &buffer)
 {
   if (!pb_micom_.ParseFromString(buffer))
