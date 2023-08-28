@@ -13,12 +13,14 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_BRIDGE_ZMQ_HPP_
-#define _CLOISIM_ROS_BRIDGE_ZMQ_HPP_
+#ifndef CLOISIM_ROS_BRIDGE_ZMQ__BRIDGE_HPP_
+#define CLOISIM_ROS_BRIDGE_ZMQ__BRIDGE_HPP_
+
+#include <zmq.h>
 
 #include "log.h"
+
 #include <string>
-#include <zmq.h>
 
 namespace cloisim_ros
 {
@@ -76,8 +78,8 @@ class Bridge
   zmq_msg_t m_msgRx;         // for subscriber and reply
   std::size_t m_nHashTagTx;  // for publisher and request
 
-  void* pSockTx_;            // for Send function
-  void* pSockRx_;            // for Recieve function
+  void* pSockTx_;  // for Send function
+  void* pSockRx_;  // for Recieve function
 
   std::string lastErrMsg;
 
@@ -89,7 +91,7 @@ class Bridge
   bool SetupService();
   bool SetupClient();
 
-  // TODO : need to implement action/client model later
+  // TODO(@hyunseok-yang) : need to implement action/client model later
   // bool SetupAction() { return false; };
   // bool SetupClient() { return false; };
 
@@ -98,7 +100,7 @@ class Bridge
   bool ConnectService(const uint16_t port, const std::string hashKey);
   bool ConnectClient(const uint16_t port, const std::string hashKey);
 
-  // TODO : need to implement action/client model later
+  // TODO(@hyunseok-yang) : need to implement action/client model later
   // bool ConnectAction() { return false; };
   // bool ConnectClient() { return false; };
 
@@ -117,4 +119,4 @@ class Bridge
 };
 }  // namespace zmq
 }  // namespace cloisim_ros
-#endif
+#endif  // CLOISIM_ROS_BRIDGE_ZMQ__BRIDGE_HPP_

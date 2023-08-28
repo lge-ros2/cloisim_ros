@@ -12,15 +12,19 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-#ifndef _CLOISIM_ROS_MICOM_HPP__
-#define _CLOISIM_ROS_MICOM_HPP__
+#ifndef CLOISIM_ROS_MICOM__MICOM_HPP_
+#define CLOISIM_ROS_MICOM__MICOM_HPP_
+
+#include <cloisim_msgs/micom.pb.h>
+
+#include <memory>
+#include <string>
 
 #include <cloisim_ros_base/base.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <std_srvs/srv/empty.hpp>
-#include <cloisim_msgs/micom.pb.h>
 
 namespace cloisim_ros
 {
@@ -80,4 +84,4 @@ class Micom : public Base
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_reset_odom_;
 };
 }  // namespace cloisim_ros
-#endif
+#endif  // CLOISIM_ROS_MICOM__MICOM_HPP_

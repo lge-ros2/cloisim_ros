@@ -11,17 +11,19 @@
  *         Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
  */
-#include <cloisim_ros_camera/camera.hpp>
-#include <sensor_msgs/fill_image.hpp>
-#include <sensor_msgs/image_encodings.hpp>
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_ros_base/camera_helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-using namespace std;
-using namespace chrono_literals;
-using namespace cloisim_ros;
+#include <cloisim_ros_camera/camera.hpp>
+#include <sensor_msgs/fill_image.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 
+using namespace std;
+using namespace std::chrono_literals;
+
+namespace cloisim_ros
+{
 Camera::Camera(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
 {
@@ -115,3 +117,4 @@ void Camera::PublishData(const string &buffer)
 
   pub_.publish(msg_img_, camera_info_msg);
 }
+}  // namespace cloisim_ros

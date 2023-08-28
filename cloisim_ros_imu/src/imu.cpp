@@ -18,7 +18,9 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 Imu::Imu(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
@@ -99,3 +101,5 @@ void Imu::PublishData(const string &buffer)
 
   pub_->publish(msg_imu_);
 }
+
+}  // namespace cloisim_ros

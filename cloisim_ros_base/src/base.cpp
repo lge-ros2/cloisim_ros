@@ -13,13 +13,16 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include <cloisim_msgs/transform_stamped.pb.h>
+
 #include "cloisim_ros_base/base.hpp"
 #include "cloisim_ros_base/helper.h"
-#include <cloisim_msgs/transform_stamped.pb.h>
 
 using namespace std;
 using namespace cloisim;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 Base::Base(const string node_name, const rclcpp::NodeOptions& options)
     : Base(node_name, "", rclcpp::NodeOptions(options))
@@ -42,7 +45,9 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
            rclcpp::NodeOptions(options)
                .automatically_declare_parameters_from_overrides(true)
                .append_parameter_override("use_sim_time", true)
-               .arguments(vector<string>{"--ros-args", "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"}))
+               .arguments(vector<string>{"--ros-args",
+                                         "--remap", "/tf:=tf",
+                                         "--remap", "/tf_static:=tf_static"}))
     , m_bRunThread(false)
     , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
     , m_static_tf_broadcaster(nullptr)
@@ -109,7 +114,10 @@ void Base::GenerateTF(const string& buffer)
     newTf.header.frame_id = pb_transform_stamped.header().str_id();
     newTf.child_frame_id = pb_transform_stamped.transform().name();
     // DBG_SIM_INFO("%ld %ld %s %s", newTf.header.stamp.sec, newTf.header.stamp.nanosec, newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
-    SetTf2(newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(), pb_transform_stamped.header().str_id());
+    SetTf2(newTf,
+           pb_transform_stamped.transform(),
+           pb_transform_stamped.transform().name(),
+           pb_transform_stamped.header().str_id());
     PublishTF(newTf);
   }
   else
@@ -147,7 +155,9 @@ void Base::CloseBridges()
     bridge->Disconnect();
 }
 
-void Base::AddPublisherThread(zmq::Bridge* const bridge_ptr, function<void(const string&)> thread_func)
+void Base::AddPublisherThread(
+    zmq::Bridge* const bridge_ptr,
+    function<void(const string&)> thread_func)
 {
   m_threads.emplace_back(
       [this, bridge_ptr, thread_func]()
@@ -204,7 +214,10 @@ void Base::GetStaticTransforms(zmq::Bridge* const bridge_ptr)
     {
       if (link.IsInitialized() && link.has_name() && link.has_value())
       {
-        const auto parent_frame_id = (link.value().type() == msgs::Any_ValueType_STRING && link.name().compare("parent_frame_id") == 0) ? link.value().string_value() : "base_link";
+        const auto parent_frame_id = (link.value().type() == msgs::Any_ValueType_STRING &&
+                                      link.name().compare("parent_frame_id") == 0)
+                                         ? link.value().string_value()
+                                         : "base_link";
 
         if (link.children_size() == 1)
         {
@@ -212,7 +225,8 @@ void Base::GetStaticTransforms(zmq::Bridge* const bridge_ptr)
 
           if (child.has_name() && child.has_value())
           {
-            if ((child.name().compare("pose") == 0) && child.value().type() == msgs::Any_ValueType_POSE3D)
+            if ((child.name().compare("pose") == 0) &&
+                child.value().type() == msgs::Any_ValueType_POSE3D)
             {
               pose = child.value().pose3d_value();
             }
@@ -226,7 +240,10 @@ void Base::GetStaticTransforms(zmq::Bridge* const bridge_ptr)
   }
 }
 
-msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const string target_name, string& parent_frame_id)
+msgs::Pose Base::GetObjectTransform(
+    zmq::Bridge* const bridge_ptr,
+    const string target_name,
+    string& parent_frame_id)
 {
   msgs::Pose transform;
   transform.Clear();
@@ -278,7 +295,10 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
       for (auto i = 0; i < reply.children_size(); i++)
       {
         const auto param = reply.children(i);
-        const auto paramValue = (param.has_value() && param.value().type() == msgs::Any_ValueType_STRING) ? param.value().string_value() : "";
+        const auto paramValue = (param.has_value() &&
+                                 param.value().type() == msgs::Any_ValueType_STRING)
+                                    ? param.value().string_value()
+                                    : "";
 
         if (param.name().compare("topic_name") == 0)
         {
@@ -296,7 +316,11 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
   }
 }
 
-bool Base::GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode)
+bool Base::GetBufferFromSimulator(
+    zmq::Bridge* const bridge_ptr,
+    void** ppBbuffer,
+    int& bufferLength,
+    const bool isNonBlockingMode)
 {
   if (bridge_ptr == nullptr)
   {
@@ -314,7 +338,11 @@ bool Base::GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffe
   return true;
 }
 
-void Base::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const msgs::Pose transform, const string child_frame_id, const string header_frame_id)
+void Base::SetTf2(
+    geometry_msgs::msg::TransformStamped& target_msg,
+    const msgs::Pose transform,
+    const string child_frame_id,
+    const string header_frame_id)
 {
   target_msg.header.frame_id = header_frame_id;
   target_msg.child_frame_id = child_frame_id;
@@ -322,7 +350,9 @@ void Base::SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const msgs::
   SetQuaternionMessageToGeometry(transform.orientation(), target_msg.transform.rotation);
 }
 
-void Base::SetStaticTf2(const msgs::Pose transform, const string parent_header_frame_id)
+void Base::SetStaticTf2(
+    const msgs::Pose transform,
+    const string parent_header_frame_id)
 {
   geometry_msgs::msg::TransformStamped static_tf;
   static_tf.header.frame_id = parent_header_frame_id;
@@ -333,7 +363,10 @@ void Base::SetStaticTf2(const msgs::Pose transform, const string parent_header_f
   AddStaticTf2(static_tf);
 }
 
-msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const string request_message, const string request_value)
+msgs::Param Base::RequestReplyMessage(
+    zmq::Bridge* const bridge_ptr,
+    const string request_message,
+    const string request_value)
 {
   msgs::Param reply;
 
@@ -369,7 +402,9 @@ msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const strin
   return reply;
 }
 
-msgs::Param Base::RequestReplyMessage(zmq::Bridge* const bridge_ptr, const msgs::Param request_message)
+msgs::Param Base::RequestReplyMessage(
+    zmq::Bridge* const bridge_ptr,
+    const msgs::Param request_message)
 {
   msgs::Param response_msg;
 
@@ -397,3 +432,5 @@ msgs::Pose Base::IdentityPose()
   identityTransform.mutable_orientation()->set_w(1.0);
   return identityTransform;
 }
+
+}  // namespace cloisim_ros

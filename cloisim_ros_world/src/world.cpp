@@ -21,8 +21,9 @@
 
 using namespace std;
 using namespace cloisim;
-using namespace cloisim_ros;
 
+namespace cloisim_ros
+{
 World::World(const rclcpp::NodeOptions &options_, const std::string node_name)
     : Base(node_name, options_)
 {
@@ -82,3 +83,4 @@ void World::PublishData(const string &buffer)
   msg_clock_.clock = GetTime();
   pub_->publish(msg_clock_);
 }
+}  // namespace cloisim_ros

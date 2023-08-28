@@ -14,7 +14,8 @@
 
 #include "cloisim_ros_bringup_param/bringup_param.hpp"
 
-using namespace cloisim_ros;
+namespace cloisim_ros
+{
 
 bool BringUpParam::IsRobotSpecificType(const string node_type)
 {
@@ -158,7 +159,9 @@ Json::Value BringUpParam::GetBringUpList(const bool filterByParameters)
   return (filterByParameters) ? GetFilteredListByParameters(bringup_map_list) : bringup_map_list;
 }
 
-void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
+void BringUpParam::StoreBridgeInfosAsParameters(
+    const Json::Value item,
+    rclcpp::NodeOptions &node_options)
 {
   if (!item.isNull())
   {
@@ -172,7 +175,9 @@ void BringUpParam::StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::
   }
 }
 
-void BringUpParam::StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options)
+void BringUpParam::StoreFilteredInfoAsParameters(
+    const Json::Value item,
+    rclcpp::NodeOptions &node_options)
 {
   // cout << item << endl;
   // cout << "model_name: " << model_name << ", " << TargetModel() << endl;
@@ -198,3 +203,5 @@ void BringUpParam::StoreFilteredInfoAsParameters(const Json::Value item, rclcpp:
 
   cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(bridge_infos, node_options);
 }
+
+}  // namespace cloisim_ros

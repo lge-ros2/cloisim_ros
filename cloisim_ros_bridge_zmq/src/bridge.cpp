@@ -18,9 +18,11 @@
 #include <thread>
 
 using namespace std;
-using namespace cloisim_ros::zmq;
 
 #define DEFAULT_CLOISIM_BRIDGE_IP "127.0.0.1"
+
+namespace cloisim_ros::zmq
+{
 
 Bridge::Bridge()
     : pCtx_(nullptr)
@@ -419,7 +421,7 @@ bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
 
   // Get only Contents without tag
   auto ptr = static_cast<unsigned char *>(*buffer);
-  *buffer = (void *)(ptr + tagSize);
+  *buffer = reinterpret_cast<void *>(ptr + tagSize);
   bufferLength -= tagSize;
 
   return true;
@@ -436,7 +438,7 @@ bool Bridge::Send(const void *buffer, const int bufferLength, bool isNonBlocking
 
   // Set hash Tag
   memcpy(zmq_msg_data(&msg), &m_nHashTagTx, tagSize);
-  memcpy((void *)((uint8_t *)zmq_msg_data(&msg) + tagSize), buffer, bufferLength);
+  memcpy(reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(zmq_msg_data(&msg)) + tagSize), buffer, bufferLength);
 
   /* Send the message to the socket */
   if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0) < 0)
@@ -469,3 +471,5 @@ std::string Bridge::RequestReply(std::string request_data)
 
   return reply_data;
 }
+
+}  // namespace cloisim_ros::zmq

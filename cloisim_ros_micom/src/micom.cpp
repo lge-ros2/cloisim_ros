@@ -21,12 +21,17 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
-using namespace chrono_literals;
-using namespace placeholders;
+using namespace std::chrono_literals;
+using namespace std::placeholders;
 using namespace cloisim;
-using namespace cloisim_ros;
 
-Micom::Micom(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+namespace cloisim_ros
+{
+
+Micom::Micom(
+    const rclcpp::NodeOptions &options_,
+    const string node_name,
+    const string namespace_)
     : Base(node_name, namespace_, options_)
 {
   Start();
@@ -53,7 +58,9 @@ void Micom::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  DBG_SIM_INFO("hashKey: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+  DBG_SIM_INFO("hashKey: info(%s) pub(%s) sub(%s) tf(%s)",
+               hashKeyInfo.c_str(), hashKeyPub.c_str(),
+               hashKeySub.c_str(), hashKeyTf.c_str());
 
   {
     auto base_link_pose = IdentityPose();
@@ -68,7 +75,8 @@ void Micom::Initialize()
     GetStaticTransforms(info_bridge_ptr);
   }
 
-  pub_battery_ = create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
+  pub_battery_ = create_publisher<sensor_msgs::msg::BatteryState>(
+      "battery_state", rclcpp::SensorDataQoS());
 
   {
     msg_odom_.header.frame_id = "odom";
@@ -76,13 +84,15 @@ void Micom::Initialize()
 
     SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
-    pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SystemDefaultsQoS());
+    pub_odom_ = create_publisher<nav_msgs::msg::Odometry>(
+        "odom", rclcpp::SystemDefaultsQoS());
   }
 
   {
     msg_imu_.header.frame_id = "imu_link";
 
-    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
+    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>(
+        "imu", rclcpp::SensorDataQoS());
   }
 
   auto data_bridge_ptr = CreateBridge();
@@ -107,9 +117,11 @@ void Micom::Initialize()
   };
 
   // ROS2 Subscriber
-  sub_micom_ = create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
+  sub_micom_ = create_subscription<geometry_msgs::msg::Twist>(
+      "cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
 
-  srv_reset_odom_ = create_service<std_srvs::srv::Empty>("reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
+  srv_reset_odom_ = create_service<std_srvs::srv::Empty>(
+      "reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
 }
 
 void Micom::ResetOdometryCallback(
@@ -120,7 +132,8 @@ void Micom::ResetOdometryCallback(
   RequestReplyMessage(info_bridge_ptr, "reset_odometry");
 }
 
-string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
+string Micom::MakeControlMessage(
+    const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
   msgs::Twist twistBuf;  // m/s and rad/s
   auto linear_ptr = twistBuf.mutable_linear();
@@ -224,3 +237,5 @@ void Micom::UpdateBattery()
   msg_battery_.voltage = 0.0;
   msg_battery_.current = 0.0;
 }
+
+}  // namespace cloisim_ros

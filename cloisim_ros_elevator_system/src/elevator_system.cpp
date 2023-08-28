@@ -16,11 +16,12 @@
 #include "cloisim_ros_elevator_system/elevator_system.hpp"
 
 using namespace std;
-using namespace placeholders;
+using namespace std::placeholders;
 using namespace cloisim;
-using namespace cloisim_ros;
 using namespace elevator_system_msgs;
 
+namespace cloisim_ros
+{
 #define BindCallback(func) bind(&ElevatorSystem::func, this, _1, _2, _3)
 
 ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string node_name)
@@ -157,14 +158,16 @@ void ElevatorSystem::GetElevatorInfo(
     result_param = reply.children(3);
     if (result_param.IsInitialized())
     {
-      const auto current_floor = (result_param.name().compare("current_floor") != 0) ? "" : result_param.value().string_value();
+      const auto current_floor =
+          (result_param.name().compare("current_floor") != 0) ? "" : result_param.value().string_value();
       response->current_floor = current_floor;
     }
 
     result_param = reply.children(4);
     if (result_param.IsInitialized())
     {
-      const auto height = (float)((result_param.name().compare("height") != 0) ? 0.0 : result_param.value().double_value());
+      const auto height =
+          static_cast<float>((result_param.name().compare("height") != 0) ? 0.0 : result_param.value().double_value());
       response->height = height;
     }
   }
@@ -303,3 +306,5 @@ bool ElevatorSystem::GetResultFromResponse(const msgs::Param &response_msg, cons
 
   return result_param.value().bool_value();
 }
+
+}  // namespace cloisim_ros

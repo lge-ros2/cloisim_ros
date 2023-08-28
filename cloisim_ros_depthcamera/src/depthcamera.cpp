@@ -15,7 +15,9 @@
 #include "cloisim_ros_depthcamera/depthcamera.hpp"
 
 using namespace std;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 DepthCamera::DepthCamera(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Camera(options_, node_name, namespace_)
@@ -51,3 +53,5 @@ void DepthCamera::PublishData(const string &buffer)
 {
   Camera::PublishData(buffer);
 }
+
+}  // namespace cloisim_ros

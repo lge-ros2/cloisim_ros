@@ -12,37 +12,39 @@
  *         All Rights are Reserved.
  */
 
-#ifndef _CLOISIM_ROS_DEPTHCAMERA_HPP_
-#define _CLOISIM_ROS_DEPTHCAMERA_HPP_
+#ifndef CLOISIM_ROS_DEPTHCAMERA__DEPTHCAMERA_HPP_
+#define CLOISIM_ROS_DEPTHCAMERA__DEPTHCAMERA_HPP_
+
+#include <string>
 
 #include <cloisim_ros_camera/camera.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
 namespace cloisim_ros
 {
-  class DepthCamera : public Camera
-  {
-  public:
-    explicit DepthCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
-    explicit DepthCamera(const std::string node_name = "cloisim_ros_depthcamera", const std::string namespace_ = "");
-    virtual ~DepthCamera();
+class DepthCamera : public Camera
+{
+ public:
+  explicit DepthCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit DepthCamera(const std::string node_name = "cloisim_ros_depthcamera", const std::string namespace_ = "");
+  virtual ~DepthCamera();
 
-  private:
-    void Initialize() override;
-    void Deinitialize() override;
+ private:
+  void Initialize() override;
+  void Deinitialize() override;
 
-  private:
-    void PublishData(const std::string &buffer);
+ private:
+  void PublishData(const std::string &buffer);
 
-  private:
-    // Camera info publisher
-    // rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubDepthCameraInfo{nullptr};
+ private:
+  // Camera info publisher
+  // rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubDepthCameraInfo{nullptr};
 
-    // Store current point cloud.
-    // sensor_msgs::msg::PointCloud2 msg_pc2;
+  // Store current point cloud.
+  // sensor_msgs::msg::PointCloud2 msg_pc2;
 
-    // Point cloud publisher.
-    // rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubPointCloud;
-  };
-}
-#endif
+  // Point cloud publisher.
+  // rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubPointCloud;
+};
+}  // namespace cloisim_ros
+#endif  // CLOISIM_ROS_DEPTHCAMERA__DEPTHCAMERA_HPP_

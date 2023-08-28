@@ -19,8 +19,9 @@
 
 using namespace std;
 using namespace cloisim;
-using namespace cloisim_ros;
 
+namespace cloisim_ros
+{
 GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name)
     : Base(node_name, options_)
 {
@@ -101,3 +102,5 @@ void GroundTruth::UpdatePerceptionData()
     msg_.objects.push_back(object_info_msg);
   }
 }
+
+}  // namespace cloisim_ros

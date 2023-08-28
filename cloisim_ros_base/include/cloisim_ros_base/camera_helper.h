@@ -13,14 +13,18 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_CAMERA_HELPER_H_
-#define _CLOISIM_ROS_CAMERA_HELPER_H_
+#ifndef CLOISIM_ROS_BASE__CAMERA_HELPER_H_
+#define CLOISIM_ROS_BASE__CAMERA_HELPER_H_
+
+#include <cloisim_msgs/camerasensor.pb.h>
+#include <cloisim_msgs/param.pb.h>
+
+#include <memory>
+#include <string>
 
 #include <camera_info_manager/camera_info_manager.hpp>
 #include <cloisim_ros_bridge_zmq/bridge.hpp>
 #include <sensor_msgs/image_encodings.hpp>
-#include <cloisim_msgs/camerasensor.pb.h>
-#include <cloisim_msgs/param.pb.h>
 
 static std::string GetImageEncondingType(const uint32_t pixel_format)
 {
@@ -167,10 +171,11 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
   else
   {
     if (cameraSensorInfo.ParseFromString(reply) == false)
-      DBG_SIM_ERR("Failed to Parsing Proto buffer buffer_ptr(%p) length(%ld)", reply.data(), reply.size());
+      DBG_SIM_ERR("Failed to Parsing Proto buffer buffer_ptr(%p) length(%ld)",
+                  reply.data(), reply.size());
   }
 
   return cameraSensorInfo;
 }
 
-#endif
+#endif  // CLOISIM_ROS_BASE__CAMERA_HELPER_H_

@@ -23,9 +23,11 @@
 
 using namespace std;
 using namespace chrono_literals;
-using namespace placeholders;
+using namespace std::placeholders;
 using namespace cloisim;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 JointControl::JointControl(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
@@ -69,17 +71,20 @@ void JointControl::Initialize()
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddPublisherThread(data_bridge_ptr, bind(&JointControl::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr,
+                       bind(&JointControl::PublishData, this, std::placeholders::_1));
   }
 
   auto tf_bridge_ptr = CreateBridge();
   if (tf_bridge_ptr != nullptr)
   {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddPublisherThread(tf_bridge_ptr,
+                       bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, data_bridge_ptr](const control_msgs::msg::JointJog::SharedPtr msg) -> void
+  auto callback_sub = [this, data_bridge_ptr](
+                          const control_msgs::msg::JointJog::SharedPtr msg) -> void
   {
     // const auto duration = msg->duration;
     for (size_t i = 0; i < msg->joint_names.size(); i++)
@@ -95,13 +100,18 @@ void JointControl::Initialize()
   };
 
   // ROS2 Publisher
-  pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", rclcpp::SensorDataQoS());
+  pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>(
+      "joint_states", rclcpp::SensorDataQoS());
 
   // ROS2 Subscriber
-  sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>("joint_command", rclcpp::SensorDataQoS(), callback_sub);
+  sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>(
+      "joint_command", rclcpp::SensorDataQoS(), callback_sub);
 }
 
-string JointControl::MakeCommandMessage(const string joint_name, const double joint_displacement, const double joint_velocity) const
+string JointControl::MakeCommandMessage(
+    const string joint_name,
+    const double joint_displacement,
+    const double joint_velocity) const
 {
   msgs::JointCmd jointCmd;
 
@@ -149,3 +159,5 @@ void JointControl::PublishData(const string &buffer)
   // publish data
   pub_joint_state_->publish(msg_jointstate);
 }
+
+}  // namespace cloisim_ros

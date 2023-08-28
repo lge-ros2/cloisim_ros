@@ -12,15 +12,18 @@
  *
  *      SPDX-License-Identifier: MIT
  */
+#include <cloisim_msgs/param.pb.h>
+
+#include <algorithm>
 
 #include "cloisim_ros_lidar/lidar.hpp"
-#include <algorithm>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
-#include <cloisim_msgs/param.pb.h>
 
 using namespace std;
 using namespace cloisim;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 Lidar::Lidar(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
@@ -265,3 +268,5 @@ void Lidar::UpdateLaserData(const double min_intensity)
       [min_intensity](double i) -> double
       { return i > min_intensity ? i : min_intensity; });
 }
+
+}  // namespace cloisim_ros
