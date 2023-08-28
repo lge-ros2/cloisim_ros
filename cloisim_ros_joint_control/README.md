@@ -21,16 +21,31 @@ ros2 run cloisim_ros_joint_control standalone --ros-args -p target_model:=cloi1 
 ```
 
 
-## Example Usage
+## Example Usage for Joint
 
-### state
+### State
 
 ```shell
-ros2 topic pub -1 /FnB/joint_command control_msgs/msg/JointJog '{joint_names: ["FnB_Display::link"], displacements: [-1.5708], velocities: [2]}'
+ros2 topic echo /franka/joint_states
 ```
 
-### command
+### Command
+
+#### Displacement
 
 ```shell
-ros2 topic pub -1 /FnB/joint_command control_msgs/msg/JointJog '{joint_names: ["FnB_Display::link"], displacements: [-1.5708], velocities: [2]}'
+ros2 topic pub -1 /FnB/joint_command control_msgs/msg/JointJog '{joint_names: ["link_Display_JOINT"], displacements: [-1.5708]}'
+```
+
+#### Velocity
+
+```shell
+ros2 topic pub -1 /FnB/joint_command control_msgs/msg/JointJog '{joint_names: ["link_Display_JOINT"], velocities: [2.0]}'
+```
+
+#### Displacement and Velocity
+
+
+```shell
+ros2 topic pub -1 /FnB/joint_command control_msgs/msg/JointJog '{joint_names: ["link_Display_JOINT"], displacements: [-1.5708], velocities: [2.0]}'
 ```
