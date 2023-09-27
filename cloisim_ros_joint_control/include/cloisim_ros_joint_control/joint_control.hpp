@@ -43,7 +43,11 @@ class JointControl : public Base
   void PublishData(const std::string &buffer);
 
   void JointControlWrite(zmq::Bridge *const bridge_ptr, const std::string &buffer);
-  std::string MakeCommandMessage(const std::string joint_name, const double joint_displacement, const double joint_velocity) const;
+
+  std::string MakeCommandMessage(
+      const std::string joint_name,
+      const bool use_displacement, const bool use_velocity,
+      const double joint_displacement = 0, const double joint_velocity = 0) const;
 
  private:
   zmq::Bridge *info_bridge_ptr;

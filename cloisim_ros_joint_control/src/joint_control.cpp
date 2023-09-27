@@ -87,13 +87,17 @@ void JointControl::Initialize()
                           const control_msgs::msg::JointJog::SharedPtr msg) -> void
   {
     // const auto duration = msg->duration;
+    const auto use_displacement = (msg->joint_names.size() == msg->displacements.size());
+    const auto use_velocity = (msg->joint_names.size() == msg->velocities.size());
+
     for (size_t i = 0; i < msg->joint_names.size(); i++)
     {
       const auto joint_name = msg->joint_names[i];
-      const auto displacement = msg->displacements[i];
-      const auto velocity = msg->velocities[i];
-      // DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
-      const auto msgBuf = MakeCommandMessage(joint_name, displacement, velocity);
+      const auto displacement = (use_displacement) ? msg->displacements[i] : 0;
+      const auto velocity = (use_velocity) ? msg->velocities[i] : 0;
+
+      DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
+      const auto msgBuf = MakeCommandMessage(joint_name, use_displacement, use_velocity, displacement, velocity);
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
       rclcpp::sleep_for(500us);
     }
@@ -110,6 +114,8 @@ void JointControl::Initialize()
 
 string JointControl::MakeCommandMessage(
     const string joint_name,
+    const bool use_displacement,
+    const bool use_velocity,
     const double joint_displacement,
     const double joint_velocity) const
 {
@@ -117,11 +123,17 @@ string JointControl::MakeCommandMessage(
 
   jointCmd.set_name(joint_name);
 
-  auto position = jointCmd.mutable_position();
-  position->set_target(joint_displacement);
+  if (use_displacement)
+  {
+    auto position = jointCmd.mutable_position();
+    position->set_target(joint_displacement);
+  }
 
-  auto velocity = jointCmd.mutable_velocity();
-  velocity->set_target(joint_velocity);
+  if (use_velocity)
+  {
+    auto velocity = jointCmd.mutable_velocity();
+    velocity->set_target(joint_velocity);
+  }
 
   string message;
   jointCmd.SerializeToString(&message);
