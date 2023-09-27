@@ -13,12 +13,15 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_IMU_HPP_
-#define _CLOISIM_ROS_IMU_HPP_
+#ifndef CLOISIM_ROS_IMU__IMU_HPP_
+#define CLOISIM_ROS_IMU__IMU_HPP_
+
+#include <cloisim_msgs/imu.pb.h>
+
+#include <string>
 
 #include <cloisim_ros_base/base.hpp>
 #include <sensor_msgs/msg/imu.hpp>
-#include <cloisim_msgs/imu.pb.h>
 
 namespace cloisim_ros
 {
@@ -47,4 +50,4 @@ class Imu : public Base
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
 };
 }  // namespace cloisim_ros
-#endif
+#endif  // CLOISIM_ROS_IMU__IMU_HPP_

@@ -23,9 +23,11 @@
 
 using namespace std;
 using namespace chrono_literals;
-using namespace placeholders;
+using namespace std::placeholders;
 using namespace cloisim;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 JointControl::JointControl(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
@@ -45,65 +47,93 @@ JointControl::~JointControl()
 
 void JointControl::Initialize()
 {
-  uint16_t portTx, portRx, portTf;
+  uint16_t portInfo, portTx, portRx, portTf;
+  get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
   get_parameter_or("bridge.Rx", portRx, uint16_t(0));
   get_parameter_or("bridge.Tf", portTf, uint16_t(0));
 
-  // const auto hashKeyInfo = GetTargetHashKey("Info");
+  const auto hashKeyInfo = GetTargetHashKey("Info");
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
   DBG_SIM_INFO("hashKey: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+
+  auto info_bridge_ptr = CreateBridge();
+  if (info_bridge_ptr != nullptr)
+  {
+    info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
+    GetStaticTransforms(info_bridge_ptr);
+  }
 
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr)
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddPublisherThread(data_bridge_ptr, bind(&JointControl::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr,
+                       bind(&JointControl::PublishData, this, std::placeholders::_1));
   }
 
   auto tf_bridge_ptr = CreateBridge();
   if (tf_bridge_ptr != nullptr)
   {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddPublisherThread(tf_bridge_ptr,
+                       bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, data_bridge_ptr](const control_msgs::msg::JointJog::SharedPtr msg) -> void
+  auto callback_sub = [this, data_bridge_ptr](
+                          const control_msgs::msg::JointJog::SharedPtr msg) -> void
   {
     // const auto duration = msg->duration;
+    const auto use_displacement = (msg->joint_names.size() == msg->displacements.size());
+    const auto use_velocity = (msg->joint_names.size() == msg->velocities.size());
+
     for (size_t i = 0; i < msg->joint_names.size(); i++)
     {
       const auto joint_name = msg->joint_names[i];
-      const auto displacement = msg->displacements[i];
-      const auto velocity = msg->velocities[i];
-      // DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
-      const auto msgBuf = MakeCommandMessage(joint_name, displacement, velocity);
+      const auto displacement = (use_displacement) ? msg->displacements[i] : 0;
+      const auto velocity = (use_velocity) ? msg->velocities[i] : 0;
+
+      DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
+      const auto msgBuf = MakeCommandMessage(joint_name, use_displacement, use_velocity, displacement, velocity);
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
-      rclcpp::sleep_for(5ms);
+      rclcpp::sleep_for(500us);
     }
   };
 
   // ROS2 Publisher
-  pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", rclcpp::SensorDataQoS());
+  pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>(
+      "joint_states", rclcpp::SensorDataQoS());
 
   // ROS2 Subscriber
-  sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>("joint_command", rclcpp::SensorDataQoS(), callback_sub);
+  sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>(
+      "joint_command", rclcpp::SensorDataQoS(), callback_sub);
 }
 
-string JointControl::MakeCommandMessage(const string joint_name, const double joint_displacement, const double joint_velocity) const
+string JointControl::MakeCommandMessage(
+    const string joint_name,
+    const bool use_displacement,
+    const bool use_velocity,
+    const double joint_displacement,
+    const double joint_velocity) const
 {
   msgs::JointCmd jointCmd;
 
   jointCmd.set_name(joint_name);
 
-  auto position = jointCmd.mutable_position();
-  position->set_target(joint_displacement);
+  if (use_displacement)
+  {
+    auto position = jointCmd.mutable_position();
+    position->set_target(joint_displacement);
+  }
 
-  auto velocity = jointCmd.mutable_velocity();
-  velocity->set_target(joint_velocity);
+  if (use_velocity)
+  {
+    auto velocity = jointCmd.mutable_velocity();
+    velocity->set_target(joint_velocity);
+  }
 
   string message;
   jointCmd.SerializeToString(&message);
@@ -141,3 +171,5 @@ void JointControl::PublishData(const string &buffer)
   // publish data
   pub_joint_state_->publish(msg_jointstate);
 }
+
+}  // namespace cloisim_ros

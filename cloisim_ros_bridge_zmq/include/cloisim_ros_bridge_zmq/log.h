@@ -12,8 +12,8 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-#ifndef _LOG_H_
-#define _LOG_H_
+#ifndef CLOISIM_ROS_BRIDGE_ZMQ__LOG_H_
+#define CLOISIM_ROS_BRIDGE_ZMQ__LOG_H_
 
 #include "term_color.h"
 
@@ -28,4 +28,4 @@
 #define DBG_SIM_MSG(STR_FORMAT, ...) __SIM_LOG(GREEN, STR_FORMAT, ##__VA_ARGS__)
 #define DBG_SIM_ERR(STR_FORMAT, ...) __SIM_LOG(BOLDRED, STR_FORMAT, ##__VA_ARGS__)
 
-#endif
+#endif  // CLOISIM_ROS_BRIDGE_ZMQ__LOG_H_

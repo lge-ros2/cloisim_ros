@@ -14,12 +14,15 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_WORLD_HPP_
-#define _CLOISIM_ROS_WORLD_HPP_
+#ifndef CLOISIM_ROS_WORLD__WORLD_HPP_
+#define CLOISIM_ROS_WORLD__WORLD_HPP_
+
+#include <cloisim_msgs/world_stats.pb.h>
+
+#include <string>
 
 #include <cloisim_ros_base/base.hpp>
 #include <rosgraph_msgs/msg/clock.hpp>
-#include <cloisim_msgs/world_stats.pb.h>
 
 namespace cloisim_ros
 {
@@ -27,7 +30,7 @@ class World : public Base
 {
  public:
   explicit World(const rclcpp::NodeOptions &options_, const std::string node_name);
-  explicit World();
+  World();
   ~World();
 
  private:
@@ -45,4 +48,4 @@ class World : public Base
   rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub_;
 };
 }  // namespace cloisim_ros
-#endif
+#endif  // CLOISIM_ROS_WORLD__WORLD_HPP_

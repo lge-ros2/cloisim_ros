@@ -14,35 +14,38 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _cloisim_ros_ground_truth_HPP_
-#define _cloisim_ros_ground_truth_HPP_
+#ifndef CLOISIM_ROS_GROUND_TRUTH__GROUND_TRUTH_HPP_
+#define CLOISIM_ROS_GROUND_TRUTH__GROUND_TRUTH_HPP_
+
+#include <cloisim_msgs/perception_v.pb.h>
+
+#include <string>
 
 #include <cloisim_ros_base/base.hpp>
-#include <cloisim_msgs/perception_v.pb.h>
 #include <perception_msgs/msg/object_array.hpp>
 
 namespace cloisim_ros
 {
-  class GroundTruth : public Base
-  {
-  public:
-    explicit GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name);
-    explicit GroundTruth();
-    virtual ~GroundTruth();
+class GroundTruth : public Base
+{
+ public:
+  explicit GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name);
+  explicit GroundTruth();
+  virtual ~GroundTruth();
 
-  private:
-    void Initialize() override;
-    void Deinitialize() override { };
+ private:
+  void Initialize() override;
+  void Deinitialize() override{};
 
-    void PublishData(const std::string &buffer);
-    void UpdatePerceptionData();
+  void PublishData(const std::string &buffer);
+  void UpdatePerceptionData();
 
-  private:
-    cloisim::msgs::Perception_V pb_buf_;
+ private:
+  cloisim::msgs::Perception_V pb_buf_;
 
-    perception_msgs::msg::ObjectArray msg_;
+  perception_msgs::msg::ObjectArray msg_;
 
-    rclcpp::Publisher<perception_msgs::msg::ObjectArray>::SharedPtr pub_;
-  };
-}
-#endif
+  rclcpp::Publisher<perception_msgs::msg::ObjectArray>::SharedPtr pub_;
+};
+}  // namespace cloisim_ros
+#endif  // CLOISIM_ROS_GROUND_TRUTH__GROUND_TRUTH_HPP_

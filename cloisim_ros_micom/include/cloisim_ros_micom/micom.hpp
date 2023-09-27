@@ -12,73 +12,76 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-#ifndef _CLOISIM_ROS_MICOM_HPP__
-#define _CLOISIM_ROS_MICOM_HPP__
+#ifndef CLOISIM_ROS_MICOM__MICOM_HPP_
+#define CLOISIM_ROS_MICOM__MICOM_HPP_
+
+#include <cloisim_msgs/micom.pb.h>
+
+#include <memory>
+#include <string>
 
 #include <cloisim_ros_base/base.hpp>
-#include <sensor_msgs/msg/imu.hpp>
-#include <sensor_msgs/msg/battery_state.hpp>
 #include <nav_msgs/msg/odometry.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 #include <std_srvs/srv/empty.hpp>
-#include <cloisim_msgs/micom.pb.h>
 
 namespace cloisim_ros
 {
-  class Micom : public Base
-  {
-  public:
-    explicit Micom(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
-    explicit Micom(const std::string namespace_ = "");
-    virtual ~Micom();
+class Micom : public Base
+{
+ public:
+  explicit Micom(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Micom(const std::string namespace_ = "");
+  virtual ~Micom();
 
-  private:
-    void Initialize() override;
-    void Deinitialize() override { };
+ private:
+  void Initialize() override;
+  void Deinitialize() override{};
 
-  private:
-    void GetStaticTransforms(zmq::Bridge *const bridge_ptr);
-    void PublishData(const std::string &buffer);
+ private:
+  void PublishData(const std::string &buffer);
 
-    void ResetOdometryCallback(
-        const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-        const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
-        std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/);
+  void ResetOdometryCallback(
+      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
+      const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
+      std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/);
 
-    std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
+  std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
 
-    bool CalculateOdometry(const rclcpp::Duration duration, const double _wheel_angular_vel_left, const double _wheel_angular_vel_right, const double _theta);
+  bool CalculateOdometry(const rclcpp::Duration duration, const double _wheel_angular_vel_left, const double _wheel_angular_vel_right, const double _theta);
 
-    void UpdateOdom();
-    void UpdateImu();
-    void UpdateBattery();
+  void UpdateOdom();
+  void UpdateImu();
+  void UpdateBattery();
 
-  private:
-    zmq::Bridge *info_bridge_ptr;
+ private:
+  zmq::Bridge *info_bridge_ptr;
 
-    // Micom msgs
-    cloisim::msgs::Micom pb_micom_;
+  // Micom msgs
+  cloisim::msgs::Micom pb_micom_;
 
-    // IMU msgs
-    sensor_msgs::msg::Imu msg_imu_;
+  // IMU msgs
+  sensor_msgs::msg::Imu msg_imu_;
 
-    geometry_msgs::msg::TransformStamped odom_tf_;
+  geometry_msgs::msg::TransformStamped odom_tf_;
 
-    // Odometry msgs
-    nav_msgs::msg::Odometry msg_odom_;
+  // Odometry msgs
+  nav_msgs::msg::Odometry msg_odom_;
 
-    // Battery
-    sensor_msgs::msg::BatteryState msg_battery_;
+  // Battery
+  sensor_msgs::msg::BatteryState msg_battery_;
 
-    // ROS2 micom publisher
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
-    rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
+  // ROS2 micom publisher
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
+  rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
 
-    // wheel command subscriber
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_micom_;
+  // wheel command subscriber
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_micom_;
 
-    // reset odometry pose service
-    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_reset_odom_;
-  };
-}
-#endif
+  // reset odometry pose service
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_reset_odom_;
+};
+}  // namespace cloisim_ros
+#endif  // CLOISIM_ROS_MICOM__MICOM_HPP_

@@ -17,7 +17,9 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
@@ -66,7 +68,7 @@ void Gps::Initialize()
   }
 
   // Fill covariances
-  // TODO: need to applying noise
+  // TODO(@hyunseok-yang): need to applying noise
   msg_nav_.position_covariance[0] = 0.0001f;
   msg_nav_.position_covariance[4] = 0.0001f;
   msg_nav_.position_covariance[8] = 0.0001f;
@@ -104,3 +106,5 @@ void Gps::PublishData(const string &buffer)
 
   pub_->publish(msg_nav_);
 }
+
+}  // namespace cloisim_ros

@@ -13,49 +13,51 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_LIDAR_HPP_
-#define _CLOISIM_ROS_LIDAR_HPP_
+#ifndef CLOISIM_ROS_LIDAR__LIDAR_HPP_
+#define CLOISIM_ROS_LIDAR__LIDAR_HPP_
+
+#include <cloisim_msgs/laserscan_stamped.pb.h>
+
+#include <string>
 
 #include <cloisim_ros_base/base.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
-#include <cloisim_msgs/laserscan_stamped.pb.h>
 
 namespace cloisim_ros
 {
-  class Lidar : public Base
-  {
-    using LaserScanPub = rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr;
-    using PointCloud2Pub = rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr;
+class Lidar : public Base
+{
+  using LaserScanPub = rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr;
+  using PointCloud2Pub = rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr;
 
-  public:
-    explicit Lidar(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
-    explicit Lidar(const std::string namespace_ = "");
-    ~Lidar();
+ public:
+  explicit Lidar(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Lidar(const std::string namespace_ = "");
+  ~Lidar();
 
-  private:
-    void Initialize() override;
-    void Deinitialize() override { };
+ private:
+  void Initialize() override;
+  void Deinitialize() override{};
 
-  private:
-    std::string GetOutputType(zmq::Bridge* const bridge_ptr);
+ private:
+  std::string GetOutputType(zmq::Bridge *const bridge_ptr);
 
-    void PublishData(const std::string &buffer);
-    void UpdatePointCloudData(const double min_intensity = 0.0);
-    void UpdateLaserData(const double min_intensity = 0.0);
+  void PublishData(const std::string &buffer);
+  void UpdatePointCloudData(const double min_intensity = 0.0);
+  void UpdateLaserData(const double min_intensity = 0.0);
 
-  private:
+ private:
+  // buffer from simulation
+  cloisim::msgs::LaserScanStamped pb_buf_;
 
-    // buffer from simulation
-    cloisim::msgs::LaserScanStamped pb_buf_;
+  // message for ROS2 communictaion
+  sensor_msgs::msg::LaserScan msg_laser_;
+  sensor_msgs::msg::PointCloud2 msg_pc2_;
 
-    // message for ROS2 communictaion
-    sensor_msgs::msg::LaserScan msg_laser_;
-    sensor_msgs::msg::PointCloud2 msg_pc2_;
-
-    // Laser publisher
-    LaserScanPub pub_laser_;
-    PointCloud2Pub pub_pc2_;
-  };
-}
-#endif
+  // Laser publisher
+  LaserScanPub pub_laser_;
+  PointCloud2Pub pub_pc2_;
+};
+}  // namespace cloisim_ros
+#endif  // CLOISIM_ROS_LIDAR__LIDAR_HPP_

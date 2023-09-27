@@ -12,22 +12,29 @@
  *         All Rights are Reserved.
  */
 
-#include "cloisim_ros_realsense/realsense.hpp"
-#include <sensor_msgs/fill_image.hpp>
-#include <sensor_msgs/image_encodings.hpp>
 #include <cloisim_msgs/camerasensor.pb.h>
 #include <cloisim_msgs/image_stamped.pb.h>
 #include <cloisim_msgs/imu.pb.h>
+
 #include <cloisim_ros_base/camera_helper.h>
 #include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 
+#include "cloisim_ros_realsense/realsense.hpp"
+#include <sensor_msgs/fill_image.hpp>
+#include <sensor_msgs/image_encodings.hpp>
+
 using namespace std;
 using namespace chrono_literals;
 using namespace cloisim;
-using namespace cloisim_ros;
 
-RealSense::RealSense(const rclcpp::NodeOptions& options_, const string node_name, const string namespace_)
+namespace cloisim_ros
+{
+
+RealSense::RealSense(
+    const rclcpp::NodeOptions& options_,
+    const string node_name,
+    const string namespace_)
     : Base(node_name, namespace_, options_)
 {
   Start();
@@ -77,7 +84,8 @@ void RealSense::Initialize()
     const auto hashKeyData = GetTargetHashKey(module_name + "Data");
     const auto hashKeyInfo = GetTargetHashKey(module_name + "Info");
 
-    DBG_SIM_INFO("module: %s, hashKey: data(%s), info(%s)", module_name.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
+    DBG_SIM_INFO("module: %s, hashKey: data(%s), info(%s)",
+                 module_name.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
 
     auto info_bridge_info = CreateBridge();
     if (info_bridge_info->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo))
@@ -101,7 +109,10 @@ void RealSense::Initialize()
   }
 }
 
-void RealSense::InitializeCam(const string module_name, zmq::Bridge* const info_ptr, zmq::Bridge* const data_ptr)
+void RealSense::InitializeCam(
+    const string module_name,
+    zmq::Bridge* const info_ptr,
+    zmq::Bridge* const data_ptr)
 {
   if (info_ptr != nullptr)
   {
@@ -111,7 +122,8 @@ void RealSense::InitializeCam(const string module_name, zmq::Bridge* const info_
     transform_pose.set_name(child_frame_id);
     SetStaticTf2(transform_pose, header_frame_id);
 
-    const auto camInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
+    const auto camInfoManager =
+        std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
 
     const auto camSensorMsg = GetCameraSensorMessage(info_ptr);
     SetCameraInfoInManager(camInfoManager, camSensorMsg, module_name);
@@ -119,7 +131,7 @@ void RealSense::InitializeCam(const string module_name, zmq::Bridge* const info_
     camera_info_managers_[data_ptr] = camInfoManager;
   }
 
-  const auto topic_name = (module_name.find("depth") == string::npos) ? "image_raw" : "image_rect_raw";
+  const auto topic_name = (module_name == "depth") ? "image_rect_raw" : "image_raw";
 
   image_transport::ImageTransport it(GetNode());
 
@@ -137,7 +149,9 @@ void RealSense::InitializeCam(const string module_name, zmq::Bridge* const info_
   }
 }
 
-void RealSense::InitializeImu(zmq::Bridge* const info_ptr, zmq::Bridge* const data_ptr)
+void RealSense::InitializeImu(
+    zmq::Bridge* const info_ptr,
+    zmq::Bridge* const data_ptr)
 {
   // Get frame for message
   const auto frame_id = GetFrameId("imu_link");
@@ -194,8 +208,12 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
         {
           const auto type = param.children(0);
           const auto name = param.children(1);
-          if (type.has_value() && type.value().type() == msgs::Any_ValueType_STRING && !type.value().string_value().empty() &&
-              name.has_value() && name.value().type() == msgs::Any_ValueType_STRING && !name.value().string_value().empty())
+          if (type.has_value() &&
+              type.value().type() == msgs::Any_ValueType_STRING &&
+              !type.value().string_value().empty() &&
+              name.has_value() &&
+              name.value().type() == msgs::Any_ValueType_STRING &&
+              !name.value().string_value().empty())
           {
             const auto tuple_module = make_tuple(type.value().string_value(), name.value().string_value());
             activated_modules_.push_back(tuple_module);
@@ -209,7 +227,9 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
-void RealSense::PublishImgData(const zmq::Bridge* const bridge_ptr, const std::string& buffer)
+void RealSense::PublishImgData(
+    const zmq::Bridge* const bridge_ptr,
+    const std::string& buffer)
 {
   cloisim::msgs::ImageStamped pb_buf_;
   if (!pb_buf_.ParseFromString(buffer))
@@ -263,3 +283,5 @@ void RealSense::PublishImuData(const string& buffer)
 
   pub_imu_->publish(msg_imu_);
 }
+
+}  // namespace cloisim_ros

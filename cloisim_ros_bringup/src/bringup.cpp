@@ -36,7 +36,11 @@ map<tuple<string, string, string>, tuple<bool, bool, shared_ptr<cloisim_ros::Bas
 static vector<tuple<string, string, string>> loaded_key_list;
 static bool enable_single_mode = false;
 
-static shared_ptr<cloisim_ros::Base> make_device_node(rclcpp::NodeOptions& node_options, const string& node_type, const string& model_name, const string& node_name)
+static shared_ptr<cloisim_ros::Base> make_device_node(
+    rclcpp::NodeOptions& node_options,
+    const string& node_type,
+    const string& model_name,
+    const string& node_name)
 {
   shared_ptr<cloisim_ros::Base> node = nullptr;
 
@@ -113,11 +117,18 @@ static shared_ptr<cloisim_ros::Base> make_device_node(rclcpp::NodeOptions& node_
     else
       node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name, model_name);
   }
+  else
+  {
+  }
 
   return node;
 }
 
-static shared_ptr<cloisim_ros::Base> make_world_node(rclcpp::NodeOptions& node_options, const string& node_type, const string& model_name, const string& node_name)
+static shared_ptr<cloisim_ros::Base> make_world_node(
+    rclcpp::NodeOptions& node_options,
+    const string& node_type,
+    const string& model_name,
+    const string& node_name)
 {
   shared_ptr<cloisim_ros::Base> node = nullptr;
 
@@ -135,12 +146,16 @@ static shared_ptr<cloisim_ros::Base> make_world_node(rclcpp::NodeOptions& node_o
   return node;
 }
 
-static void parse_target_parts_by_name(const Json::Value item, const string node_type, const string model_name, const string node_name)
+static void parse_target_parts_by_name(
+    const Json::Value item,
+    const string node_type,
+    const string model_name,
+    const string node_name)
 {
   shared_ptr<cloisim_ros::Base> node = nullptr;
 
   rclcpp::NodeOptions node_options;
-  node_options.append_parameter_override("single_mode", bool(enable_single_mode));
+  node_options.append_parameter_override("single_mode", static_cast<bool>(enable_single_mode));
   cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(item, node_options);
 
   const auto node_info = "Target Model/Type/Parts: " + model_name + "/" + node_type + "/" + node_name;
@@ -170,7 +185,11 @@ static void parse_target_parts_by_name(const Json::Value item, const string node
   }
 }
 
-static void parse_target_parts_by_type(const Json::Value node_list, const string node_type, const string model_name, const string targetPartsName)
+static void parse_target_parts_by_type(
+    const Json::Value node_list,
+    const string node_type,
+    const string model_name,
+    const string targetPartsName)
 {
   // cout << "\tNode Type(Target Parts Type): " << node_type << endl;
 
@@ -227,7 +246,10 @@ void make_bringup_list(
     if (!target_model.empty() && target_model.compare(item_name) != 0)
       continue;
     else
+    {
       parse_target_model(item_list, item_name, target_parts_type, target_parts_name);
+      this_thread::sleep_for(100ms);
+    }
   }
 
   // for (auto& it : loaded_key_list)

@@ -18,7 +18,9 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
-using namespace cloisim_ros;
+
+namespace cloisim_ros
+{
 
 Sonar::Sonar(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
@@ -97,7 +99,9 @@ void Sonar::PublishData(const string &buffer)
   if (pb_buf_.sonar().has_range_max())
     msg_range_.max_range = pb_buf_.sonar().range_max();
   if (pb_buf_.sonar().has_range())
-    msg_range_.range = (float)pb_buf_.sonar().range();
+    msg_range_.range = static_cast<float>(pb_buf_.sonar().range());
 
   pub_->publish(msg_range_);
 }
+
+}  // namespace cloisim_ros

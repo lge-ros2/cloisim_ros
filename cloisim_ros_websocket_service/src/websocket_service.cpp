@@ -14,8 +14,10 @@
 
 #include "cloisim_ros_websocket_service/websocket_service.hpp"
 
-using namespace cloisim_ros;
+using namespace std;
 
+namespace cloisim_ros
+{
 namespace
 {
 constexpr auto DEFAULT_WS_SERVICE_PORT = "8080";
@@ -175,3 +177,4 @@ void WebSocketService::Run()
     this_thread::sleep_for(500ms);
   }
 }
+}  // namespace cloisim_ros

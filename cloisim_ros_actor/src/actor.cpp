@@ -16,9 +16,11 @@
 #include "cloisim_ros_actor/actor.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 using namespace cloisim;
-using namespace cloisim_ros;
-using namespace placeholders;
+
+namespace cloisim_ros
+{
 
 Actor::Actor(const rclcpp::NodeOptions &options_, const string node_name)
     : Base(node_name, options_)
@@ -51,7 +53,8 @@ void Actor::Initialize()
   {
     control_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portControl, hashKeySrv);
 
-    srvCallMoveActor_ = this->create_service<cloisim_ros_msgs::srv::MoveActor>(nodeName + "/move_actor", bind(&Actor::CallMoveActor, this, _1, _2, _3));
+    srvCallMoveActor_ = this->create_service<cloisim_ros_msgs::srv::MoveActor>(
+        nodeName + "/move_actor", bind(&Actor::CallMoveActor, this, _1, _2, _3));
   }
 }
 
@@ -77,7 +80,9 @@ bool Actor::GetResultFromResponse(const msgs::Param &response_msg)
   return response_msg.value().bool_value();
 }
 
-cloisim::msgs::Param Actor::CreateMoveRequest(const string target_name, const geometry_msgs::msg::Vector3 point)
+msgs::Param Actor::CreateMoveRequest(
+    const string target_name,
+    const geometry_msgs::msg::Vector3 point)
 {
   msgs::Param request_msg;
   request_msg.set_name(target_name);
@@ -92,3 +97,5 @@ cloisim::msgs::Param Actor::CreateMoveRequest(const string target_name, const ge
 
   return request_msg;
 }
+
+}  // namespace cloisim_ros

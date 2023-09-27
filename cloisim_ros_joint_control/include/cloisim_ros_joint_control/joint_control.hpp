@@ -12,45 +12,53 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-#ifndef _CLOISIM_ROS_JOINTCONTROL_HPP__
-#define _CLOISIM_ROS_JOINTCONTROL_HPP__
+#ifndef CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_
+#define CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_
 
-#include <cloisim_ros_base/base.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
-#include <control_msgs/msg/joint_jog.hpp>
-#include <std_srvs/srv/empty.hpp>
 #include <cloisim_msgs/joint_cmd.pb.h>
 #include <cloisim_msgs/joint_state_v.pb.h>
 
+#include <map>
+#include <string>
+
+#include <cloisim_ros_base/base.hpp>
+#include <control_msgs/msg/joint_jog.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <std_srvs/srv/empty.hpp>
+
 namespace cloisim_ros
 {
-  class JointControl : public Base
-  {
-  public:
-    explicit JointControl(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
-    explicit JointControl(const std::string namespace_ = "");
-    virtual ~JointControl();
+class JointControl : public Base
+{
+ public:
+  explicit JointControl(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit JointControl(const std::string namespace_ = "");
+  virtual ~JointControl();
 
-  private:
-    void Initialize() override;
-    void Deinitialize() override { };
+ private:
+  void Initialize() override;
+  void Deinitialize() override{};
 
-  private:
-    void PublishData(const std::string &buffer);
+ private:
+  void PublishData(const std::string &buffer);
 
-    void JointControlWrite(zmq::Bridge* const bridge_ptr, const std::string &buffer);
-    std::string MakeCommandMessage(const std::string joint_name, const double joint_displacement, const double joint_velocity) const;
+  void JointControlWrite(zmq::Bridge *const bridge_ptr, const std::string &buffer);
 
-  private:
-    zmq::Bridge *info_bridge_ptr;
+  std::string MakeCommandMessage(
+      const std::string joint_name,
+      const bool use_displacement, const bool use_velocity,
+      const double joint_displacement = 0, const double joint_velocity = 0) const;
 
-    std::map<std::string, std::string> target_transform_name;
+ private:
+  zmq::Bridge *info_bridge_ptr;
 
-    // ROS2 JointControl publisher
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_state_;
+  std::map<std::string, std::string> target_transform_name;
 
-    // ROS2 Joint Jog subscriber
-    rclcpp::Subscription<control_msgs::msg::JointJog>::SharedPtr sub_joint_job_;
-  };
-}
-#endif
+  // ROS2 JointControl publisher
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_state_;
+
+  // ROS2 Joint Jog subscriber
+  rclcpp::Subscription<control_msgs::msg::JointJog>::SharedPtr sub_joint_job_;
+};
+}  // namespace cloisim_ros
+#endif  // CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_

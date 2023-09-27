@@ -13,37 +13,42 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_HELPER_H_
-#define _CLOISIM_ROS_HELPER_H_
+#ifndef CLOISIM_ROS_BASE__HELPER_H_
+#define CLOISIM_ROS_BASE__HELPER_H_
 
-#include <geometry_msgs/msg/vector3.hpp>
-#include <geometry_msgs/msg/point32.hpp>
-#include <geometry_msgs/msg/point.hpp>
-#include <geometry_msgs/msg/quaternion.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 
-static void SetVector3MessageToGeometry(const cloisim::msgs::Vector3d &src, geometry_msgs::msg::Vector3 &dst)
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/point32.hpp>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
+
+static void SetVector3MessageToGeometry(
+    const cloisim::msgs::Vector3d &src, geometry_msgs::msg::Vector3 &dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void SetVector3MessageToGeometry(const cloisim::msgs::Vector3d &src, geometry_msgs::msg::Point32 &dst)
+static void SetVector3MessageToGeometry(
+    const cloisim::msgs::Vector3d &src, geometry_msgs::msg::Point32 &dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void SetVector3MessageToGeometry(const cloisim::msgs::Vector3d &src, geometry_msgs::msg::Point &dst)
+static void SetVector3MessageToGeometry(
+    const cloisim::msgs::Vector3d &src, geometry_msgs::msg::Point &dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void SetQuaternionMessageToGeometry(const cloisim::msgs::Quaternion &src, geometry_msgs::msg::Quaternion &dst)
+static void SetQuaternionMessageToGeometry(
+    const cloisim::msgs::Quaternion &src, geometry_msgs::msg::Quaternion &dst)
 {
   dst.x = src.x();
   dst.y = src.y();
@@ -51,7 +56,8 @@ static void SetQuaternionMessageToGeometry(const cloisim::msgs::Quaternion &src,
   dst.w = src.w();
 }
 
-static void SetTf2QuaternionToGeometry(const tf2::Quaternion &src, geometry_msgs::msg::Quaternion &dst)
+static void SetTf2QuaternionToGeometry(
+    const tf2::Quaternion &src, geometry_msgs::msg::Quaternion &dst)
 {
   dst.x = src.x();
   dst.y = src.y();
@@ -59,12 +65,12 @@ static void SetTf2QuaternionToGeometry(const tf2::Quaternion &src, geometry_msgs
   dst.w = src.w();
 }
 
-
-static void SetPointToGeometry(const geometry_msgs::msg::Point &src, geometry_msgs::msg::Vector3 &dst)
+static void SetPointToGeometry(
+    const geometry_msgs::msg::Point &src, geometry_msgs::msg::Vector3 &dst)
 {
   dst.x = src.x;
   dst.y = src.y;
   dst.z = src.z;
 }
 
-#endif
+#endif  // CLOISIM_ROS_BASE__HELPER_H_

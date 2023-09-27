@@ -13,22 +13,34 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_BASE_HPP_
-#define _CLOISIM_ROS_BASE_HPP_
+#ifndef CLOISIM_ROS_BASE__BASE_HPP_
+#define CLOISIM_ROS_BASE__BASE_HPP_
 
-#include <cloisim_ros_bridge_zmq/bridge.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <vector>
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/pose.pb.h>
 #include <cloisim_msgs/time.pb.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <cloisim_ros_bridge_zmq/bridge.hpp>
+#include <rclcpp/rclcpp.hpp>
+
 namespace cloisim_ros
 {
-static rclcpp::Time Convert(const int32_t seconds, const uint32_t nanoseconds) { return rclcpp::Time(seconds, nanoseconds); }
-static rclcpp::Time Convert(const cloisim::msgs::Time& time) { return Convert(time.sec(), time.nsec()); }
+
+static rclcpp::Time Convert(const int32_t seconds, const uint32_t nanoseconds)
+{
+  return rclcpp::Time(seconds, nanoseconds);
+}
+
+static rclcpp::Time Convert(const cloisim::msgs::Time& time)
+{
+  return Convert(time.sec(), time.nsec());
+}
 
 class Base : public rclcpp::Node
 {
@@ -36,7 +48,8 @@ class Base : public rclcpp::Node
   explicit Base(const std::string node_name);
   explicit Base(const std::string node_name, const rclcpp::NodeOptions& options);
   explicit Base(const std::string node_name, const std::string namespace_);
-  explicit Base(const std::string node_name, const std::string namespace_, const rclcpp::NodeOptions& options);
+  explicit Base(const std::string node_name, const std::string namespace_,
+                const rclcpp::NodeOptions& options);
   ~Base();
 
  protected:
@@ -44,9 +57,17 @@ class Base : public rclcpp::Node
   virtual void Deinitialize() = 0;
 
  protected:
-  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const std::string child_frame_id, const std::string header_frame_id = "base_link");
-  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg, const cloisim::msgs::Pose transform, const std::string child_frame_id, const std::string header_frame_id = "base_link");
-  void SetStaticTf2(const cloisim::msgs::Pose transform, const std::string parent_header_frame_id = "base_link");
+  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg,
+              const std::string child_frame_id,
+              const std::string header_frame_id = "base_link");
+
+  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg,
+              const cloisim::msgs::Pose transform,
+              const std::string child_frame_id,
+              const std::string header_frame_id = "base_link");
+
+  void SetStaticTf2(const cloisim::msgs::Pose transform,
+                    const std::string parent_header_frame_id = "base_link");
 
   void Start(const bool enable_tf_publish = true);
   void Stop();
@@ -62,7 +83,8 @@ class Base : public rclcpp::Node
 
   void CloseBridges();
 
-  void AddPublisherThread(zmq::Bridge* const bridge_ptr, std::function<void(const std::string&)> thread_func);
+  void AddPublisherThread(zmq::Bridge* const bridge_ptr,
+                          std::function<void(const std::string&)> thread_func);
 
   std::string GetModelName();
   std::string GetRobotName();
@@ -73,20 +95,30 @@ class Base : public rclcpp::Node
   void PublishTF();
   void PublishTF(const geometry_msgs::msg::TransformStamped& tf);
 
-  cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name = "");
+  void GetStaticTransforms(zmq::Bridge* const bridge_ptr);
 
-  cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name, std::string& parent_frame_id);
+  cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr,
+                                         const std::string target_name = "");
+
+  cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr,
+                                         const std::string target_name,
+                                         std::string& parent_frame_id);
 
   void GetRos2Parameter(zmq::Bridge* const bridge_ptr);
 
-  static bool GetBufferFromSimulator(zmq::Bridge* const bridge_ptr, void** ppBbuffer, int& bufferLength, const bool isNonBlockingMode = false);
+  static bool GetBufferFromSimulator(zmq::Bridge* const bridge_ptr,
+                                     void** ppBbuffer, int& bufferLength,
+                                     const bool isNonBlockingMode = false);
 
   static bool SetBufferToSimulator(zmq::Bridge* const bridge_ptr, const std::string& buffer);
 
   std::string GetFrameId(const std::string default_frame_id = "base_link");
 
-  static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const std::string request_message, const std::string request_value = "");
-  static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr, const cloisim::msgs::Param request_message);
+  static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr,
+                                                  const std::string request_message,
+                                                  const std::string request_value = "");
+  static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr,
+                                                  const cloisim::msgs::Param request_message);
   static cloisim::msgs::Pose IdentityPose();
 
   void SetTime(const cloisim::msgs::Time& time);
@@ -138,7 +170,8 @@ inline void Base::PublishTF(const geometry_msgs::msg::TransformStamped& tf)
   m_tf_broadcaster->sendTransform(tf);
 }
 
-inline cloisim::msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr, const std::string target_name)
+inline cloisim::msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr,
+                                                    const std::string target_name)
 {
   std::string empty_arg("");
   return GetObjectTransform(bridge_ptr, target_name, empty_arg);
@@ -174,6 +207,5 @@ inline void Base::SetTime(const int32_t seconds, const uint32_t nanoseconds)
 {
   m_sim_time = Convert(seconds, nanoseconds);
 }
-
 }  // namespace cloisim_ros
-#endif
+#endif  // CLOISIM_ROS_BASE__BASE_HPP_

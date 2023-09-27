@@ -13,12 +13,15 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_SONAR_HPP_
-#define _CLOISIM_ROS_SONAR_HPP_
+#ifndef CLOISIM_ROS_SONAR__SONAR_HPP_
+#define CLOISIM_ROS_SONAR__SONAR_HPP_
+
+#include <cloisim_msgs/sonar_stamped.pb.h>
+
+#include <string>
 
 #include <cloisim_ros_base/base.hpp>
 #include <sensor_msgs/msg/range.hpp>
-#include <cloisim_msgs/sonar_stamped.pb.h>
 
 namespace cloisim_ros
 {
@@ -47,4 +50,4 @@ class Sonar : public Base
   rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr pub_;
 };
 }  // namespace cloisim_ros
-#endif
+#endif  // CLOISIM_ROS_SONAR__SONAR_HPP_

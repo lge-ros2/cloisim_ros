@@ -12,9 +12,10 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include <thread>
+
 #include <cloisim_ros_base/base.hpp>
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
-#include <thread>
 
 using namespace std;
 

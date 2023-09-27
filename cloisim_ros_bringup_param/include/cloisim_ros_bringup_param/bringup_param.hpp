@@ -14,21 +14,25 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef _CLOISIM_ROS_BRINGUP_PARAM_HPP_
-#define _CLOISIM_ROS_BRINGUP_PARAM_HPP_
+#ifndef CLOISIM_ROS_BRINGUP_PARAM__BRINGUP_PARAM_HPP_
+#define CLOISIM_ROS_BRINGUP_PARAM__BRINGUP_PARAM_HPP_
+
+#include <jsoncpp/json/json.h>
+
+#include <string>
 
 #include <cloisim_ros_websocket_service/websocket_service.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <jsoncpp/json/json.h>
+
+using namespace std;
 
 namespace cloisim_ros
 {
-using namespace std;
 
 class BringUpParam : public rclcpp::Node
 {
  public:
-  BringUpParam(const string basename = "cloisim_ros");
+  explicit BringUpParam(const string basename = "cloisim_ros");
   virtual ~BringUpParam();
 
   bool IsSingleMode() const { return is_single_mode; }
@@ -66,4 +70,4 @@ class BringUpParam : public rclcpp::Node
   Json::Value GetFilteredListByParameters(const Json::Value result);
 };
 }  // namespace cloisim_ros
-#endif
+#endif  // CLOISIM_ROS_BRINGUP_PARAM__BRINGUP_PARAM_HPP_

@@ -21,8 +21,9 @@
 
 using namespace std;
 using namespace cloisim;
-using namespace cloisim_ros;
 
+namespace cloisim_ros
+{
 World::World(const rclcpp::NodeOptions &options_, const std::string node_name)
     : Base(node_name, options_)
 {
@@ -49,7 +50,7 @@ void World::Initialize()
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
-  pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+  pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::ClockQoS());
 
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr)
@@ -82,3 +83,4 @@ void World::PublishData(const string &buffer)
   msg_clock_.clock = GetTime();
   pub_->publish(msg_clock_);
 }
+}  // namespace cloisim_ros
