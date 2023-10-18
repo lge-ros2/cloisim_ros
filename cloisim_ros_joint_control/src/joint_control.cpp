@@ -63,7 +63,10 @@ void JointControl::Initialize()
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
+
     GetStaticTransforms(info_bridge_ptr);
+
+    GetRobotDescription(info_bridge_ptr);
   }
 
   auto data_bridge_ptr = CreateBridge();
@@ -110,6 +113,11 @@ void JointControl::Initialize()
   // ROS2 Subscriber
   sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>(
       "joint_command", rclcpp::SensorDataQoS(), callback_sub);
+
+  pub_robot_desc_ = create_publisher<std_msgs::msg::String>(
+      "robot_description", rclcpp::QoS(1).transient_local());
+
+  pub_robot_desc_->publish(msg_description_);
 }
 
 string JointControl::MakeCommandMessage(
@@ -170,6 +178,26 @@ void JointControl::PublishData(const string &buffer)
 
   // publish data
   pub_joint_state_->publish(msg_jointstate);
+}
+
+void JointControl::GetRobotDescription(zmq::Bridge *const bridge_ptr)
+{
+  if (bridge_ptr == nullptr)
+  {
+    return;
+  }
+
+  const auto reply = RequestReplyMessage(bridge_ptr, "robot_description");
+
+  if (reply.IsInitialized() &&
+      (reply.name().compare("description") == 0))
+  {
+    if (reply.value().type() == msgs::Any_ValueType_STRING)
+    {
+      const auto description = reply.value().string_value();
+      msg_description_.data = description;
+    }
+  }
 }
 
 }  // namespace cloisim_ros

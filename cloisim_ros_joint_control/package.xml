@@ -13,6 +13,7 @@
   <depend>cloisim_ros_bringup_param</depend>
   <depend>cloisim_ros_base</depend>
   <depend>std_srvs</depend>
+  <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>control_msgs</depend>
 
