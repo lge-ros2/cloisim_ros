@@ -99,7 +99,7 @@ void JointControl::Initialize()
       const auto displacement = (use_displacement) ? msg->displacements[i] : 0;
       const auto velocity = (use_velocity) ? msg->velocities[i] : 0;
 
-      DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
+      // DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
       const auto msgBuf = MakeCommandMessage(joint_name, use_displacement, use_velocity, displacement, velocity);
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
       rclcpp::sleep_for(500us);
