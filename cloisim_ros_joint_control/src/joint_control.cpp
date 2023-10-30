@@ -14,9 +14,9 @@
  */
 
 #include "cloisim_ros_joint_control/joint_control.hpp"
-#include <cloisim_msgs/param.pb.h>
-#include <cloisim_msgs/transform_stamped.pb.h>
-#include <cloisim_msgs/twist.pb.h>
+#include <cloisim_msgs/joint_cmd_v.pb.h>
+#include <cloisim_msgs/joint_state_v.pb.h>
+
 #include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -89,21 +89,8 @@ void JointControl::Initialize()
   auto callback_sub = [this, data_bridge_ptr](
                           const control_msgs::msg::JointJog::SharedPtr msg) -> void
   {
-    // const auto duration = msg->duration;
-    const auto use_displacement = (msg->joint_names.size() == msg->displacements.size());
-    const auto use_velocity = (msg->joint_names.size() == msg->velocities.size());
-
-    for (size_t i = 0; i < msg->joint_names.size(); i++)
-    {
-      const auto joint_name = msg->joint_names[i];
-      const auto displacement = (use_displacement) ? msg->displacements[i] : 0;
-      const auto velocity = (use_velocity) ? msg->velocities[i] : 0;
-
-      // DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
-      const auto msgBuf = MakeCommandMessage(joint_name, use_displacement, use_velocity, displacement, velocity);
-      SetBufferToSimulator(data_bridge_ptr, msgBuf);
-      rclcpp::sleep_for(900us);
-    }
+    const auto msgBuf = MakeCommandMessage(msg);
+    SetBufferToSimulator(data_bridge_ptr, msgBuf);
   };
 
   // ROS2 Publisher
@@ -121,36 +108,50 @@ void JointControl::Initialize()
 }
 
 string JointControl::MakeCommandMessage(
-    const string joint_name,
-    const bool use_displacement,
-    const bool use_velocity,
-    const double joint_displacement,
-    const double joint_velocity) const
+    control_msgs::msg::JointJog::ConstSharedPtr msg)
 {
-  msgs::JointCmd jointCmd;
+  msgs::JointCmd_V pb_joint_cmds;
 
-  jointCmd.set_name(joint_name);
+  // const auto duration = msg->duration;
+  const auto use_displacement = (msg->joint_names.size() == msg->displacements.size());
+  const auto use_velocity = (msg->joint_names.size() == msg->velocities.size());
 
-  if (use_displacement)
+  for (size_t i = 0; i < msg->joint_names.size(); i++)
   {
-    auto position = jointCmd.mutable_position();
-    position->set_target(joint_displacement);
+    auto joint_cmd = pb_joint_cmds.add_jointcmd();
+    const auto joint_name = msg->joint_names[i];
+    const auto joint_displacement = (use_displacement) ? msg->displacements[i] : 0;
+    const auto joint_velocity = (use_velocity) ? msg->velocities[i] : 0;
+
+    // DBG_SIM_INFO("%s %f %f", joint_name.c_str(), displacement, velocity);
+
+    joint_cmd->set_name(joint_name);
+
+    if (use_displacement)
+    {
+      auto position = joint_cmd->mutable_position();
+      position->set_target(joint_displacement);
+    }
+
+    if (use_velocity)
+    {
+      auto velocity = joint_cmd->mutable_velocity();
+      velocity->set_target(joint_velocity);
+    }
   }
 
-  if (use_velocity)
-  {
-    auto velocity = jointCmd.mutable_velocity();
-    velocity->set_target(joint_velocity);
-  }
+  auto time = pb_joint_cmds.mutable_time();
+  time->set_sec(GetTime().seconds());
+  time->set_nsec(GetTime().nanoseconds());
 
   string message;
-  jointCmd.SerializeToString(&message);
+  pb_joint_cmds.SerializeToString(&message);
   return message;
 }
 
 void JointControl::PublishData(const string &buffer)
 {
-  cloisim::msgs::JointState_V pb_joint_states;
+  msgs::JointState_V pb_joint_states;
   if (!pb_joint_states.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());

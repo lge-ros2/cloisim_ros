@@ -15,9 +15,6 @@
 #ifndef CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_
 #define CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_
 
-#include <cloisim_msgs/joint_cmd.pb.h>
-#include <cloisim_msgs/joint_state_v.pb.h>
-
 #include <map>
 #include <string>
 
@@ -45,10 +42,7 @@ class JointControl : public Base
 
   void JointControlWrite(zmq::Bridge *const bridge_ptr, const std::string &buffer);
 
-  std::string MakeCommandMessage(
-      const std::string joint_name,
-      const bool use_displacement, const bool use_velocity,
-      const double joint_displacement = 0, const double joint_velocity = 0) const;
+  std::string MakeCommandMessage(control_msgs::msg::JointJog::ConstSharedPtr msg);
 
   void GetRobotDescription(zmq::Bridge *const bridge_ptr);
 
