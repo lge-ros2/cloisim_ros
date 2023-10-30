@@ -31,6 +31,9 @@ namespace cloisim_ros
 
 JointControl::JointControl(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
+    , pub_joint_state_(nullptr)
+    , sub_joint_job_(nullptr)
+    , pub_robot_desc_(nullptr)
 {
   Start();
 }
@@ -60,6 +63,29 @@ void JointControl::Initialize()
   DBG_SIM_INFO("hashKey: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
   auto info_bridge_ptr = CreateBridge();
+  auto data_bridge_ptr = CreateBridge();
+  auto tf_bridge_ptr = CreateBridge();
+
+  auto callback_sub = [this, data_bridge_ptr](
+                          const control_msgs::msg::JointJog::SharedPtr msg) -> void
+  {
+    const auto msgBuf = MakeCommandMessage(msg);
+    SetBufferToSimulator(data_bridge_ptr, msgBuf);
+  };
+
+  {
+    // ROS2 Publisher
+    pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>(
+        "joint_states", rclcpp::SensorDataQoS());
+
+    // ROS2 Subscriber
+    sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>(
+        "joint_command", rclcpp::SensorDataQoS(), callback_sub);
+
+    pub_robot_desc_ = create_publisher<std_msgs::msg::String>(
+        "robot_description", rclcpp::QoS(1).transient_local());
+  }
+
   if (info_bridge_ptr != nullptr)
   {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
@@ -69,7 +95,6 @@ void JointControl::Initialize()
     GetRobotDescription(info_bridge_ptr);
   }
 
-  auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr)
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
@@ -78,7 +103,6 @@ void JointControl::Initialize()
                        bind(&JointControl::PublishData, this, std::placeholders::_1));
   }
 
-  auto tf_bridge_ptr = CreateBridge();
   if (tf_bridge_ptr != nullptr)
   {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
@@ -86,25 +110,8 @@ void JointControl::Initialize()
                        bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, data_bridge_ptr](
-                          const control_msgs::msg::JointJog::SharedPtr msg) -> void
-  {
-    const auto msgBuf = MakeCommandMessage(msg);
-    SetBufferToSimulator(data_bridge_ptr, msgBuf);
-  };
-
-  // ROS2 Publisher
-  pub_joint_state_ = create_publisher<sensor_msgs::msg::JointState>(
-      "joint_states", rclcpp::SensorDataQoS());
-
-  // ROS2 Subscriber
-  sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>(
-      "joint_command", rclcpp::SensorDataQoS(), callback_sub);
-
-  pub_robot_desc_ = create_publisher<std_msgs::msg::String>(
-      "robot_description", rclcpp::QoS(1).transient_local());
-
-  pub_robot_desc_->publish(msg_description_);
+  if (pub_robot_desc_ != nullptr)
+    pub_robot_desc_->publish(msg_description_);
 }
 
 string JointControl::MakeCommandMessage(
@@ -178,7 +185,8 @@ void JointControl::PublishData(const string &buffer)
   }
 
   // publish data
-  pub_joint_state_->publish(msg_jointstate);
+  if (pub_joint_state_ != nullptr)
+    pub_joint_state_->publish(msg_jointstate);
 }
 
 void JointControl::GetRobotDescription(zmq::Bridge *const bridge_ptr)
