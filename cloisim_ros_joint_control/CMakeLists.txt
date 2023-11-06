@@ -19,6 +19,7 @@ find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
   std_srvs
+  std_msgs
   sensor_msgs
   control_msgs
   cloisim_ros_base

@@ -1,0 +1,15 @@
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface JointCmd_V
+/// \brief Message for joint command, used by cloisim_ros_joint_control
+
+import "time.proto";
+import "joint_cmd.proto";
+
+message JointCmd_V
+{
+  required Time time          = 1;
+  repeated JointCmd JointCmd  = 2;
+}
