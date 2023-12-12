@@ -168,7 +168,10 @@ void Base::AddPublisherThread(
           int bufferLength = 0;
           const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength);
           if (!succeeded || bufferLength < 0)
+          {
+            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength, zmq_strerror(zmq_errno()));
             continue;
+          }
 
           if (IsRunThread() == false)
             break;

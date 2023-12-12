@@ -233,9 +233,12 @@ void Micom::UpdateImu()
 
 void Micom::UpdateBattery()
 {
-  msg_battery_.header.stamp = GetTime();
-  msg_battery_.voltage = 0.0;
-  msg_battery_.current = 0.0;
+  if (pb_micom_.has_battery())
+  {
+    msg_battery_.header.stamp = GetTime();
+    msg_battery_.voltage = pb_micom_.battery().voltage();
+    msg_battery_.current = 0.0;
+  }
 }
 
 }  // namespace cloisim_ros
