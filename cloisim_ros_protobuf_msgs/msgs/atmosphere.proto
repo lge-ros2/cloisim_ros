@@ -1,10 +1,29 @@
-syntax = "proto2";
+/*
+ * Copyright (C) 2017 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
 package cloisim.msgs;
 
-/// \ingroup cloisim_msgs
+/// \ingroup cloisim.msgs
 /// \interface Atmosphere
-/// \brief A message containing a description of the global atmosphere properties
+/// \brief A message containing a description of the global atmosphere
+/// properties
 
+import "header.proto";
 
 message Atmosphere
 {
@@ -12,21 +31,24 @@ message Atmosphere
   enum Type
   {
     /// \brief Adiabatic atmosphere model.
-    ADIABATIC = 1;
+    ADIABATIC = 0;
   }
 
+  /// \brief Optional header data
+  Header header                     = 1;
+
   /// \brief Type of the atmosphere model.
-  optional Type type                         = 1[default=ADIABATIC];
+  Type type                         = 2;
 
   /// \brief Temperature at sea level in kelvins.
-  optional double temperature                = 2;
+  double temperature                = 3;
 
   /// \brief Pressure at sea level in pascals.
-  optional double pressure                   = 3;
+  double pressure                   = 4;
 
   /// \brief Mass density of the air at sea level in kg/m^3.
-  optional double mass_density               = 4;
+  double mass_density               = 5;
 
   /// \brief Enable atmosphere model
-  optional bool enable_atmosphere            = 5;
+  bool enable_atmosphere            = 6;
 }

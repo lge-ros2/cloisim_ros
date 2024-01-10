@@ -1,25 +1,46 @@
-syntax = "proto2";
+/*
+ * Copyright (C) 2017 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
 package cloisim.msgs;
 
-import "world_stats.proto";
-
-/// \ingroup cloisim_msgs
+/// \ingroup cloisim.msgs
 /// \interface SimEvent
+
+import "world_stats.proto";
+import "header.proto";
 
 message SimEvent
 {
+  /// \brief Optional header data
+  Header header                    = 1;
+
   /// \brief ID of this event message
-  optional uint32 id                        = 1;
+  uint32 id                        = 2;
 
   /// \brief Type of sim event
-  required string type                      = 2;
+  string type                      = 3;
 
   /// \brief Name of sim event
-  required string name                      = 3;
+  string name                      = 4;
 
   /// \brief Statistics of the world
-  required WorldStatistics world_statistics = 4;
+  WorldStatistics world_statistics = 5;
 
   /// \brief Data describing the sim event
-  optional string data                      = 5;
+  string data                      = 6;
 }

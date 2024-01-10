@@ -1,28 +1,48 @@
-syntax = "proto2";
+/*
+ * Copyright (C) 2017 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
 package cloisim.msgs;
 
-/// \ingroup cloisim_msgs
+/// \ingroup cloisim.msgs
 /// \interface LaserScan
 /// \brief Data from a laser scan
 
-
 import "pose.proto";
+import "header.proto";
 
 message LaserScan
 {
-  required string frame               = 1;
-  required Pose world_pose            = 2;
-  required double angle_min           = 3;
-  required double angle_max           = 4;
-  required double angle_step          = 5;
-  required double range_min           = 6;
-  required double range_max           = 7;
-  required uint32 count               = 8;
-  optional double vertical_angle_min  = 9;
-  optional double vertical_angle_max  = 10;
-  optional double vertical_angle_step = 11;
-  optional uint32 vertical_count      = 12;
+  /// \brief Optional header data
+  Header header              = 1;
 
-  repeated double ranges              = 13;
-  repeated double intensities         = 14;
+  string frame               = 2;
+  Pose world_pose            = 3;
+  double angle_min           = 4;
+  double angle_max           = 5;
+  double angle_step          = 6;
+  double range_min           = 7;
+  double range_max           = 8;
+  uint32 count               = 9;
+  double vertical_angle_min  = 10;
+  double vertical_angle_max  = 11;
+  double vertical_angle_step = 12;
+  uint32 vertical_count      = 13;
+
+  repeated double ranges              = 14;
+  repeated double intensities         = 15;
 }

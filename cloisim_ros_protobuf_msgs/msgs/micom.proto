@@ -8,7 +8,7 @@
  *    All Rights are Reserved.
  */
 
-syntax = "proto2";
+syntax = "proto3";
 package cloisim.msgs;
 
 /// \ingroup cloisim_msgs

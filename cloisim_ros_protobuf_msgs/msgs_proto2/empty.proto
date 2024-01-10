@@ -1,0 +1,11 @@
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface Empty
+/// \brief Empty message
+
+message Empty
+{
+  optional bool unused = 1;
+}
