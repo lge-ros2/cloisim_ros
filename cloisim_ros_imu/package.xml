@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cloisim_ros_imu</name>
-  <version>3.4.2</version>
+  <version>3.4.3</version>
   <description>virtual imu for simulation</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>

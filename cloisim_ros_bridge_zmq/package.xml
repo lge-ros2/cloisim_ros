@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cloisim_ros_bridge_zmq</name>
-  <version>3.4.2</version>
+  <version>3.4.3</version>
   <description>bridge for cloisim(simulator) connection through ZMQ</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
