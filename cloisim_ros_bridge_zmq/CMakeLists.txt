@@ -12,10 +12,6 @@ cloisim_ros_package()
 ################################################################################
 find_package(ament_cmake REQUIRED)
 
-find_package(PkgConfig)
-pkg_check_modules(PC_ZMQ QUIET zmq)
-find_library(ZMQ_LIBRARY NAMES zmq PATHS ${PC_ZMQ_LIBRARY_DIRS})
-
 ################################################################################
 # Build
 ################################################################################
@@ -32,7 +28,7 @@ target_include_directories(
 
 target_link_libraries(
   ${PROJECT_NAME}
-  ${ZMQ_LIBRARY}
+  zmq
 )
 
 ################################################################################
