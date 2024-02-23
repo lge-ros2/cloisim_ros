@@ -23,14 +23,19 @@ def generate_launch_description():
     _target_parts_name = LaunchConfiguration('target_parts_name')
     _scan = LaunchConfiguration('scan')
     _cmd_vel = LaunchConfiguration('cmd_vel')
-
+    _odom = LaunchConfiguration('odom')
+    _imu = LaunchConfiguration('imu')
+    _navsatfix = LaunchConfiguration('navsatfix')
 
     cloisim_ros_cmd = Node(
         package="cloisim_ros_bringup",
         executable="bringup",
         output='screen',
         remappings=[('scan', _scan),
-                    ('cmd_vel', _cmd_vel)],
+                    ('cmd_vel', _cmd_vel),
+                    ('odom', _odom),
+                    ('imu', _imu),
+                    ('navsatfix', _navsatfix)],
         parameters=[{'single_mode': _single_mode,
                      'target_model': ParameterValue(_target_model, value_type=str),
                      'target_parts_type': ParameterValue(_target_parts_type, value_type=str),
@@ -66,6 +71,21 @@ def generate_launch_description():
         'cmd_vel',
         default_value='cmd_vel',
         description='specify cmd_vel topic you want')
+    
+    declare_launch_argument_odom = DeclareLaunchArgument(
+        'odom',
+        default_value='odom',
+        description='specify odom topic you want')
+    
+    declare_launch_argument_imu = DeclareLaunchArgument(
+        'imu',
+        default_value='imu',
+        description='specify imu/data topic you want')
+    
+    declare_launch_argument_navsatfix = DeclareLaunchArgument(
+        'navsatfix',
+        default_value='navsatfix',
+        description='specify navsatfix topic you want')
 
     stdout_log_use_stdout_envvar = SetEnvironmentVariable(
         'RCUTILS_LOGGING_USE_STDOUT', '1')
@@ -85,6 +105,9 @@ def generate_launch_description():
     ld.add_action(declare_launch_argument_tpn)
     ld.add_action(declare_launch_argument_sc)
     ld.add_action(declare_launch_argument_cmdvel)
+    ld.add_action(declare_launch_argument_odom)
+    ld.add_action(declare_launch_argument_imu)
+    ld.add_action(declare_launch_argument_navsatfix)
     ld.add_action(cloisim_ros_cmd)
 
     return ld
