@@ -25,6 +25,7 @@
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_multicamera/multicamera.hpp>
 #include <cloisim_ros_realsense/realsense.hpp>
+#include <cloisim_ros_segmentationcamera/segmentation_camera.hpp>
 #include <cloisim_ros_sonar/sonar.hpp>
 #include <cloisim_ros_world/world.hpp>
 
@@ -95,6 +96,13 @@ static shared_ptr<cloisim_ros::Base> make_device_node(
       node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name, model_name);
+  }
+  else if (!node_type.compare("SEGMENTCAMERA"))
+  {
+    if (enable_single_mode)
+      node = std::make_shared<cloisim_ros::SegmentationCamera>(node_options, node_name);
+    else
+      node = std::make_shared<cloisim_ros::SegmentationCamera>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("GPS"))
   {
