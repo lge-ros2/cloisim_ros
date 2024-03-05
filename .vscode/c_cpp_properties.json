@@ -8,7 +8,11 @@
                 "${workspaceFolder}/../../install/perception_msgs/include/",
                 "${workspaceFolder}/../../install/elevator_system_msgs/include/",
                 "${workspaceFolder}/../../install/cloisim_ros_protobuf_msgs/include/",
-                "${workspaceFolder}/../../install/cloisim_ros_msgs/include/"
+                "${workspaceFolder}/../../install/cloisim_ros_msgs/include/",
+                "${workspaceFolder}/../../../install/perception_msgs/include/",
+                "${workspaceFolder}/../../../install/elevator_system_msgs/include/",
+                "${workspaceFolder}/../../../install/cloisim_ros_protobuf_msgs/include/",
+                "${workspaceFolder}/../../../install/cloisim_ros_msgs/include/"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
