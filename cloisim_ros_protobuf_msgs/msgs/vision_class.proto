@@ -1,0 +1,26 @@
+/**
+ *  @file   vision_class.proto
+ *  @date   2024-03-04
+ *  @author hyunseok Yang
+ *  @warning
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface VisionClass
+/// \brief Message for VisionClass
+
+message VisionClass
+{
+  // The int value that identifies the class.
+  required uint32 class_id    = 1;
+
+  // The name of the class represented by the class_id
+  // The string value that identifies the class
+  required string class_name  = 2;
+}
