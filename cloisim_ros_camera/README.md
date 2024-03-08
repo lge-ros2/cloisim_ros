@@ -25,20 +25,58 @@ This filename in `<plugin>` element enables to connect cloisim_ros_camera.
 </sensor>
 ```
 
-
 ## how to run
+
+### Camera
+
 ```shell
-ros2 run cloisim_ros_camera standalone
+ros2 run cloisim_ros_camera camera
 ```
 
 or
 
 ```shell
-ros2 run cloisim_ros_camera standalone --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=camera
+ros2 run cloisim_ros_camera camera --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=camera
 ```
 
 or
 
 ```shell
-ros2 run cloisim_ros_camera standalone --ros-args -p target_model:=cloi1 -p target_parts_name:=camera
+ros2 run cloisim_ros_camera camera --ros-args -p target_model:=cloi1 -p target_parts_name:=camera
+```
+
+### Depth Camera
+
+```shell
+ros2 run cloisim_ros_camera depth_camera
+```
+
+or
+
+```shell
+ros2 run cloisim_ros_camera depth_camera --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=depthcamera
+```
+
+or
+
+```shell
+ros2 run cloisim_ros_camera depth_camera --ros-args -p target_model:=cloi1 -p target_parts_name:=depthcamera
+```
+
+### Segmentation Camera
+
+```shell
+ros2 run cloisim_ros_camera segmentation_camera
+```
+
+or
+
+```shell
+ros2 run cloisim_ros_camera segmentation_camera --ros-args -p single_mode:=True -p target_model:=cloi -p target_parts_name:=segmentationcamera
+```
+
+or
+
+```shell
+ros2 run cloisim_ros_camera segmentation_camera --ros-args -p target_model:=cloi -p target_parts_name:=segmentationcamera
 ```

@@ -1,5 +1,5 @@
 /**
- *  @file   main.cpp
+ *  @file   main_segcam.cpp
  *  @date   2024-03-01
  *  @author hyunseok Yang
  *  @brief
@@ -12,7 +12,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_segmentationcamera/segmentation_camera.hpp"
+#include "cloisim_ros_camera/segmentation_camera.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 int main(int argc, char** argv)

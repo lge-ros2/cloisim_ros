@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_depthcamera/depthcamera.hpp"
+#include "cloisim_ros_camera/depth_camera.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 int main(int argc, char** argv)

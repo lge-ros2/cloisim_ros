@@ -3,9 +3,9 @@
 <package format="3">
   <name>cloisim_ros_camera</name>
   <version>3.4.3</version>
-  <description>virtual camera for cloisim</description>
-  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
+  <description>Virtual camera/depth camera/segmentation camera for CLOiSim</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
   <author email="sungkyu.kang@lge.com">Sungkyu Kang</author>
   <license>MIT</license>
 
@@ -17,6 +17,7 @@
   <depend>camera_info_manager</depend>
   <depend>image_transport</depend>
   <depend>image_transport_plugins</depend>
+  <depend>vision_msgs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

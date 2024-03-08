@@ -7,6 +7,10 @@ project(cloisim_ros_camera)
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
 
+set(STANDALONE_CAMERA "camera")
+set(STANDALONE_DEPTHCAMERA "depth_camera")
+set(STANDALONE_SEGMENTATIONCAMERA "segmentation_camera")
+
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
 ################################################################################
@@ -16,6 +20,7 @@ find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
+find_package(vision_msgs REQUIRED)
 
 set(dependencies
   sensor_msgs
@@ -23,13 +28,17 @@ set(dependencies
   image_transport
   cloisim_ros_base
   cloisim_ros_bringup_param
+  vision_msgs
 )
 
 ################################################################################
 # Build
 ################################################################################
 add_library(${PROJECT_NAME}_core SHARED
+  src/camera_base.cpp
   src/camera.cpp
+  src/depth_camera.cpp
+  src/segmentation_camera.cpp
 )
 
 target_include_directories(
@@ -44,12 +53,32 @@ ament_target_dependencies(
 )
 
 add_executable(
-  ${STANDALONE_EXEC_NAME}
-  src/main.cpp
+  ${STANDALONE_CAMERA}
+  src/main_cam.cpp
 )
 
 target_link_libraries(
-  ${STANDALONE_EXEC_NAME} PRIVATE
+  ${STANDALONE_CAMERA} PRIVATE
+  ${PROJECT_NAME}_core
+)
+
+add_executable(
+  ${STANDALONE_DEPTHCAMERA}
+  src/main_depthcam.cpp
+)
+
+target_link_libraries(
+  ${STANDALONE_DEPTHCAMERA} PRIVATE
+  ${PROJECT_NAME}_core
+)
+
+add_executable(
+  ${STANDALONE_SEGMENTATIONCAMERA}
+  src/main_segcam.cpp
+)
+
+target_link_libraries(
+  ${STANDALONE_SEGMENTATIONCAMERA} PRIVATE
   ${PROJECT_NAME}_core
 )
 
@@ -70,7 +99,17 @@ install(
 )
 
 install(
-  TARGETS ${STANDALONE_EXEC_NAME}
+  TARGETS ${STANDALONE_CAMERA}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS ${STANDALONE_DEPTHCAMERA}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS ${STANDALONE_SEGMENTATIONCAMERA}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
