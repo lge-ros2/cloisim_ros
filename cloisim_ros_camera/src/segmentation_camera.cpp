@@ -56,7 +56,7 @@ void SegmentationCamera::InitializeCameraData()
 
   pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>("label_info", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local());
 
-  DBG_SIM_INFO("SegmentationCamera hashKey: data(%s)", hashKeyData.c_str());
+  DBG_SIM_INFO("%s hashKey: data(%s)", typeid(this).name(), hashKeyData.c_str());
 }
 
 void SegmentationCamera::PublishData(const string &buffer)
@@ -70,8 +70,17 @@ void SegmentationCamera::PublishData(const string &buffer)
   SetTime(pb_seg_.image_stamped().time());
 
   vision_msgs::msg::LabelInfo msg_label_info;
+  msg_label_info.header.stamp = GetTime();
+  for (auto i = 0; i < pb_seg_.class_map_size(); i++)
+  {
+    vision_msgs::msg::VisionClass msg_vision_class;
 
-  // pb_seg_.clas
+    auto &class_map = pb_seg_.class_map(i);
+    msg_vision_class.class_id = class_map.class_id();
+    msg_vision_class.class_name = class_map.class_name();
+
+    msg_label_info.class_map.push_back(msg_vision_class);
+  }
 
   pub_labelinfo_->publish(msg_label_info);
 

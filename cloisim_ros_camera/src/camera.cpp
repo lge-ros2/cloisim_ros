@@ -30,7 +30,7 @@ Camera::Camera(
     const string namespace_)
     : CameraBase(options_, node_name, namespace_)
 {
-  DBG_SIM_INFO("Camera");
+  // DBG_SIM_INFO("Camera");
   Start();
 }
 
