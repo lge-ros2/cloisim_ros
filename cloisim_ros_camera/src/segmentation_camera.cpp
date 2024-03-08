@@ -82,6 +82,8 @@ void SegmentationCamera::PublishData(const string &buffer)
     msg_label_info.class_map.push_back(msg_vision_class);
   }
 
+  msg_label_info.threshold = 1;
+
   pub_labelinfo_->publish(msg_label_info);
 
   // send camera image
