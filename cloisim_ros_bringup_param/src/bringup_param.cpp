@@ -22,7 +22,8 @@ bool BringUpParam::IsRobotSpecificType(const string node_type)
   return (!node_type.compare("MICOM") || !node_type.compare("JOINTCONTROL") ||
           !node_type.compare("LIDAR") || !node_type.compare("LASER") ||
           !node_type.compare("CAMERA") || !node_type.compare("DEPTHCAMERA") ||
-          !node_type.compare("MULTICAMERA") || !node_type.compare("REALSENSE") ||
+          !node_type.compare("MULTICAMERA") || !node_type.compare("SEGMENTCAMERA") ||
+          !node_type.compare("REALSENSE") ||
           !node_type.compare("GPS") || !node_type.compare("IMU") ||
           !node_type.compare("SONAR"));
 }
@@ -72,10 +73,12 @@ Json::Value BringUpParam::RequestBringUpList()
   if (ws_service_ptr_ == nullptr)
     ws_service_ptr_ = new WebSocketService();
 
+  // cout << "ws Run" << endl;
   ws_service_ptr_->Run();
 
   while (true)
   {
+    // cout << "ws request" << endl;
     ws_service_ptr_->Request();
 
     // cout << "start to load payload" << endl;
@@ -106,8 +109,9 @@ Json::Value BringUpParam::RequestBringUpList()
 
       if (root["result"].size() > 0)
       {
-        // cout << "There is node map list: " << result_map_.size() << endl;
         result = root["result"];
+        // cout << "There is node map list: " << result.size() << endl;
+        // cout << result << endl;
         break;
       }
       else
@@ -124,7 +128,7 @@ Json::Value BringUpParam::RequestBringUpList()
 Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
 {
   Json::Value root;
-  // cout << result << endl;
+  cout << result << endl;
   for (auto it = result.begin(); it != result.end(); it++)
   {
     const auto node_namespace = it.key().asString();

@@ -59,3 +59,11 @@ or
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True
 ```
+
+or 
+
+specific target model without namespace
+
+```shell
+ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True target_model:=cloi0
+```

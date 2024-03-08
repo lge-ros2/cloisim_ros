@@ -22,38 +22,18 @@
 #include <string>
 
 #include <camera_info_manager/camera_info_manager.hpp>
-#include <cloisim_ros_base/base.hpp>
+#include <cloisim_ros_camera/camera_base.hpp>
 #include <image_transport/image_transport.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 
 namespace cloisim_ros
 {
-class Camera : public Base
+class Camera : public CameraBase
 {
  public:
   explicit Camera(const rclcpp::NodeOptions &options_, const std::string node_name = "cloisim_ros_camera", const std::string namespace_ = "");
   explicit Camera(const std::string node_name = "cloisim_ros_camera", const std::string namespace_ = "");
   virtual ~Camera();
-
- protected:
-  void Initialize() override;
-  void Deinitialize() override;
-
- protected:
-  void PublishData(const std::string &buffer);
-
- private:
-  // image buffer from simulator
-  cloisim::msgs::ImageStamped pb_img_;
-
-  // message for ROS2 communictaion
-  sensor_msgs::msg::Image msg_img_;
-
-  // Image publisher
-  image_transport::CameraPublisher pub_;
-
-  // Camera info manager
-  std::shared_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_CAMERA__CAMERA_HPP_

@@ -12,17 +12,17 @@
  *         All Rights are Reserved.
  */
 
-#ifndef CLOISIM_ROS_DEPTHCAMERA__DEPTHCAMERA_HPP_
-#define CLOISIM_ROS_DEPTHCAMERA__DEPTHCAMERA_HPP_
+#ifndef CLOISIM_ROS_CAMERA__DEPTHCAMERA_HPP_
+#define CLOISIM_ROS_CAMERA__DEPTHCAMERA_HPP_
 
 #include <string>
 
-#include <cloisim_ros_camera/camera.hpp>
+#include <cloisim_ros_camera/camera_base.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
 namespace cloisim_ros
 {
-class DepthCamera : public Camera
+class DepthCamera : public CameraBase
 {
  public:
   explicit DepthCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
@@ -30,21 +30,11 @@ class DepthCamera : public Camera
   virtual ~DepthCamera();
 
  private:
-  void Initialize() override;
-  void Deinitialize() override;
-
- private:
-  void PublishData(const std::string &buffer);
-
- private:
-  // Camera info publisher
-  // rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pubDepthCameraInfo{nullptr};
-
   // Store current point cloud.
-  // sensor_msgs::msg::PointCloud2 msg_pc2;
+  sensor_msgs::msg::PointCloud2 msg_pc2;
 
   // Point cloud publisher.
-  // rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubPointCloud;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubPointCloud;
 };
 }  // namespace cloisim_ros
-#endif  // CLOISIM_ROS_DEPTHCAMERA__DEPTHCAMERA_HPP_
+#endif  // CLOISIM_ROS_CAMERA__DEPTHCAMERA_HPP_

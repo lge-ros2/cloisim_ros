@@ -15,7 +15,8 @@
 #include <cloisim_ros_actor/actor.hpp>
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 #include <cloisim_ros_camera/camera.hpp>
-#include <cloisim_ros_depthcamera/depthcamera.hpp>
+#include <cloisim_ros_camera/depth_camera.hpp>
+#include <cloisim_ros_camera/segmentation_camera.hpp>
 #include <cloisim_ros_elevator_system/elevator_system.hpp>
 #include <cloisim_ros_gps/gps.hpp>
 #include <cloisim_ros_ground_truth/ground_truth.hpp>
@@ -95,6 +96,13 @@ static shared_ptr<cloisim_ros::Base> make_device_node(
       node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name, model_name);
+  }
+  else if (!node_type.compare("SEGMENTCAMERA"))
+  {
+    if (enable_single_mode)
+      node = std::make_shared<cloisim_ros::SegmentationCamera>(node_options, node_name);
+    else
+      node = std::make_shared<cloisim_ros::SegmentationCamera>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("GPS"))
   {

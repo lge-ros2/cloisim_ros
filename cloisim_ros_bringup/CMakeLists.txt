@@ -21,7 +21,6 @@ find_package(cloisim_ros_camera REQUIRED)
 find_package(cloisim_ros_micom REQUIRED)
 find_package(cloisim_ros_lidar REQUIRED)
 find_package(cloisim_ros_camera REQUIRED)
-find_package(cloisim_ros_depthcamera REQUIRED)
 find_package(cloisim_ros_multicamera REQUIRED)
 find_package(cloisim_ros_realsense REQUIRED)
 find_package(cloisim_ros_gps REQUIRED)
@@ -41,7 +40,6 @@ set(dependencies
   cloisim_ros_micom
   cloisim_ros_lidar
   cloisim_ros_camera
-  cloisim_ros_depthcamera
   cloisim_ros_multicamera
   cloisim_ros_realsense
   cloisim_ros_gps

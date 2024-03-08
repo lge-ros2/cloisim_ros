@@ -1,0 +1,25 @@
+/**
+ *  @file   segmentation.proto
+ *  @date   2024-03-04
+ *  @author hyunseok Yang
+ *  @warning
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+
+syntax = "proto2";
+package cloisim.msgs;
+
+/// \ingroup cloisim_msgs
+/// \interface Segmentation
+/// \brief Message for Segmentation
+
+import "image_stamped.proto";
+import "vision_class.proto";
+
+message Segmentation
+{
+  required ImageStamped image_stamped = 1;
+  repeated VisionClass class_map      = 2;
+}
