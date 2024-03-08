@@ -36,7 +36,7 @@ SegmentationCamera::SegmentationCamera(
 
 SegmentationCamera::~SegmentationCamera()
 {
-  // DBG_SIM_INFO("Delete SegmentationCamera");
+  // DBG_SIM_INFO("Delete %s", typeid(this).name());
   Stop();
 }
 
@@ -63,18 +63,18 @@ void SegmentationCamera::PublishData(const string &buffer)
 {
   if (!pb_seg_.ParseFromString(buffer))
   {
-    DBG_SIM_ERR("!!!Parsing error, size(%d)", buffer.length());
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
   SetTime(pb_seg_.image_stamped().time());
 
   vision_msgs::msg::LabelInfo msg_label_info;
+  vision_msgs::msg::VisionClass msg_vision_class;
   msg_label_info.header.stamp = GetTime();
+
   for (auto i = 0; i < pb_seg_.class_map_size(); i++)
   {
-    vision_msgs::msg::VisionClass msg_vision_class;
-
     auto &class_map = pb_seg_.class_map(i);
     msg_vision_class.class_id = class_map.class_id();
     msg_vision_class.class_name = class_map.class_name();
