@@ -54,7 +54,8 @@ void SegmentationCamera::InitializeCameraData()
     AddPublisherThread(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, std::placeholders::_1));
   }
 
-  pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>("label_info", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local());
+  pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>(
+      topic_base_name_ + "/label_info", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local());
 
   DBG_SIM_INFO("%s hashKey: data(%s)", typeid(this).name(), hashKeyData.c_str());
 }

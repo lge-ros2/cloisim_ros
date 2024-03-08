@@ -49,6 +49,7 @@ class CameraBase : public Base
 
  protected:
   std::string frame_id_;
+  std::string topic_base_name_;
 
   // image buffer from simulator
   cloisim::msgs::ImageStamped pb_img_;

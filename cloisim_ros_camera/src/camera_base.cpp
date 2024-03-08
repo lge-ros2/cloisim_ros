@@ -30,7 +30,9 @@ CameraBase::CameraBase(
     const string namespace_)
     : Base(node_name, namespace_, options_)
     , frame_id_("camera_link")
+    , topic_base_name_("")
 {
+  topic_name_ = "camera";
   // DBG_SIM_INFO("CameraBase");
 }
 
@@ -85,11 +87,9 @@ void CameraBase::InitializeCameraInfo()
 
 void CameraBase::InitializeCameraPublish()
 {
-  topic_name_ = "camera";
-
   msg_img_.header.frame_id = frame_id_;
 
-  const auto topic_base_name_ = GetPartsName() + "/" + topic_name_;
+  topic_base_name_ = GetPartsName() + "/" + topic_name_;
 
   image_transport::ImageTransport it(GetNode());
   pub_ = it.advertiseCamera(topic_base_name_ + "/image_raw", 1);
