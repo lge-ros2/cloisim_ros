@@ -16,8 +16,6 @@
   <depend>cloisim_ros_bridge_zmq</depend>
   <depend>geometry_msgs</depend>
 
-  <depend>protobuf-dev</depend>
-
   <test_depend>ament_cmake_cppcheck</test_depend>
 
   <export>
