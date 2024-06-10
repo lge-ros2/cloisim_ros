@@ -1,4 +1,4 @@
-# cloisim_ros (humble version)
+# cloisim_ros (jazzy version)
 
 ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot simulator).
 
@@ -7,11 +7,11 @@ ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot
 - Latest version: [link](https://github.com/lge-ros2/cloisim/releases/latest)
 - All Releases: [link](https://github.com/lge-ros2/cloisim/releases)
 
-## Install ROS2 humble
+## Install ROS2 jazzy
 
   follow the guideline on below link.
 
-  <https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html>
+  <https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debians.html>
 
 ## Prerequisite
 
