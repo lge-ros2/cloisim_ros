@@ -34,7 +34,7 @@ Micom::Micom(
     const string namespace_)
     : Base(node_name, namespace_, options_)
 {
-  Start();
+  Start(false); // FIXME: broadcasting tf is disabled temporally
 }
 
 Micom::Micom(const string namespace_)
@@ -80,7 +80,7 @@ void Micom::Initialize()
 
   {
     msg_odom_.header.frame_id = "odom";
-    msg_odom_.child_frame_id = "base_footprint";
+    msg_odom_.child_frame_id = "base_link";
 
     SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
