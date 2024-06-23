@@ -167,7 +167,10 @@ inline void Base::AddStaticTf2(const geometry_msgs::msg::TransformStamped tf)
 
 inline void Base::PublishTF(const geometry_msgs::msg::TransformStamped& tf)
 {
-  m_tf_broadcaster->sendTransform(tf);
+  if (m_tf_broadcaster != nullptr)
+  {
+    m_tf_broadcaster->sendTransform(tf);
+  }
 }
 
 inline cloisim::msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr,
