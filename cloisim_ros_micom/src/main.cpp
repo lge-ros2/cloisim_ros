@@ -37,6 +37,11 @@ int main(int argc, char** argv)
     const auto model_name = bringup_param_node->TargetModel();
     const auto node_name = bringup_param_node->TargetPartsName();
 
+    if (bringup_param_node->HasEnableTFforMicom())
+    {
+      node_options.append_parameter_override("enable_tf", bringup_param_node->EnableTFforMicom());
+    }
+
     if (is_single_mode)
       node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
     else
