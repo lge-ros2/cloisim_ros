@@ -77,6 +77,7 @@ void CameraBase::InitializeCameraInfo()
     auto link_frame_transform_pose = GetObjectTransform(info_bridge_ptr);
     link_frame_transform_pose.set_name(frame_id_);
     SetStaticTf2(link_frame_transform_pose);
+
     optical_frame_id_ = GetPartsName() + "_camera_optical_frame";
     cloisim::msgs::Pose optical_frame_transform_pose;
     optical_frame_transform_pose.mutable_orientation()->set_x(-0.5);

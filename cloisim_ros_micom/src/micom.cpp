@@ -80,7 +80,7 @@ void Micom::Initialize()
 
   {
     msg_odom_.header.frame_id = "odom";
-    msg_odom_.child_frame_id = "base_link";
+    msg_odom_.child_frame_id = "base_footprint";
 
     SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
