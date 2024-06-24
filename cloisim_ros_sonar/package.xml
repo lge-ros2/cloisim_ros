@@ -5,8 +5,8 @@
   <version>3.5.0</version>
   <description>virtual sonar for simulation</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
-  <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
   <license>MIT</license>
+  <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
