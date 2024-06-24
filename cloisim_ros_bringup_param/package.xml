@@ -4,11 +4,10 @@
   <name>cloisim_ros_bringup_param</name>
   <version>4.0.0</version>
   <description>Bringup scripts and configurations for cloisim_ros</description>
-
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
+  <license>MIT</license>
   <author email="hyunseok7.yang@lge.com">Hyunseok Yang</author>
 
-  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
