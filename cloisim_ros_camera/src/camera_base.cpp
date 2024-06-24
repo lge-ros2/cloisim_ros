@@ -30,6 +30,7 @@ CameraBase::CameraBase(
     const string namespace_)
     : Base(node_name, namespace_, options_)
     , frame_id_("camera_link")
+    , optical_frame_id_("camera_optical_frame")
     , topic_base_name_("")
 {
   topic_name_ = "camera";
@@ -73,9 +74,18 @@ void CameraBase::InitializeCameraInfo()
     GetRos2Parameter(info_bridge_ptr);
 
     frame_id_ = GetPartsName() + "_" + GetFrameId("camera_link");
-    auto transform_pose = GetObjectTransform(info_bridge_ptr);
-    transform_pose.set_name(frame_id_);
-    SetStaticTf2(transform_pose);
+    auto link_frame_transform_pose = GetObjectTransform(info_bridge_ptr);
+    link_frame_transform_pose.set_name(frame_id_);
+    SetStaticTf2(link_frame_transform_pose);
+
+    optical_frame_id_ = GetPartsName() + "_camera_optical_frame";
+    cloisim::msgs::Pose optical_frame_transform_pose;
+    optical_frame_transform_pose.mutable_orientation()->set_x(-0.5);
+    optical_frame_transform_pose.mutable_orientation()->set_y(0.5);
+    optical_frame_transform_pose.mutable_orientation()->set_z(-0.5);
+    optical_frame_transform_pose.mutable_orientation()->set_w(0.5);
+    optical_frame_transform_pose.set_name(optical_frame_id_);
+    SetStaticTf2(optical_frame_transform_pose, frame_id_);
 
     camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr);
@@ -87,7 +97,7 @@ void CameraBase::InitializeCameraInfo()
 
 void CameraBase::InitializeCameraPublish()
 {
-  msg_img_.header.frame_id = frame_id_;
+  msg_img_.header.frame_id = optical_frame_id_;
 
   topic_base_name_ = GetPartsName() + "/" + topic_name_;
 

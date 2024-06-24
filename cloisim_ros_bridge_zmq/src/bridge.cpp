@@ -50,6 +50,7 @@ Bridge::~Bridge()
 {
   if (pCtx_)
   {
+    zmq_ctx_shutdown(pCtx_);
     zmq_ctx_term(pCtx_);
     pCtx_ = nullptr;
   }
@@ -395,6 +396,8 @@ bool Bridge::CloseSocket(void *&target)
     DBG_SIM_ERR("null target");
     return false;
   }
+
+  DBG_SIM_WRN("CLOSE ZMQQ!!!!!!!!!!!!!!!!!!!!!!!!");
 
   zmq_close(target);
   target = nullptr;

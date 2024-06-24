@@ -49,6 +49,7 @@ class CameraBase : public Base
 
  protected:
   std::string frame_id_;
+  std::string optical_frame_id_;
   std::string topic_base_name_;
 
   // image buffer from simulator

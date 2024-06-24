@@ -2,15 +2,10 @@
 
 ```shell
 ros2 run cloisim_ros_ground_truth standalone
-```
-
-or
-
-```shell
 ros2 run cloisim_ros_ground_truth standalone --ros-args -p target_parts_name:=tracking
 ```
 
-# How to monitor the message of topic.
+## How to monitor the message of topic.
 
 ```shell
 ros2 topic echo /ground_truth
@@ -18,7 +13,7 @@ ros2 topic echo /ground_truth
 
 You need to configure the ground truth list from [here](https://github.com/lge-ros2/sample_resources/blob/415a700c5280286a28690cf032cd0f4aa826a150/worlds/lg_seocho_with_actors.world#L301).
 
-# Examples of outputs
+## Examples of outputs
 
 ```shell
 ---

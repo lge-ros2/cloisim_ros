@@ -1,6 +1,6 @@
 /**
  *  @file   bringup_param.hpp
- *  @date   2021-01-21
+ *  @date   2024-06-24
  *  @author Hyunseok Yang
  *  @brief
  *        load parameters for bringup
@@ -46,23 +46,26 @@ class BringUpParam : public rclcpp::Node
   void TargetPartsName(const string value) { target_parts_name = value; }
 
   Json::Value GetBringUpList(const bool filterByParameters = false);
-
-  void StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
-
- public:
   Json::Value RequestBringUpList();
 
   static bool IsRobotSpecificType(const string node_type);
-
   static bool IsWorldSpecificType(const string node_type);
 
+  void StoreFilteredInfoAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
   static void StoreBridgeInfosAsParameters(const Json::Value item, rclcpp::NodeOptions &node_options);
+
+  bool HasEnableTFforMicom() { return has_parameter("micom.enable_tf"); }
+  bool EnableTFforMicom() { return enable_tf_micom_; }
+
+private:
+  void SetIndividualParameters(Json::Value& result);
 
  private:
   bool is_single_mode;
   string target_model;
   string target_parts_type;
   string target_parts_name;
+  bool enable_tf_micom_;
 
   WebSocketService *ws_service_ptr_;
 

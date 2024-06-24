@@ -8,14 +8,20 @@ Currently noise model is not applied yet.
 ros2 run cloisim_ros_sonar standalone
 ```
 
-or
+## Single mode
 
 ```shell
-ros2 run cloisim_ros_sonar standalone --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=gps
+ros2 run cloisim_ros_sonar standalone --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=sonar
 ```
 
-or
+## Namespaced mode for multi-robot
 
 ```shell
-ros2 run cloisim_ros_sonar standalone --ros-args -p target_model:=cloi1 -p target_parts_name:=gps
+ros2 run cloisim_ros_sonar standalone --ros-args -p target_model:=cloi1 -p target_parts_name:=sonar
+```
+
+## disable publishing TF(+TF static)
+
+```shell
+ros2 run cloisim_ros_sonar standalone --ros-args -p enable_tf:=False -p target_model:=cloi1 -p target_parts_name:=sonar
 ```

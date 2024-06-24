@@ -1,4 +1,4 @@
-# cloisim_ros (humble version)
+# cloisim_ros (jazzy version)
 
 ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot simulator).
 
@@ -7,11 +7,11 @@ ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot
 - Latest version: [link](https://github.com/lge-ros2/cloisim/releases/latest)
 - All Releases: [link](https://github.com/lge-ros2/cloisim/releases)
 
-## Install ROS2 humble
+## Install ROS2 jazzy
 
   follow the guideline on below link.
 
-  <https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html>
+  <https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debians.html>
 
 ## Prerequisite
 
@@ -63,13 +63,8 @@ Apply namespaceas each robot as a multi robot mode.
 **Strongly recommend to use this method.**
 
 ```shell
-ros2 launch cloisim_ros_bringup bringup.launch.py
-```
-
-or
-
-```shell
-ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=False
+ros2 launch cloisim_ros_bringup bringup_launch.py
+ros2 launch cloisim_ros_bringup bringup_launch.py single_mode:=False
 ```
 
 #### Turn on single Mode
@@ -77,7 +72,7 @@ ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=False
 It shall NOT be applied namespace for robot and the number of robot must BE single in world environment.
 
 ```shell
-ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True
+ros2 launch cloisim_ros_bringup bringup_launch.py single_mode:=True
 ```
 
 ## Running CLOiSim
@@ -85,7 +80,7 @@ ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True
 It provides a script to run CLOiSim easily.
 
 ```shell
-ros2 launch cloisim_ros_bringup cloisim.launch.py sim_path:=/opt/CLOiSim/CLOiSim-2.2.0 world:=lg_seocho.world
+ros2 launch cloisim_ros_bringup cloisim_launch.py sim_path:=/opt/CLOiSim/CLOiSim-2.2.0 world:=lg_seocho.world
 ```
 
 ## Using Docker
