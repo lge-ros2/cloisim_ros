@@ -1,10 +1,11 @@
-#
-# LGE Advanced Robotics Laboratory
-# Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
-# All Rights are Reserved.
-#
-# SPDX-License-Identifier: MIT
-#
+"""
+LGE Advanced Robotics Laboratory
+Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
+All Rights are Reserved.
+
+SPDX-License-Identifier: MIT
+"""
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import ExecuteProcess

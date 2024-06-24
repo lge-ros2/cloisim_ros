@@ -52,7 +52,9 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
     , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
     , m_static_tf_broadcaster(nullptr)
     , m_tf_broadcaster(nullptr)
+    , enable_tf_publish_(true)
 {
+  get_parameter_or("enable_tf", enable_tf_publish_, bool(true));
 }
 
 Base::~Base()
@@ -73,6 +75,8 @@ void Base::Start(const bool enable_tf_publish)
   }
 
   Initialize();
+
+  DBG_SIM_MSG("node(%s) enable_tf(%d)", get_name(), enable_tf_publish_);
 
   auto callback_static_tf_pub = [this]() -> void
   {

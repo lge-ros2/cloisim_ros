@@ -19,16 +19,9 @@
 
 using namespace std;
 
-#define INFO_ONCE RCLCPP_INFO_STREAM_ONCE
-#define WARN_ONCE RCLCPP_WARN_STREAM_ONCE
-#define ERR_ONCE RCLCPP_ERROR_STREAM_ONCE
-#define INFO RCLCPP_INFO_STREAM
-#define WARN RCLCPP_WARN_STREAM
-#define ERR RCLCPP_ERROR_STREAM
-
 extern map<tuple<string, string, string>, tuple<bool, bool, shared_ptr<cloisim_ros::Base>>> g_node_map_list;
 
-void make_bringup_list(const Json::Value result_map, const string target_model, const string target_parts_type, const string target_parts_name, const bool is_single_mode);
+void make_bringup_list(const Json::Value& result_map, const string target_model, const string target_parts_type, const string target_parts_name, const bool is_single_mode);
 
 void remove_all_bringup_nodes(rclcpp::Executor& executor, const rclcpp::Logger& logger)
 {

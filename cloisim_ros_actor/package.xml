@@ -4,9 +4,7 @@
   <name>cloisim_ros_actor</name>
   <version>4.0.0</version>
   <description>node for actor plugin</description>
-
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
-
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
