@@ -128,7 +128,7 @@ Json::Value BringUpParam::RequestBringUpList()
 Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
 {
   Json::Value root;
-  cout << result << endl;
+  // cout << result << endl;
   for (auto it = result.begin(); it != result.end(); it++)
   {
     const auto node_namespace = it.key().asString();
