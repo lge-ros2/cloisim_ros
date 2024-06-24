@@ -51,16 +51,22 @@ ros2 run cloisim_ros_camera camera --ros-args -p target_model:=cloi1 -p target_p
 ros2 run cloisim_ros_camera depth_camera
 ```
 
-or
+#### Single mode for depth camera
 
 ```shell
 ros2 run cloisim_ros_camera depth_camera --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=depthcamera
 ```
 
-or
+#### Namespaced mode for multi-robot with depth camera
 
 ```shell
 ros2 run cloisim_ros_camera depth_camera --ros-args -p target_model:=cloi1 -p target_parts_name:=depthcamera
+```
+
+## disable publishing TF(+TF static) for depth camera
+
+```shell
+ros2 run cloisim_ros_camera depth_camera --ros-args -p enable_tf:=False -p target_model:=cloi1 -p target_parts_name:=depthcamera
 ```
 
 ### Segmentation Camera
@@ -69,14 +75,20 @@ ros2 run cloisim_ros_camera depth_camera --ros-args -p target_model:=cloi1 -p ta
 ros2 run cloisim_ros_camera segmentation_camera
 ```
 
-or
+#### Single mode for segmentation camera
 
 ```shell
 ros2 run cloisim_ros_camera segmentation_camera --ros-args -p single_mode:=True -p target_model:=cloi -p target_parts_name:=segmentationcamera
 ```
 
-or
+#### Namespaced mode for multi-robot with segmentation camera
 
 ```shell
 ros2 run cloisim_ros_camera segmentation_camera --ros-args -p target_model:=cloi -p target_parts_name:=segmentationcamera
+```
+
+#### disable publishing TF(+TF static) for segmentation camera
+
+```shell
+ros2 run cloisim_ros_camera segmentation_camera --ros-args -p enable_tf:=False -p target_model:=cloi1 -p target_parts_name:=segmentationcamera
 ```

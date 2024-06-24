@@ -69,7 +69,8 @@ class Base : public rclcpp::Node
   void SetStaticTf2(const cloisim::msgs::Pose transform,
                     const std::string parent_header_frame_id = "base_link");
 
-  void Start(const bool enable_tf_publish = true);
+  void Start();
+  void Start(const bool enable_tf_publish);
   void Stop();
 
   void AddTf2(const geometry_msgs::msg::TransformStamped tf);
@@ -153,7 +154,14 @@ class Base : public rclcpp::Node
   // for ros2 default parameters
   std::string topic_name_;
   std::vector<std::string> frame_id_list_;
+
+  bool enable_tf_publish_;
 };
+
+inline void Base::Start()
+{
+  Start(enable_tf_publish_);
+}
 
 inline void Base::AddTf2(const geometry_msgs::msg::TransformStamped tf)
 {

@@ -34,7 +34,7 @@ Micom::Micom(
     const string namespace_)
     : Base(node_name, namespace_, options_)
 {
-  Start(false); // FIXME: broadcasting tf is disabled temporally
+  Start();
 }
 
 Micom::Micom(const string namespace_)
