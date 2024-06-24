@@ -21,12 +21,14 @@ ros2 run cloisim_ros_bringup bringup
 
 Apply namespaceas each robot as a multi robot mode
 
+#### ros2 run
+
 ```shell
 ros2 run cloisim_ros_bringup bringup --ros-args -p single_mode:=False
 ros2 run cloisim_ros_bringup bringup
 ```
 
-or
+#### ros2 launch
 
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py
@@ -52,17 +54,12 @@ will NOT apply namespace for robot and the number of robot must BE single in wor
 
 ```shell
 ros2 run cloisim_ros_bringup bringup --ros-args -p single_mode:=True
-```
-
-or
-
-```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True
 ```
 
-or 
+#### Specific target model without namespace
 
-specific target model without namespace
+Specify target model from simulation
 
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True target_model:=cloi0

@@ -64,11 +64,6 @@ Apply namespaceas each robot as a multi robot mode.
 
 ```shell
 ros2 launch cloisim_ros_bringup bringup_launch.py
-```
-
-or
-
-```shell
 ros2 launch cloisim_ros_bringup bringup_launch.py single_mode:=False
 ```
 
