@@ -31,3 +31,13 @@ namespace cloisim_ros
   }
   }
 ```
+
+## parameter
+
+TF/TFStatic is enabled to publish by default.
+
+If you want disable publishing TF and TF Static, just set the parameter `enable_tf:=False`.
+
+Some of cloisim_ros packages are not allowed to disable.
+
+- Actor, Elevator_System, GroundTruth, World
