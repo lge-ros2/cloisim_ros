@@ -64,3 +64,12 @@ Specify target model from simulation
 ```shell
 ros2 launch cloisim_ros_bringup bringup.launch.py single_mode:=True target_model:=cloi0
 ```
+
+### Enable or disable TF/TF_Static publishing
+
+Currently only support "micom" type in cloisim_ros_bringup.
+
+```shell
+ros2 launch cloisim_ros_bringup bringup.launch.py micom.enable_tf:=False
+ros2 run cloisim_ros_bringup bringup --ros-args -p single_mode:=True -p micom.enable_tf:=False
+```

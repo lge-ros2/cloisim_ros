@@ -1,6 +1,6 @@
 /**
- *  @file   main.cpp
- *  @date   2021-01-16
+ *  @file   bringup_param.cpp
+ *  @date   2024-06-24
  *  @author Hyunseok Yang
  *  @brief
  *  @remark
@@ -43,6 +43,7 @@ BringUpParam::BringUpParam(const string basename)
     , target_model("")
     , target_parts_type("")
     , target_parts_name("")
+    , enable_tf_micom_(true)
     , ws_service_ptr_(nullptr)
 {
   get_parameter("single_mode", is_single_mode);
@@ -50,9 +51,18 @@ BringUpParam::BringUpParam(const string basename)
   get_parameter("target_parts_type", target_parts_type);
   get_parameter("target_parts_name", target_parts_name);
 
+  if (HasEnableTFforMicom())
+  {
+    get_parameter("micom.enable_tf", enable_tf_micom_);
+  }
+
   RCLCPP_INFO_ONCE(this->get_logger(),
                    "Params > single_mode(%d) target_model(%s) target_parts_type(%s) target_parts_name(%s)",
                    is_single_mode, target_model.c_str(), target_parts_type.c_str(), target_parts_name.c_str());
+
+  RCLCPP_INFO_ONCE(this->get_logger(),
+                   "enable_tf > micom(%d)",
+                   (int)enable_tf_micom_);
 }
 
 BringUpParam::~BringUpParam()
@@ -110,6 +120,7 @@ Json::Value BringUpParam::RequestBringUpList()
       if (root["result"].size() > 0)
       {
         result = root["result"];
+        SetIndividualParameters(result);
         // cout << "There is node map list: " << result.size() << endl;
         // cout << result << endl;
         break;
@@ -123,6 +134,51 @@ Json::Value BringUpParam::RequestBringUpList()
   };
 
   return result;
+}
+
+void BringUpParam::SetIndividualParameters(Json::Value& result)
+{
+  if (result.isNull())
+    return;
+
+  // cout << __FUNCTION__<< endl;
+  // cout << result << endl;
+  for (auto it = result.begin(); it != result.end(); it++)
+  {
+    const auto node_namespace = it.key().asString();
+    auto item_list = (*it);
+    // cout << node_namespace <<  endl;
+
+    for (auto it2 = item_list.begin(); it2 != item_list.end(); ++it2)
+    {
+      const auto node_type = it2.key().asString();
+      auto node_list = (*it2);
+
+      // cout << "\t" << node_type << ", " << endl;
+      if (node_type.compare("MICOM") == 0)
+      {
+        for (auto it3 = node_list.begin(); it3 != node_list.end(); ++it3)
+        {
+          const auto node_name = it3.key().asString();
+          auto node_param_list = (*it3);
+
+          if (HasEnableTFforMicom())
+          {
+            node_param_list["enable_tf"] = EnableTFforMicom();
+          }
+
+          // cout << "\t\t node_name: " << node_name << endl;
+          // for (auto it4 = node_param_list.begin(); it4 != node_param_list.end(); ++it4)
+          //   cout << "\t\t\t" << it4.key().asString() << ": " << (*it4).asString() << endl;
+
+          node_list[node_name] = node_param_list;
+        }
+      }
+      item_list[node_type] = node_list;
+    }
+    result[node_namespace] = item_list;
+  }
+  // cout << result << endl;
 }
 
 Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
@@ -167,15 +223,15 @@ void BringUpParam::StoreBridgeInfosAsParameters(
     const Json::Value item,
     rclcpp::NodeOptions &node_options)
 {
-  if (!item.isNull())
+  if (item.isNull())
+    return;
+
+  for (auto it = item.begin(); it != item.end(); ++it)
   {
-    for (auto it = item.begin(); it != item.end(); ++it)
-    {
-      const auto bridge_key = it.key().asString();
-      const auto bridge_port = (*it).asUInt();
-      node_options.append_parameter_override("bridge." + bridge_key, uint16_t(bridge_port));
-      // cout << "bridge." << bridge_key << " = " << bridge_port << endl;
-    }
+    const auto bridge_key = it.key().asString();
+    const auto bridge_port = (*it).asUInt();
+    node_options.append_parameter_override("bridge." + bridge_key, uint16_t(bridge_port));
+    // cout << "bridge." << bridge_key << " = " << bridge_port << endl;
   }
 }
 

@@ -35,92 +35,96 @@ using namespace std;
 map<tuple<string, string, string>, tuple<bool, bool, shared_ptr<cloisim_ros::Base>>> g_node_map_list;
 // <model_name, node_type, node_name>
 static vector<tuple<string, string, string>> loaded_key_list;
-static bool enable_single_mode = false;
+static bool g_enable_single_mode = false;
 
 static shared_ptr<cloisim_ros::Base> make_device_node(
     rclcpp::NodeOptions& node_options,
     const string& node_type,
     const string& model_name,
-    const string& node_name)
+    const string& node_name,
+    const Json::Value& node_param)
 {
   shared_ptr<cloisim_ros::Base> node = nullptr;
 
-  if (enable_single_mode)
+  if (g_enable_single_mode)
     node_options.append_parameter_override("single_mode.robotname", model_name);
 
   if (!node_type.compare("MICOM"))
   {
-    if (enable_single_mode)
+    if (!node_param["enable_tf"].isNull())
+      node_options.append_parameter_override("enable_tf", node_param["enable_tf"].asBool());
+
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Micom>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("JOINTCONTROL"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::JointControl>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::JointControl>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("LIDAR") || !node_type.compare("LASER"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Lidar>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("CAMERA"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::Camera>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Camera>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("DEPTHCAMERA"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::DepthCamera>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("MULTICAMERA"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::MultiCamera>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("REALSENSE"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::RealSense>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("SEGMENTCAMERA"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::SegmentationCamera>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::SegmentationCamera>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("GPS"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::Gps>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Gps>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("IMU"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::Imu>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Imu>(node_options, node_name, model_name);
   }
   else if (!node_type.compare("SONAR"))
   {
-    if (enable_single_mode)
+    if (g_enable_single_mode)
       node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name);
     else
       node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name, model_name);
@@ -155,7 +159,7 @@ static shared_ptr<cloisim_ros::Base> make_world_node(
 }
 
 static void parse_target_parts_by_name(
-    const Json::Value item,
+    const Json::Value& item,
     const string node_type,
     const string model_name,
     const string node_name)
@@ -163,15 +167,13 @@ static void parse_target_parts_by_name(
   shared_ptr<cloisim_ros::Base> node = nullptr;
 
   rclcpp::NodeOptions node_options;
-  node_options.append_parameter_override("single_mode", static_cast<bool>(enable_single_mode));
+  node_options.append_parameter_override("single_mode", static_cast<bool>(g_enable_single_mode));
   cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(item, node_options);
 
-  const auto node_info = "Target Model/Type/Parts: " + model_name + "/" + node_type + "/" + node_name;
-
   const auto key = tie(model_name, node_type, node_name);
-
   loaded_key_list.push_back(key);
 
+  // const auto node_info = "Target Model/Type/Parts: " + model_name + "/" + node_type + "/" + node_name;
   // cout << "node info: " << node_info << endl;
   if (g_node_map_list.find(key) != g_node_map_list.end())
   {
@@ -180,11 +182,13 @@ static void parse_target_parts_by_name(
   }
 
   if (cloisim_ros::BringUpParam::IsRobotSpecificType(node_type))
-    node = make_device_node(node_options, node_type, model_name, node_name);
+    node = make_device_node(node_options, node_type, model_name, node_name, item);
+
   else if (cloisim_ros::BringUpParam::IsWorldSpecificType(node_type))
     node = make_world_node(node_options, node_type, model_name, node_name);
+
   else
-    cout << node_type << " is not supported." << endl;
+    cout << node_type << " is NOT supported." << endl;
 
   if (node != nullptr)
   {
@@ -194,7 +198,7 @@ static void parse_target_parts_by_name(
 }
 
 static void parse_target_parts_by_type(
-    const Json::Value node_list,
+    const Json::Value& node_list,
     const string node_type,
     const string model_name,
     const string targetPartsName)
@@ -217,7 +221,7 @@ static void parse_target_parts_by_type(
 }
 
 static void parse_target_model(
-    const Json::Value item_list,
+    const Json::Value& item_list,
     const string item_name,
     const string targetPartsType,
     const string targetPartsName)
@@ -237,13 +241,13 @@ static void parse_target_model(
 }
 
 void make_bringup_list(
-    const Json::Value result_map,
+    const Json::Value& result_map,
     const string target_model,
     const string target_parts_type,
     const string target_parts_name,
     const bool is_single_mode)
 {
-  enable_single_mode = is_single_mode;
+  g_enable_single_mode = is_single_mode;
   loaded_key_list.clear();
 
   for (auto it = result_map.begin(); it != result_map.end(); it++)
