@@ -33,15 +33,10 @@ This filename in `<plugin>` element enables to connect cloisim_ros_camera.
 ros2 run cloisim_ros_camera camera
 ```
 
-or
+#### Single mode for camera
 
 ```shell
 ros2 run cloisim_ros_camera camera --ros-args -p single_mode:=True -p target_model:=cloi1 -p target_parts_name:=camera
-```
-
-or
-
-```shell
 ros2 run cloisim_ros_camera camera --ros-args -p target_model:=cloi1 -p target_parts_name:=camera
 ```
 
