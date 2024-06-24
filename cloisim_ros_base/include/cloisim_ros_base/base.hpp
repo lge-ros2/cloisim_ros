@@ -29,6 +29,13 @@
 #include <cloisim_ros_bridge_zmq/bridge.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#define INFO_ONCE RCLCPP_INFO_STREAM_ONCE
+#define WARN_ONCE RCLCPP_WARN_STREAM_ONCE
+#define ERR_ONCE RCLCPP_ERROR_STREAM_ONCE
+#define INFO RCLCPP_INFO_STREAM
+#define WARN RCLCPP_WARN_STREAM
+#define ERR RCLCPP_ERROR_STREAM
+
 namespace cloisim_ros
 {
 
