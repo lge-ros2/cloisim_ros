@@ -209,7 +209,7 @@ void Micom::UpdateOdom()
 
   // Update TF
   odom_tf_.header.stamp = msg_odom_.header.stamp;
-  SetPointToGeometry(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
+  ConvertPointToVector3(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
   odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
 }
 
