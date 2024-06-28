@@ -68,6 +68,10 @@ void Imu::Initialize()
     SetStaticTf2(transform_pose);
   }
 
+  fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
+  fill(begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
+  fill(begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance), 0.0);
+
   // ROS2 Publisher
   pub_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name_, rclcpp::SensorDataQoS());
 
@@ -91,13 +95,9 @@ void Imu::PublishData(const string &buffer)
   // Fill message with latest sensor data
   msg_imu_.header.stamp = GetTime();
 
-  SetQuaternionMessageToGeometry(pb_buf_.orientation(), msg_imu_.orientation);
-  SetVector3MessageToGeometry(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
-  SetVector3MessageToGeometry(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
-
-  fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
-  fill(begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
-  fill(begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance), 0.0);
+  ConvertCLOiSimToRos2(pb_buf_.orientation(), msg_imu_.orientation);
+  ConvertCLOiSimToRos2(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
+  ConvertCLOiSimToRos2(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
 
   pub_->publish(msg_imu_);
 }

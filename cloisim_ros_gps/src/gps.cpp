@@ -23,6 +23,7 @@ namespace cloisim_ros
 
 Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
+    , topic_name_heading_("navsatfix/heading")
 {
   topic_name_ = "navsatfix";
 
@@ -60,7 +61,7 @@ void Gps::Initialize()
 
     // Get frame for message
     const auto frame_id = GetFrameId("gps_link");
-    msg_nav_.header.frame_id = frame_id;
+    msg_gps_.header.frame_id = frame_id;
 
     auto transform_pose = GetObjectTransform(info_bridge_ptr);
     transform_pose.set_name(frame_id);
@@ -69,17 +70,23 @@ void Gps::Initialize()
 
   // Fill covariances
   // TODO(@hyunseok-yang): need to applying noise
-  msg_nav_.position_covariance[0] = 0.0001f;
-  msg_nav_.position_covariance[4] = 0.0001f;
-  msg_nav_.position_covariance[8] = 0.0001f;
-  msg_nav_.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
+  msg_gps_.position_covariance[0] = 0.0001f;
+  msg_gps_.position_covariance[4] = 0.0001f;
+  msg_gps_.position_covariance[8] = 0.0001f;
+  msg_gps_.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
 
   // Fill gps status
-  msg_nav_.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
-  msg_nav_.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
+  msg_gps_.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
+  msg_gps_.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
+
+  fill(begin(msg_heading_.orientation_covariance), end(msg_heading_.orientation_covariance), 0.0);
+  fill(begin(msg_heading_.angular_velocity_covariance), end(msg_heading_.angular_velocity_covariance), 0.0);
+  fill(begin(msg_heading_.linear_acceleration_covariance), end(msg_heading_.linear_acceleration_covariance), 0.0);
 
   // ROS2 Publisher
-  pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
+  pub_gps_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
+
+  pub_heading_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name_heading_, rclcpp::SensorDataQoS());
 
   if (data_bridge_ptr != nullptr)
   {
@@ -90,21 +97,32 @@ void Gps::Initialize()
 
 void Gps::PublishData(const string &buffer)
 {
-  if (!pb_buf_.ParseFromString(buffer))
+  if (!pb_buf_gps_.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
-  SetTime(pb_buf_.time());
+  SetTime(pb_buf_gps_.time());
 
   // Fill message with latest sensor data
-  msg_nav_.header.stamp = GetTime();
-  msg_nav_.latitude = pb_buf_.latitude_deg();
-  msg_nav_.longitude = pb_buf_.longitude_deg();
-  msg_nav_.altitude = pb_buf_.altitude();
+  msg_gps_.header.stamp = GetTime();
+  msg_gps_.latitude = pb_buf_gps_.latitude_deg();
+  msg_gps_.longitude = pb_buf_gps_.longitude_deg();
+  msg_gps_.altitude = pb_buf_gps_.altitude();
 
-  pub_->publish(msg_nav_);
+  pub_gps_->publish(msg_gps_);
+
+  msg_heading_.header.stamp = GetTime();
+
+  if (pb_buf_gps_.has_heading())
+  {
+    ConvertCLOiSimToRos2(pb_buf_gps_.heading().orientation(), msg_heading_.orientation);
+    ConvertCLOiSimToRos2(pb_buf_gps_.heading().angular_velocity(), msg_heading_.angular_velocity);
+    ConvertCLOiSimToRos2(pb_buf_gps_.heading().linear_acceleration(), msg_heading_.linear_acceleration);
+  }
+
+  pub_heading_->publish(msg_heading_);
 }
 
 }  // namespace cloisim_ros
