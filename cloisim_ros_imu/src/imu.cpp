@@ -25,7 +25,7 @@ namespace cloisim_ros
 Imu::Imu(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
     : Base(node_name, namespace_, options_)
 {
-  topic_name_ = "imu";
+  topic_name_ = "imu/data_raw";
 
   Start();
 }

@@ -89,7 +89,7 @@ def generate_launch_description():
         remappings=[('scan', _scan),
                     ('cmd_vel', _cmd_vel),
                     ('odom', _odom),
-                    ('imu', _imu),
+                    ('imu/data_raw', _imu),
                     ('navsatfix', _navsatfix)],
         parameters=[{'single_mode': _single_mode,
                      'target_model': ParameterValue(_target_model, value_type=str),
