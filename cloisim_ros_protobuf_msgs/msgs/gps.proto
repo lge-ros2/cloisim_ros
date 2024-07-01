@@ -3,9 +3,11 @@ package cloisim.msgs;
 
 /// \ingroup cloisim_msgs
 /// \interface GPS
+/// \details IMU message type is used for heading information
 /// \brief Data from a GPS sensor
 
 import "time.proto";
+import "imu.proto";
 
 message GPS
 {
@@ -17,4 +19,5 @@ message GPS
   optional double velocity_east         = 6;
   optional double velocity_north        = 7;
   optional double velocity_up           = 8;
+  optional IMU heading                  = 9;
 }
