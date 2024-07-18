@@ -5,15 +5,37 @@ ros2 run cloisim_ros_ground_truth standalone
 ros2 run cloisim_ros_ground_truth standalone --ros-args -p target_parts_name:=tracking
 ```
 
-## How to monitor the message of topic.
+## How to configure
+
+if you want to tracking dynamic props, set `enable` attribute in `<props>` element to `true`.
+
+```xml
+<plugin name="GroundTruthPlugin" filename="libGroundTruthPlugin.so">
+  <publish_frequency>5</publish_frequency>
+  <props enable="true">
+    <prop class_id="10">box</prop>
+    <prop class_id="11">cylinder</prop>
+    <prop class_id="12">sphere</prop>
+  </props>
+  <list>
+    <target tracking_id="1" class_id="101">L9S</target>
+    <target tracking_id="11" class_id="100">Former1</target>
+  </list>
+</plugin>
+```
+
+### samples
+
+You need to configure the ground truth list from [here](https://github.com/lge-ros2/sample_resources/blob/415a700c5280286a28690cf032cd0f4aa826a150/worlds/lg_seocho_with_actors.world#L301).
+
+
+## How to monitor the message of topic
 
 ```shell
 ros2 topic echo /ground_truth
 ```
 
-You need to configure the ground truth list from [here](https://github.com/lge-ros2/sample_resources/blob/415a700c5280286a28690cf032cd0f4aa826a150/worlds/lg_seocho_with_actors.world#L301).
-
-## Examples of outputs
+### Examples of outputs
 
 ```shell
 ---
