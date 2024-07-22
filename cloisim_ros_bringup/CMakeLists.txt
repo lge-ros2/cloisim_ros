@@ -61,6 +61,12 @@ add_executable(
   src/bringup.cpp
 )
 
+target_include_directories(
+  ${STANDALONE_EXEC_NAME} PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
 ament_target_dependencies(
   ${STANDALONE_EXEC_NAME}
   ${dependencies}

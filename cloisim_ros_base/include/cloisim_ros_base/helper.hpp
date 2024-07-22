@@ -1,5 +1,5 @@
 /**
- *  @file   helper.h
+ *  @file   helper.hpp
  *  @date   2021-01-14
  *  @author Hyunseok Yang
  *  @brief
@@ -13,8 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef CLOISIM_ROS_BASE__HELPER_H_
-#define CLOISIM_ROS_BASE__HELPER_H_
+#ifndef CLOISIM_ROS_BASE__HELPER_HPP_
+#define CLOISIM_ROS_BASE__HELPER_HPP_
 
 #include <tf2/LinearMath/Quaternion.h>
 
@@ -114,4 +114,4 @@ static void ConvertPointToVector3(
   dst.z = src.z;
 }
 
-#endif  // CLOISIM_ROS_BASE__HELPER_H_
+#endif  // CLOISIM_ROS_BASE__HELPER_HPP_

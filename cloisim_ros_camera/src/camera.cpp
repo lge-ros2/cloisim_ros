@@ -5,22 +5,21 @@
  *  @brief
  *        ROS2 Camera class
  *  @remark
- *  @warning
+ *  @copyright
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
  */
 
 #include <cloisim_msgs/param.pb.h>
-#include <cloisim_ros_base/camera_helper.h>
 #include <tf2/LinearMath/Quaternion.h>
-
+#include <cloisim_ros_base/camera_helper.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
-using namespace std;
-using namespace std::chrono_literals;
+using namespace std::literals::chrono_literals;
+using string = std::string;
 
 namespace cloisim_ros
 {

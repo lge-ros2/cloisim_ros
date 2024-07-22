@@ -5,7 +5,7 @@
  *  @brief
  *        ROS2 Camera class for cloisim
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
  *      All Rights are Reserved.

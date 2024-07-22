@@ -13,23 +13,25 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_joint_control/joint_control.hpp"
 #include <cloisim_msgs/joint_cmd_v.pb.h>
 #include <cloisim_msgs/joint_state_v.pb.h>
-
-#include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-using namespace std;
-using namespace chrono_literals;
+#include "cloisim_ros_joint_control/joint_control.hpp"
+#include <cloisim_ros_base/helper.hpp>
+
+using namespace std::literals::chrono_literals;
 using namespace std::placeholders;
-using namespace cloisim;
+using string = std::string;
 
 namespace cloisim_ros
 {
 
-JointControl::JointControl(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
+JointControl::JointControl(
+    const rclcpp::NodeOptions &options_,
+    const string node_name,
+    const string namespace_)
     : Base(node_name, namespace_, options_)
     , pub_joint_state_(nullptr)
     , sub_joint_job_(nullptr)
@@ -60,7 +62,8 @@ void JointControl::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  DBG_SIM_INFO("hashKey: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+  DBG_SIM_INFO("hashKey: pub(%s) sub(%s) tf(%s)",
+               hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
 
   auto info_bridge_ptr = CreateBridge();
   auto data_bridge_ptr = CreateBridge();
@@ -117,7 +120,7 @@ void JointControl::Initialize()
 string JointControl::MakeCommandMessage(
     control_msgs::msg::JointJog::ConstSharedPtr msg)
 {
-  msgs::JointCmd_V pb_joint_cmds;
+  cloisim::msgs::JointCmd_V pb_joint_cmds;
 
   // const auto duration = msg->duration;
   const auto use_displacement = (msg->joint_names.size() == msg->displacements.size());
@@ -158,7 +161,7 @@ string JointControl::MakeCommandMessage(
 
 void JointControl::PublishData(const string &buffer)
 {
-  msgs::JointState_V pb_joint_states;
+  cloisim::msgs::JointState_V pb_joint_states;
   if (!pb_joint_states.ParseFromString(buffer))
   {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
@@ -201,7 +204,7 @@ void JointControl::GetRobotDescription(zmq::Bridge *const bridge_ptr)
   if (reply.IsInitialized() &&
       (reply.name().compare("description") == 0))
   {
-    if (reply.value().type() == msgs::Any_ValueType_STRING)
+    if (reply.value().type() == cloisim::msgs::Any_ValueType_STRING)
     {
       const auto description = reply.value().string_value();
       msg_description_.data = description;

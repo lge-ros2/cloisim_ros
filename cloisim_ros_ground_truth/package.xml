@@ -10,7 +10,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>perception_msgs</depend>
+  <build_depend>perception_msgs</build_depend>
   <depend>cloisim_ros_bringup_param</depend>
   <depend>cloisim_ros_base</depend>
 

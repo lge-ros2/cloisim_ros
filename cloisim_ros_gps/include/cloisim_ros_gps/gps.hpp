@@ -21,7 +21,7 @@
 #include <string>
 
 #include <cloisim_ros_base/base.hpp>
-#include <cloisim_ros_base/helper.h>
+#include <cloisim_ros_base/helper.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 
@@ -30,7 +30,9 @@ namespace cloisim_ros
 class Gps : public Base
 {
  public:
-  explicit Gps(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Gps(
+      const rclcpp::NodeOptions &options_,
+      const std::string node_name, const std::string namespace_ = "");
   explicit Gps(const std::string namespace_ = "");
   ~Gps();
 

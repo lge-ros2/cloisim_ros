@@ -31,7 +31,9 @@ namespace cloisim_ros
 class Micom : public Base
 {
  public:
-  explicit Micom(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Micom(
+      const rclcpp::NodeOptions &options_,
+      const std::string node_name, const std::string namespace_ = "");
   explicit Micom(const std::string namespace_ = "");
   virtual ~Micom();
 
@@ -49,7 +51,10 @@ class Micom : public Base
 
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
 
-  bool CalculateOdometry(const rclcpp::Duration duration, const double _wheel_angular_vel_left, const double _wheel_angular_vel_right, const double _theta);
+  bool CalculateOdometry(
+      const rclcpp::Duration duration,
+      const double _wheel_angular_vel_left, const double _wheel_angular_vel_right,
+      const double _theta);
 
   void UpdateOdom();
   void UpdateImu();

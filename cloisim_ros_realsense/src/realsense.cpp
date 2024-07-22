@@ -6,7 +6,7 @@
  *  @brief
  *        ROS2 realsense class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
@@ -15,18 +15,17 @@
 #include <cloisim_msgs/camerasensor.pb.h>
 #include <cloisim_msgs/image_stamped.pb.h>
 #include <cloisim_msgs/imu.pb.h>
-
-#include <cloisim_ros_base/camera_helper.h>
-#include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_realsense/realsense.hpp"
+#include <cloisim_ros_base/camera_helper.hpp>
+#include <cloisim_ros_base/helper.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
-using namespace std;
-using namespace chrono_literals;
-using namespace cloisim;
+using namespace std::placeholders;
+using namespace std::literals::chrono_literals;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -75,8 +74,8 @@ void RealSense::Initialize()
   uint16_t portData;
   for (const auto& module : activated_modules_)
   {
-    const auto module_type = get<0>(module);
-    const auto module_name = get<1>(module);
+    const auto module_type = std::get<0>(module);
+    const auto module_name = std::get<1>(module);
 
     get_parameter_or("bridge." + module_name + "Data", portData, uint16_t(0));
     get_parameter_or("bridge." + module_name + "Info", portInfo, uint16_t(0));
@@ -103,7 +102,8 @@ void RealSense::Initialize()
       }
       else
       {
-        DBG_SIM_ERR("Unknown module type: %s name: %s", module_type.c_str(), module_name.c_str());
+        DBG_SIM_ERR("Unknown module type: %s name: %s",
+                    module_type.c_str(), module_name.c_str());
       }
     }
   }
@@ -145,7 +145,7 @@ void RealSense::InitializeCam(
 
   if (data_ptr != nullptr)
   {
-    AddPublisherThread(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, placeholders::_1));
+    AddPublisherThread(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1));
   }
 }
 
@@ -166,11 +166,12 @@ void RealSense::InitializeImu(
 
   // ROS2 Publisher
   const auto topic_base_name = GetPartsName() + "/" + topic_name_;
-  pub_imu_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
+  pub_imu_ =
+      this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
 
   if (data_ptr != nullptr)
   {
-    AddPublisherThread(data_ptr, bind(&RealSense::PublishImuData, this, placeholders::_1));
+    AddPublisherThread(data_ptr, bind(&RealSense::PublishImuData, this, _1));
   }
 }
 
@@ -209,15 +210,17 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
           const auto type = param.children(0);
           const auto name = param.children(1);
           if (type.has_value() &&
-              type.value().type() == msgs::Any_ValueType_STRING &&
+              type.value().type() == cloisim::msgs::Any_ValueType_STRING &&
               !type.value().string_value().empty() &&
               name.has_value() &&
-              name.value().type() == msgs::Any_ValueType_STRING &&
+              name.value().type() == cloisim::msgs::Any_ValueType_STRING &&
               !name.value().string_value().empty())
           {
-            const auto tuple_module = make_tuple(type.value().string_value(), name.value().string_value());
+            const auto tuple_module =
+                std::make_tuple(type.value().string_value(), name.value().string_value());
             activated_modules_.push_back(tuple_module);
-            moduleListStr.append(get<1>(tuple_module) + "(" + get<0>(tuple_module) + "), ");
+            moduleListStr.append(std::get<1>(tuple_module) +
+                                 "(" + std::get<0>(tuple_module) + "), ");
           }
         }
       }
@@ -277,9 +280,12 @@ void RealSense::PublishImuData(const string& buffer)
   SetVector3MessageToGeometry(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
   SetVector3MessageToGeometry(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
 
-  fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
-  fill(begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
-  fill(begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance), 0.0);
+  std::fill(begin(msg_imu_.orientation_covariance),
+            end(msg_imu_.orientation_covariance), 0.0);
+  std::fill(begin(msg_imu_.angular_velocity_covariance),
+            end(msg_imu_.angular_velocity_covariance), 0.0);
+  std::fill(begin(msg_imu_.linear_acceleration_covariance),
+            end(msg_imu_.linear_acceleration_covariance), 0.0);
 
   pub_imu_->publish(msg_imu_);
 }

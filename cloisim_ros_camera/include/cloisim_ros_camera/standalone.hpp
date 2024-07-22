@@ -5,7 +5,7 @@
  *  @brief
  *        rclcpp init for standalone
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright (c) 2024 LG Electronics Inc., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -13,6 +13,11 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#ifndef CLOISIM_ROS_CAMERA__STANDALONE_HPP_
+#define CLOISIM_ROS_CAMERA__STANDALONE_HPP_
+
+#include <string>
+#include <memory>
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 template <class T>
@@ -46,3 +51,5 @@ static void run_standalone_single_executor(
   executor.add_node(node);
   executor.spin();
 }
+
+#endif  // CLOISIM_ROS_CAMERA__STANDALONE_HPP_

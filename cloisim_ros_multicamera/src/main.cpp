@@ -5,7 +5,7 @@
  *  @brief
  *        ROS2 multi camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -21,7 +21,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_multicamera");
+  const auto bringup_param_node =
+      std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_multicamera");
   bringup_param_node->TargetPartsType("MULTICAMERA");
   executor.add_node(bringup_param_node);
 

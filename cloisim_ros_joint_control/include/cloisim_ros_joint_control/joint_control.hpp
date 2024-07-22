@@ -29,7 +29,9 @@ namespace cloisim_ros
 class JointControl : public Base
 {
  public:
-  explicit JointControl(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit JointControl(
+      const rclcpp::NodeOptions &options_,
+      const std::string node_name, const std::string namespace_ = "");
   explicit JointControl(const std::string namespace_ = "");
   virtual ~JointControl();
 
