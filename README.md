@@ -9,15 +9,20 @@ ROS2 simulation device packages to connect CLOiSim(the unity3D based multi-robot
 
 ## Install ROS2 humble
 
-  follow the guideline on below link.
+follow the guideline on below link.
 
   <https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html>
 
 ## Prerequisite
 
 ```shell
+mkdir -p ~/cloisim_ws/src
+cd ~/cloisim_ws/src
+git clone --recursive https://github.com/lge-ros2/cloisim_ros.git -b humble
+
 sudo apt update
 sudo apt install -y python3-rosdep
+
 sudo rosdep init
 rosdep update
 rosdep install -y -r -q --from-paths src --ignore-src --rosdistro humble
@@ -29,6 +34,7 @@ Set up ROS2 environment first
 
 ```shell
 source /opt/ros2/humble/setup.bash
+cd ~/cloisim_ws
 colcon build --symlink-install --packages-up-to cloisim_ros_bringup
 ```
 
@@ -44,6 +50,14 @@ export CLOISIM_SERVICE_PORT=8080
 check here [details](https://github.com/lge-ros2/cloisim_ros/tree/humble/cloisim_ros_bringup) for bring-up guide
 
 ### Run cloisim_ros (robot + world)
+
+#### DDS
+
+recommended to use cylcone DDS
+
+```shell
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+```
 
 #### Shared Memory DDS with FastRTPS
 
