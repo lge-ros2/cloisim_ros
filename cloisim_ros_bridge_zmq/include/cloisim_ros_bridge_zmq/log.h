@@ -15,7 +15,7 @@
 #ifndef CLOISIM_ROS_BRIDGE_ZMQ__LOG_H_
 #define CLOISIM_ROS_BRIDGE_ZMQ__LOG_H_
 
-#include "term_color.h"
+#include "cloisim_ros_bridge_zmq/term_color.h"
 
 #pragma GCC system_header
 

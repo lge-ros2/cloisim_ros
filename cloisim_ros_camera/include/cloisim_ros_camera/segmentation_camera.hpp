@@ -5,7 +5,7 @@
  *  @brief
  *        ROS2 Segmentation Camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -15,9 +15,9 @@
 #ifndef CLOISIM_ROS_CAMERA__SEGMENTATION_CAMERA_HPP_
 #define CLOISIM_ROS_CAMERA__SEGMENTATION_CAMERA_HPP_
 
+#include <cloisim_msgs/segmentation.pb.h>
 #include <string>
 #include <cloisim_ros_camera/camera_base.hpp>
-#include <cloisim_msgs/segmentation.pb.h>
 #include <vision_msgs/msg/label_info.hpp>
 
 namespace cloisim_ros
@@ -25,8 +25,12 @@ namespace cloisim_ros
 class SegmentationCamera : public CameraBase
 {
  public:
-  explicit SegmentationCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
-  explicit SegmentationCamera(const std::string node_name = "cloisim_ros_segmentationcamera", const std::string namespace_ = "");
+  explicit SegmentationCamera(
+      const rclcpp::NodeOptions &options_,
+      const std::string node_name, const std::string namespace_ = "");
+  explicit SegmentationCamera(
+      const std::string node_name = "cloisim_ros_segmentationcamera",
+      const std::string namespace_ = "");
   virtual ~SegmentationCamera();
 
  private:

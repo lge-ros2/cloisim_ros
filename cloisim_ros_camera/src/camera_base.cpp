@@ -5,22 +5,22 @@
  *  @brief
  *        ROS2 CameraBase class
  *  @remark
- *  @warning
+ *  @copyright
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
  */
 
 #include <cloisim_msgs/param.pb.h>
-#include <cloisim_ros_base/camera_helper.hpp>
 #include <tf2/LinearMath/Quaternion.h>
-
+#include <cloisim_ros_base/camera_helper.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
-using namespace std;
-using namespace std::chrono_literals;
+using namespace std::placeholders;
+using namespace std::literals::chrono_literals;
+using std::string;
 
 namespace cloisim_ros
 {
@@ -87,7 +87,8 @@ void CameraBase::InitializeCameraInfo()
     optical_frame_transform_pose.set_name(optical_frame_id_);
     SetStaticTf2(optical_frame_transform_pose, frame_id_);
 
-    camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
+    camera_info_manager_ =
+        std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
     const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr);
     SetCameraInfoInManager(camera_info_manager_, camSensorMsg, frame_id_);
   }
@@ -117,10 +118,11 @@ void CameraBase::InitializeCameraData()
   if (data_bridge_ptr != nullptr)
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr,
-                       bind(static_cast<void (CameraBase::*)(const string&)>(&CameraBase::PublishData),
-                            this,
-                            std::placeholders::_1));
+    AddPublisherThread(
+        data_bridge_ptr,
+        bind(static_cast<void (CameraBase::*)(const string &)>(&CameraBase::PublishData),
+             this,
+             std::placeholders::_1));
   }
 
   DBG_SIM_INFO("hashKey: data(%s)", hashKeyData.c_str());

@@ -4,7 +4,7 @@
  *  @author Hyunseok Yang
  *  @brief
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -28,23 +28,28 @@
 #include <cloisim_ros_realsense/realsense.hpp>
 #include <cloisim_ros_sonar/sonar.hpp>
 #include <cloisim_ros_world/world.hpp>
+#include "cloisim_ros_bringup/type.h"
 
-using namespace std;
+using namespace std::literals::chrono_literals;
+using string = std::string;
+using std::cout;
+using std::endl;
 
 // <model_name, node_type, node_name>, <is_added, do_remove, shared_ptr>
-map<tuple<string, string, string>, tuple<bool, bool, shared_ptr<cloisim_ros::Base>>> g_node_map_list;
+node_map_t g_node_map_list;
+
 // <model_name, node_type, node_name>
-static vector<tuple<string, string, string>> loaded_key_list;
+static loaded_key_list_t loaded_key_list;
 static bool g_enable_single_mode = false;
 
-static shared_ptr<cloisim_ros::Base> make_device_node(
+static std::shared_ptr<cloisim_ros::Base> make_device_node(
     rclcpp::NodeOptions& node_options,
     const string& node_type,
     const string& model_name,
     const string& node_name,
     const Json::Value& node_param)
 {
-  shared_ptr<cloisim_ros::Base> node = nullptr;
+  std::shared_ptr<cloisim_ros::Base> node = nullptr;
 
   if (g_enable_single_mode)
     node_options.append_parameter_override("single_mode.robotname", model_name);
@@ -136,13 +141,13 @@ static shared_ptr<cloisim_ros::Base> make_device_node(
   return node;
 }
 
-static shared_ptr<cloisim_ros::Base> make_world_node(
+static std::shared_ptr<cloisim_ros::Base> make_world_node(
     rclcpp::NodeOptions& node_options,
     const string& node_type,
     const string& model_name,
     const string& node_name)
 {
-  shared_ptr<cloisim_ros::Base> node = nullptr;
+  std::shared_ptr<cloisim_ros::Base> node = nullptr;
 
   node_options.append_parameter_override("model", model_name);
 
@@ -164,7 +169,7 @@ static void parse_target_parts_by_name(
     const string model_name,
     const string node_name)
 {
-  shared_ptr<cloisim_ros::Base> node = nullptr;
+  std::shared_ptr<cloisim_ros::Base> node = nullptr;
 
   rclcpp::NodeOptions node_options;
   node_options.append_parameter_override("single_mode", static_cast<bool>(g_enable_single_mode));
@@ -173,7 +178,8 @@ static void parse_target_parts_by_name(
   const auto key = tie(model_name, node_type, node_name);
   loaded_key_list.push_back(key);
 
-  // const auto node_info = "Target Model/Type/Parts: " + model_name + "/" + node_type + "/" + node_name;
+  // const auto node_info = "Target Model/Type/Parts: " +
+  //                        model_name + "/" + node_type + "/" + node_name;
   // cout << "node info: " << node_info << endl;
   if (g_node_map_list.find(key) != g_node_map_list.end())
   {
@@ -260,7 +266,7 @@ void make_bringup_list(
     else
     {
       parse_target_model(item_list, item_name, target_parts_type, target_parts_name);
-      this_thread::sleep_for(100ms);
+      std::this_thread::sleep_for(100ms);
     }
   }
 
@@ -279,8 +285,8 @@ void make_bringup_list(
     if (find(loaded_key_list.begin(), loaded_key_list.end(), key) == loaded_key_list.end())
     {
       auto& value = it->second;
-      if (get<1>(value) == false)
-        get<1>(value) = true;  //  mark to remove
+      if (std::get<1>(value) == false)
+        std::get<1>(value) = true;  //  mark to remove
     }
   }
 }

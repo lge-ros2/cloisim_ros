@@ -178,4 +178,4 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
   return cameraSensorInfo;
 }
 
-#endif
+#endif  // CLOISIM_ROS_BASE__CAMERA_HELPER_HPP_

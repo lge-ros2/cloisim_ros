@@ -47,15 +47,24 @@ class ElevatorSystem : public Base
   zmq::Bridge *control_bridge_ptr;
   cloisim::msgs::Param request_msg_;
 
-  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::SharedPtr srvCallElevator_;
-  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::SharedPtr srvGetCalledElevator_;
-  rclcpp::Service<elevator_system_msgs::srv::GetElevatorInformation>::SharedPtr srvGetElevatorInfo_;
-  rclcpp::Service<elevator_system_msgs::srv::SelectElevatorFloor>::SharedPtr srvSelectElevatorFloor_;
-  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::SharedPtr srvRequestDoorOpen_;
-  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::SharedPtr srvRequestDoorClose_;
-  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::SharedPtr srvIsDoorOpened_;
-  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::SharedPtr srvReserveElevator_;
-  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::SharedPtr srvReleaseElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::
+      SharedPtr srvCallElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::
+      SharedPtr srvGetCalledElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::GetElevatorInformation>::
+      SharedPtr srvGetElevatorInfo_;
+  rclcpp::Service<elevator_system_msgs::srv::SelectElevatorFloor>::
+      SharedPtr srvSelectElevatorFloor_;
+  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::
+      SharedPtr srvRequestDoorOpen_;
+  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::
+      SharedPtr srvRequestDoorClose_;
+  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::
+      SharedPtr srvIsDoorOpened_;
+  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::
+      SharedPtr srvReserveElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::
+      SharedPtr srvReleaseElevator_;
 
  private:
   void CallElevator(

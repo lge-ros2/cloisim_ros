@@ -13,11 +13,12 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_sonar/sonar.hpp"
-#include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-using namespace std;
+#include "cloisim_ros_sonar/sonar.hpp"
+#include <cloisim_ros_base/helper.hpp>
+
+using string = std::string;
 
 namespace cloisim_ros
 {

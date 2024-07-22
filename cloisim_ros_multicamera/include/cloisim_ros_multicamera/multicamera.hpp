@@ -6,7 +6,7 @@
  *  @brief
  *        ROS2 Multi Camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
@@ -32,7 +32,9 @@ namespace cloisim_ros
 class MultiCamera : public Base
 {
  public:
-  explicit MultiCamera(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit MultiCamera(
+      const rclcpp::NodeOptions &options_,
+      const std::string node_name, const std::string namespace_ = "");
   explicit MultiCamera(const std::string namespace_ = "");
   virtual ~MultiCamera();
 

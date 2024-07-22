@@ -17,10 +17,9 @@
 #define CLOISIM_ROS_BRIDGE_ZMQ__BRIDGE_HPP_
 
 #include <zmq.h>
-
-#include "log.h"
-
 #include <string>
+#include "cloisim_ros_bridge_zmq/log.h"
+
 
 namespace cloisim_ros
 {
@@ -85,7 +84,7 @@ class Bridge
 
  private:
   bool Setup(const unsigned char mode);
-  bool SetupCommon(void* const targetSocket);
+  bool SetupCommon(void* const socket);
   bool SetupSubscriber();
   bool SetupPublisher();
   bool SetupService();
