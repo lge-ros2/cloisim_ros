@@ -1,5 +1,5 @@
 /**
- *  @file   camera_helper.h
+ *  @file   camera_helper.hpp
  *  @date   2021-05-16
  *  @author Hyunseok Yang
  *  @brief
@@ -13,8 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef CLOISIM_ROS_BASE__CAMERA_HELPER_H_
-#define CLOISIM_ROS_BASE__CAMERA_HELPER_H_
+#ifndef CLOISIM_ROS_BASE__CAMERA_HELPER_HPP_
+#define CLOISIM_ROS_BASE__CAMERA_HELPER_HPP_
 
 #include <cloisim_msgs/camerasensor.pb.h>
 #include <cloisim_msgs/param.pb.h>
@@ -178,4 +178,4 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
   return cameraSensorInfo;
 }
 
-#endif  // CLOISIM_ROS_BASE__CAMERA_HELPER_H_
+#endif

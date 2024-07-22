@@ -16,7 +16,7 @@
 #include <cloisim_msgs/image_stamped.pb.h>
 #include <cloisim_msgs/imu.pb.h>
 
-#include <cloisim_ros_base/camera_helper.h>
+#include <cloisim_ros_base/camera_helper.hpp>
 #include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 

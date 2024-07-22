@@ -12,7 +12,7 @@
  */
 
 #include <cloisim_msgs/param.pb.h>
-#include <cloisim_ros_base/camera_helper.h>
+#include <cloisim_ros_base/camera_helper.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 
 #include <cloisim_ros_camera/camera.hpp>
