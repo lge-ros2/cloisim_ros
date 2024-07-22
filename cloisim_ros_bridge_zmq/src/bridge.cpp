@@ -404,9 +404,9 @@ bool Bridge::CloseSocket(void *&target)
 
 bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
 {
-  if (&m_msgRx == nullptr || pSockRx_ == nullptr)
+  if (pSockRx_ == nullptr)
   {
-    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer m_msgRx(%p) or pSockRx_(%p)", (void *)&m_msgRx, pSockRx_);
+    DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer pSockRx_(%p)", pSockRx_);
     return false;
   }
 
