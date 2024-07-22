@@ -5,7 +5,7 @@
  *  @brief
  *        ROS2 CameraBase class
  *  @remark
- *  @warning
+ *  @copyright
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
@@ -30,7 +30,9 @@ namespace cloisim_ros
 class CameraBase : public Base
 {
  public:
-  explicit CameraBase(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit CameraBase(
+    const rclcpp::NodeOptions &options_,
+    const std::string node_name, const std::string namespace_ = "");
   explicit CameraBase(const std::string node_name, const std::string namespace_ = "");
   virtual ~CameraBase();
 

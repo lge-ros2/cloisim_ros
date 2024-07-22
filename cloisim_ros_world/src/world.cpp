@@ -19,12 +19,11 @@
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/time.pb.h>
 
-using namespace std;
-using namespace cloisim;
+using string = std::string;
 
 namespace cloisim_ros
 {
-World::World(const rclcpp::NodeOptions &options_, const std::string node_name)
+World::World(const rclcpp::NodeOptions &options_, const string node_name)
     : Base(node_name, options_)
 {
   Start(false);

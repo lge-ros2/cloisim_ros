@@ -29,7 +29,8 @@ int main(int argc, char *argv[])
   rclcpp::executors::SingleThreadedExecutor executor;
   rclcpp::sleep_for(1000ms);
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_elevator_system");
+  const auto bringup_param_node =
+      std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_elevator_system");
   executor.add_node(bringup_param_node);
   bringup_param_node->IsSingleMode(true);
   bringup_param_node->TargetPartsType("ELEVATOR");

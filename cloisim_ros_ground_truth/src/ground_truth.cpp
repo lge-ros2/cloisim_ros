@@ -15,10 +15,9 @@
  */
 
 #include "cloisim_ros_ground_truth/ground_truth.hpp"
-#include <cloisim_ros_base/helper.h>
+#include <cloisim_ros_base/helper.hpp>
 
-using namespace std;
-using namespace cloisim;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -46,13 +45,16 @@ void GroundTruth::Initialize()
   const auto hashKey = GetModelName() + GetPartsName() + "Data";
   DBG_SIM_INFO("hashKey: %s", hashKey.c_str());
 
-  pub_ = create_publisher<perception_msgs::msg::ObjectArray>("/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+  pub_ = create_publisher<perception_msgs::msg::ObjectArray>(
+      "/ground_truth",
+      rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr)
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
-    AddPublisherThread(data_bridge_ptr, bind(&GroundTruth::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr,
+                       bind(&GroundTruth::PublishData, this, std::placeholders::_1));
   }
 }
 

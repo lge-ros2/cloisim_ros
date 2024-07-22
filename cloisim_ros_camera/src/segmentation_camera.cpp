@@ -5,7 +5,7 @@
  *  @brief
  *        ROS2 Segmentation Camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -14,7 +14,8 @@
 
 #include "cloisim_ros_camera/segmentation_camera.hpp"
 
-using namespace std;
+using namespace std::placeholders;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -51,7 +52,7 @@ void SegmentationCamera::InitializeCameraData()
   if (data_bridge_ptr != nullptr)
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, _1));
   }
 
   pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>(

@@ -28,7 +28,8 @@ namespace cloisim_ros
 class Sonar : public Base
 {
  public:
-  explicit Sonar(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Sonar(const rclcpp::NodeOptions &options_, const std::string node_name,
+                 const std::string namespace_ = "");
   explicit Sonar(const std::string namespace_ = "");
   ~Sonar();
 

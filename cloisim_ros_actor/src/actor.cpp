@@ -15,9 +15,10 @@
 
 #include "cloisim_ros_actor/actor.hpp"
 
-using namespace std;
 using namespace std::placeholders;
-using namespace cloisim;
+using Param = cloisim::msgs::Param;
+using Any = cloisim::msgs::Any;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -59,9 +60,9 @@ void Actor::Initialize()
 }
 
 void Actor::CallMoveActor(
-    const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<cloisim_ros_msgs::srv::MoveActor::Request> request,
-    const shared_ptr<cloisim_ros_msgs::srv::MoveActor::Response> response)
+    const std::shared_ptr<rmw_request_id_t> /*request_header*/,
+    const std::shared_ptr<cloisim_ros_msgs::srv::MoveActor::Request> request,
+    const std::shared_ptr<cloisim_ros_msgs::srv::MoveActor::Response> response)
 {
   const auto message = CreateMoveRequest(request->target_name, request->destination);
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
@@ -71,7 +72,7 @@ void Actor::CallMoveActor(
   }
 }
 
-bool Actor::GetResultFromResponse(const msgs::Param &response_msg)
+bool Actor::GetResultFromResponse(const Param &response_msg)
 {
   if (!response_msg.IsInitialized() || response_msg.name().compare("result") != 0)
   {
@@ -80,15 +81,15 @@ bool Actor::GetResultFromResponse(const msgs::Param &response_msg)
   return response_msg.value().bool_value();
 }
 
-msgs::Param Actor::CreateMoveRequest(
+Param Actor::CreateMoveRequest(
     const string target_name,
     const geometry_msgs::msg::Vector3 point)
 {
-  msgs::Param request_msg;
+  Param request_msg;
   request_msg.set_name(target_name);
 
   auto value_ptr = request_msg.mutable_value();
-  value_ptr->set_type(msgs::Any::VECTOR3D);
+  value_ptr->set_type(Any::VECTOR3D);
 
   auto vector3d_value_ptr = value_ptr->mutable_vector3d_value();
   vector3d_value_ptr->set_x(point.x);

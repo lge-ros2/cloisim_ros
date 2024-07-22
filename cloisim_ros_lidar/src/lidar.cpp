@@ -19,8 +19,8 @@
 #include "cloisim_ros_lidar/lidar.hpp"
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 
-using namespace std;
-using namespace cloisim;
+using namespace std::placeholders;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -80,11 +80,13 @@ void Lidar::Initialize()
   // ROS2 Publisher
   if (output_type.compare("LaserScan") == 0)
   {
-    pub_laser_ = this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
+    pub_laser_ =
+        this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
   }
   else if (output_type.compare("PointCloud2") == 0)
   {
-    pub_pc2_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
+    pub_pc2_ =
+        this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
   }
   else
   {
@@ -94,7 +96,7 @@ void Lidar::Initialize()
   if (data_bridge_ptr != nullptr)
   {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&Lidar::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr, bind(&Lidar::PublishData, this, _1));
   }
 }
 
@@ -104,7 +106,7 @@ string Lidar::GetOutputType(zmq::Bridge *const bridge_ptr)
 
   if (reply.IsInitialized() &&
       (reply.name().compare("output_type") == 0) &&
-      reply.has_value() && reply.value().type() == msgs::Any_ValueType_STRING &&
+      reply.has_value() && reply.value().type() == cloisim::msgs::Any_ValueType_STRING &&
       !reply.value().string_value().empty())
   {
     const auto output_type = reply.value().string_value();
@@ -189,12 +191,16 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   size_t i, j;
 
   // Fill pointcloud with laser scan data, converting spherical to Cartesian
-  for (j = 0, inclination = pb_buf_.scan().vertical_angle_min(); j < vertical_beam_count; ++j, inclination += vertical_angle_step)
+  for (j = 0, inclination = pb_buf_.scan().vertical_angle_min();
+       j < vertical_beam_count;
+       ++j, inclination += vertical_angle_step)
   {
     auto c_inclination = cos(inclination);
     auto s_inclination = sin(inclination);
 
-    for (i = 0, azimuth = pb_buf_.scan().angle_min(); i < beam_count; ++i, azimuth += angle_step, ++range_iter, ++intensity_iter)
+    for (i = 0, azimuth = pb_buf_.scan().angle_min();
+         i < beam_count;
+         ++i, azimuth += angle_step, ++range_iter, ++intensity_iter)
     {
       auto c_azimuth = cos(azimuth);
       auto s_azimuth = sin(azimuth);

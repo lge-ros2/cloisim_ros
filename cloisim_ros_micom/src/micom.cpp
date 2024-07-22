@@ -13,17 +13,17 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_micom/micom.hpp"
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/twist.pb.h>
-#include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-using namespace std;
-using namespace std::chrono_literals;
+#include "cloisim_ros_micom/micom.hpp"
+#include <cloisim_ros_base/helper.hpp>
+
+using namespace std::literals::chrono_literals;
 using namespace std::placeholders;
-using namespace cloisim;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -110,7 +110,8 @@ void Micom::Initialize()
     AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this, data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void
+  auto callback_sub =
+      [this, data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void
   {
     const auto msgBuf = MakeControlMessage(msg);
     SetBufferToSimulator(data_bridge_ptr, msgBuf);
@@ -135,7 +136,7 @@ void Micom::ResetOdometryCallback(
 string Micom::MakeControlMessage(
     const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
-  msgs::Twist twistBuf;  // m/s and rad/s
+  cloisim::msgs::Twist twistBuf;  // m/s and rad/s
   auto linear_ptr = twistBuf.mutable_linear();
   auto angular_ptr = twistBuf.mutable_angular();
   linear_ptr->set_x(msg->linear.x);
@@ -168,7 +169,8 @@ void Micom::PublishData(const string &buffer)
 
   SetTime(pb_micom_.time());
 
-  // DBG_SIM_WRN("Simulation time %u %u size(%d)", pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
+  // DBG_SIM_WRN("Simulation time %u %u size(%d)",
+  //             pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
 
   UpdateOdom();
   UpdateImu();
@@ -199,9 +201,11 @@ void Micom::UpdateOdom()
   // static int cnt = 0;
   // if (cnt++ % LOGGING_PERIOD == 0)
   // {
-  //   DBG_SIM_MSG("Wheel odom x[%+3.5f] y[%+3.5f] theta[%+3.5f] vel_lin[%+3.5f] vel_ang[%+3.5f] time(%f)",
-  //               msg_odom_.pose.pose.position.x, msg_odom_.pose.pose.position.y, pb_micom_.odom().pose().z(),
-  //               msg_odom_.twist.twist.linear.x, msg_odom_.twist.twist.angular.z, step_time);
+  //   DBG_SIM_MSG(
+  //       "Wheel odom x[%+3.5f] y[%+3.5f] theta[%+3.5f] vel[lin(%+3.5f) ang(%+3.5f)] time(%f)",
+  //       msg_odom_.pose.pose.position.x, msg_odom_.pose.pose.position.y,
+  //       pb_micom_.odom().pose().z(),
+  //       msg_odom_.twist.twist.linear.x, msg_odom_.twist.twist.angular.z, step_time);
   // }
 
   SetVector3MessageToGeometry(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
@@ -226,9 +230,12 @@ void Micom::UpdateImu()
   SetVector3MessageToGeometry(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
   SetVector3MessageToGeometry(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
 
-  fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
-  fill(begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
-  fill(begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance), 0.0);
+  std::fill(begin(msg_imu_.orientation_covariance),
+            end(msg_imu_.orientation_covariance), 0.0);
+  std::fill(begin(msg_imu_.angular_velocity_covariance),
+            end(msg_imu_.angular_velocity_covariance), 0.0);
+  std::fill(begin(msg_imu_.linear_acceleration_covariance),
+            end(msg_imu_.linear_acceleration_covariance), 0.0);
 }
 
 void Micom::UpdateBattery()

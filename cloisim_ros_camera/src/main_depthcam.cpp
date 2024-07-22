@@ -5,7 +5,7 @@
  *  @brief
  *        ROS2 Camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -19,7 +19,8 @@
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  run_standalone_single_executor<cloisim_ros::DepthCamera>("cloisim_ros_depthcamera", "DEPTHCAMERA");
+  run_standalone_single_executor<cloisim_ros::DepthCamera>(
+      "cloisim_ros_depthcamera", "DEPTHCAMERA");
   rclcpp::shutdown();
   return 0;
 }

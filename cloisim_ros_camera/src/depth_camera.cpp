@@ -6,7 +6,7 @@
  *  @brief
  *        ROS2 Depth Camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
@@ -14,7 +14,7 @@
 
 #include "cloisim_ros_camera/depth_camera.hpp"
 
-using namespace std;
+using string = std::string;
 
 namespace cloisim_ros
 {

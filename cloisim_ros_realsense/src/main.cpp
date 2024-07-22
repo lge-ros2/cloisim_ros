@@ -6,7 +6,7 @@
  *  @brief
  *        ROS2 realsense class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright 2020 LG Electronics Inc. , LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -22,7 +22,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_realsense");
+  const auto bringup_param_node =
+      std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_realsense");
   bringup_param_node->TargetPartsType("REALSENSE");
   executor.add_node(bringup_param_node);
 
