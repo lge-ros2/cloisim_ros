@@ -32,7 +32,9 @@ class Lidar : public Base
   using PointCloud2Pub = rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr;
 
  public:
-  explicit Lidar(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Lidar(
+      const rclcpp::NodeOptions &options_,
+      const std::string node_name, const std::string namespace_ = "");
   explicit Lidar(const std::string namespace_ = "");
   ~Lidar();
 

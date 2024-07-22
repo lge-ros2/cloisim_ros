@@ -17,9 +17,9 @@
 #include <cstring>
 #include <thread>
 
-using namespace std;
-
 #define DEFAULT_CLOISIM_BRIDGE_IP "127.0.0.1"
+
+using string = std::string;
 
 namespace cloisim_ros::zmq
 {
@@ -82,27 +82,27 @@ bool Bridge::Setup(const unsigned char mode)
   return result;
 }
 
-bool Bridge::SetupCommon(void *const targetSocket)
+bool Bridge::SetupCommon(void *const socket)
 {
-  if (zmq_setsockopt(targetSocket, ZMQ_CONNECT_TIMEOUT, &connect_timeout, sizeof(connect_timeout)))
+  if (zmq_setsockopt(socket, ZMQ_CONNECT_TIMEOUT, &connect_timeout, sizeof(connect_timeout)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_setsockopt(targetSocket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min, sizeof(reconnect_ivl_min)))
+  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min, sizeof(reconnect_ivl_min)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_setsockopt(targetSocket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
+  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_setsockopt(targetSocket, ZMQ_LINGER, &lingerPeriod, sizeof(lingerPeriod)))
+  if (zmq_setsockopt(socket, ZMQ_LINGER, &lingerPeriod, sizeof(lingerPeriod)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -313,7 +313,8 @@ bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const auto bridgeAddress = GetAddress(port);
-  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)",
+  //             (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0)
@@ -330,7 +331,8 @@ bool Bridge::ConnectService(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const auto bridgeAddress = GetAddress(port);
-  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)",
+  //             (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0)
@@ -347,7 +349,8 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
   m_nHashTagTx = GetHashCode(hashKey);
 
   const auto bridgeAddress = GetAddress(port);
-  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
+  // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)",
+  //             (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
   if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0)
@@ -412,7 +415,8 @@ bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
 
   if ((bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
-    // DBG_SIM_ERR("Failed to receive message len(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
+    // DBG_SIM_ERR("Failed to receive message len(%d): %s",
+    //             bufferLength, zmq_strerror(zmq_errno()));
     return false;
   }
 
@@ -432,13 +436,15 @@ bool Bridge::Send(const void *buffer, const int bufferLength, bool isNonBlocking
   zmq_msg_t msg;
   if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0)
   {
-    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer, msg(%p) or pSockTx_(%p)", (void *)&msg, pSockTx_);
+    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer, msg(%p) or pSockTx_(%p)",
+                (void *)&msg, pSockTx_);
     return false;
   }
 
   // Set hash Tag
   memcpy(zmq_msg_data(&msg), &m_nHashTagTx, tagSize);
-  memcpy(reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(zmq_msg_data(&msg)) + tagSize), buffer, bufferLength);
+  memcpy(reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(zmq_msg_data(&msg)) + tagSize),
+         buffer, bufferLength);
 
   /* Send the message to the socket */
   if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0) < 0)

@@ -16,7 +16,7 @@
 #include "cloisim_ros_gps/gps.hpp"
 #include <tf2/LinearMath/Quaternion.h>
 
-using namespace std;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -79,14 +79,19 @@ void Gps::Initialize()
   msg_gps_.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
   msg_gps_.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
 
-  fill(begin(msg_heading_.orientation_covariance), end(msg_heading_.orientation_covariance), 0.0);
-  fill(begin(msg_heading_.angular_velocity_covariance), end(msg_heading_.angular_velocity_covariance), 0.0);
-  fill(begin(msg_heading_.linear_acceleration_covariance), end(msg_heading_.linear_acceleration_covariance), 0.0);
+  std::fill(begin(msg_heading_.orientation_covariance),
+            end(msg_heading_.orientation_covariance), 0.0);
+  std::fill(begin(msg_heading_.angular_velocity_covariance),
+            end(msg_heading_.angular_velocity_covariance), 0.0);
+  std::fill(begin(msg_heading_.linear_acceleration_covariance),
+            end(msg_heading_.linear_acceleration_covariance), 0.0);
 
   // ROS2 Publisher
-  pub_gps_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
+  pub_gps_ =
+      this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
 
-  pub_heading_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name_heading_, rclcpp::SensorDataQoS());
+  pub_heading_ =
+      this->create_publisher<sensor_msgs::msg::Imu>(topic_name_heading_, rclcpp::SensorDataQoS());
 
   if (data_bridge_ptr != nullptr)
   {
@@ -117,9 +122,15 @@ void Gps::PublishData(const string &buffer)
 
   if (pb_buf_gps_.has_heading())
   {
-    ConvertCLOiSimToRos2(pb_buf_gps_.heading().orientation(), msg_heading_.orientation);
-    ConvertCLOiSimToRos2(pb_buf_gps_.heading().angular_velocity(), msg_heading_.angular_velocity);
-    ConvertCLOiSimToRos2(pb_buf_gps_.heading().linear_acceleration(), msg_heading_.linear_acceleration);
+    ConvertCLOiSimToRos2(
+        pb_buf_gps_.heading().orientation(),
+        msg_heading_.orientation);
+    ConvertCLOiSimToRos2(
+        pb_buf_gps_.heading().angular_velocity(),
+        msg_heading_.angular_velocity);
+    ConvertCLOiSimToRos2(
+        pb_buf_gps_.heading().linear_acceleration(),
+        msg_heading_.linear_acceleration);
   }
 
   pub_heading_->publish(msg_heading_);

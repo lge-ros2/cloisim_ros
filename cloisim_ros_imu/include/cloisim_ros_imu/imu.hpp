@@ -28,7 +28,8 @@ namespace cloisim_ros
 class Imu : public Base
 {
  public:
-  explicit Imu(const rclcpp::NodeOptions &options_, const std::string node_name, const std::string namespace_ = "");
+  explicit Imu(const rclcpp::NodeOptions &options_,
+               const std::string node_name, const std::string namespace_ = "");
   explicit Imu(const std::string namespace_ = "");
   ~Imu();
 

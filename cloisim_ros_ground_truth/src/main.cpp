@@ -21,7 +21,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_ground_truth");
+  const auto bringup_param_node =
+      std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_ground_truth");
   bringup_param_node->IsSingleMode(true);
   bringup_param_node->TargetPartsType("GROUNDTRUTH");
   executor.add_node(bringup_param_node);

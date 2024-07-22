@@ -21,7 +21,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_joint_control");
+  const auto bringup_param_node =
+      std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_joint_control");
   bringup_param_node->TargetPartsType("JOINTCONTROL");
   executor.add_node(bringup_param_node);
 

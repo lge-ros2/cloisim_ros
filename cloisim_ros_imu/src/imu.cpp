@@ -13,11 +13,12 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_imu/imu.hpp"
-#include <cloisim_ros_base/helper.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-using namespace std;
+#include "cloisim_ros_imu/imu.hpp"
+#include <cloisim_ros_base/helper.hpp>
+
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -68,9 +69,12 @@ void Imu::Initialize()
     SetStaticTf2(transform_pose);
   }
 
-  fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
-  fill(begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
-  fill(begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance), 0.0);
+  std::fill(begin(msg_imu_.orientation_covariance),
+            end(msg_imu_.orientation_covariance), 0.0);
+  std::fill(begin(msg_imu_.angular_velocity_covariance),
+            end(msg_imu_.angular_velocity_covariance), 0.0);
+  std::fill(begin(msg_imu_.linear_acceleration_covariance),
+            end(msg_imu_.linear_acceleration_covariance), 0.0);
 
   // ROS2 Publisher
   pub_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name_, rclcpp::SensorDataQoS());

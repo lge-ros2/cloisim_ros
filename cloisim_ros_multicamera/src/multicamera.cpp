@@ -6,27 +6,29 @@
  *  @brief
  *        ROS2 Multi Camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *       LGE Advanced Robotics Laboratory
  *         Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
  *         All Rights are Reserved.
  */
-#include <cloisim_ros_base/camera_helper.hpp>
-#include <tf2/LinearMath/Quaternion.h>
 
 #include <cloisim_msgs/param.pb.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_multicamera/multicamera.hpp"
+#include <cloisim_ros_base/camera_helper.hpp>
 #include <sensor_msgs/fill_image.hpp>
 
-using namespace std;
-using namespace std::chrono_literals;
-using namespace cloisim;
+using namespace std::literals::chrono_literals;
+using string = std::string;
 
 namespace cloisim_ros
 {
 
-MultiCamera::MultiCamera(const rclcpp::NodeOptions &options_, const string node_name, const std::string namespace_)
+MultiCamera::MultiCamera(
+    const rclcpp::NodeOptions &options_,
+    const string node_name,
+    const std::string namespace_)
     : Base(node_name, namespace_, options_)
 {
   Start();
@@ -50,7 +52,8 @@ void MultiCamera::Initialize()
 
   const auto hashKeyData = GetTargetHashKey("Data");
   const auto hashKeyInfo = GetTargetHashKey("Info");
-  DBG_SIM_INFO("hashKey: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
+  DBG_SIM_INFO("hashKey: data(%s), info(%s)",
+               hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
@@ -79,13 +82,15 @@ void MultiCamera::Initialize()
 
       pubs_.push_back(it.advertiseCamera(topic_base_name_ + "/image_raw", 1));
 
-      camera_info_manager_.push_back(std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
+      camera_info_manager_.push_back(
+          std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
       const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr, frame_id);
       SetCameraInfoInManager(camera_info_manager_.back(), camSensorMsg, frame_id);
     }
 
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&MultiCamera::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr,
+                       bind(&MultiCamera::PublishData, this, std::placeholders::_1));
   }
 }
 

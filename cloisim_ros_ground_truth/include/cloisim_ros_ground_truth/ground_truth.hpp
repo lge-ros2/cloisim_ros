@@ -30,7 +30,7 @@ class GroundTruth : public Base
 {
  public:
   explicit GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name);
-  explicit GroundTruth();
+  GroundTruth();
   virtual ~GroundTruth();
 
  private:

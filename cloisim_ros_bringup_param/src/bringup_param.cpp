@@ -4,7 +4,7 @@
  *  @author Hyunseok Yang
  *  @brief
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright (c) 2020 LG Electronics Inc., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -13,6 +13,9 @@
  */
 
 #include "cloisim_ros_bringup_param/bringup_param.hpp"
+
+using std::cout;
+using std::endl;
 
 namespace cloisim_ros
 {
@@ -57,8 +60,9 @@ BringUpParam::BringUpParam(const string basename)
   }
 
   RCLCPP_INFO_ONCE(this->get_logger(),
-                   "Params > single_mode(%d) target_model(%s) target_parts_type(%s) target_parts_name(%s)",
-                   is_single_mode, target_model.c_str(), target_parts_type.c_str(), target_parts_name.c_str());
+                   "Params > single_mode(%d) target[model(%s) parts[type(%s) name(%s)]]",
+                   is_single_mode,
+                   target_model.c_str(), target_parts_type.c_str(), target_parts_name.c_str());
 
   RCLCPP_INFO_ONCE(this->get_logger(),
                    "enable_tf > micom(%d)",
@@ -202,7 +206,8 @@ Json::Value BringUpParam::GetFilteredListByParameters(const Json::Value result)
         const auto node_name = node_list.begin().key().asString();
         // cout << target_parts_name << ", node_name: " << node_name << endl;
 
-        if (target_parts_name.empty() || (!target_parts_name.empty() && target_parts_name.compare(node_name) == 0))
+        if (target_parts_name.empty() ||
+            (!target_parts_name.empty() && target_parts_name.compare(node_name) == 0))
           root[node_namespace] = node_list;
         else
           root[node_namespace] = Json::Value();
@@ -246,7 +251,8 @@ void BringUpParam::StoreFilteredInfoAsParameters(
 
   const auto model_name = TargetModel();
   const auto isResultEmpty = item[model_name].empty();
-  const auto first_iteration = (isResultEmpty) ? Json::ValueConstIterator() : item[model_name].begin();
+  const auto first_iteration =
+      (isResultEmpty) ? Json::ValueConstIterator() : item[model_name].begin();
 
   if (!isResultEmpty)
     TargetPartsName(first_iteration.key().asString());

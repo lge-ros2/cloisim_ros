@@ -16,10 +16,10 @@
 #include <cloisim_msgs/transform_stamped.pb.h>
 
 #include "cloisim_ros_base/base.hpp"
-#include "cloisim_ros_base/helper.h"
+#include "cloisim_ros_base/helper.hpp"
 
-using namespace std;
-using namespace cloisim;
+using namespace std::literals::chrono_literals;
+using string = std::string;
 
 namespace cloisim_ros
 {
@@ -45,16 +45,16 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
            rclcpp::NodeOptions(options)
                .automatically_declare_parameters_from_overrides(true)
                .append_parameter_override("use_sim_time", true)
-               .arguments(vector<string>{"--ros-args",
-                                         "--remap", "/tf:=tf",
-                                         "--remap", "/tf_static:=tf_static"}))
+               .arguments(std::vector<string>{"--ros-args",
+                                              "--remap", "/tf:=tf",
+                                              "--remap", "/tf_static:=tf_static"}))
     , m_bRunThread(false)
-    , m_node_handle(shared_ptr<rclcpp::Node>(this, [](auto) {}))
+    , m_node_handle(std::shared_ptr<rclcpp::Node>(this, [](auto) {}))
     , m_static_tf_broadcaster(nullptr)
     , m_tf_broadcaster(nullptr)
     , enable_tf_publish_(true)
 {
-  get_parameter_or("enable_tf", enable_tf_publish_, bool(true));
+  get_parameter_or("enable_tf", enable_tf_publish_, true);
 }
 
 Base::~Base()
@@ -117,7 +117,9 @@ void Base::GenerateTF(const string& buffer)
     newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
     newTf.header.frame_id = pb_transform_stamped.header().str_id();
     newTf.child_frame_id = pb_transform_stamped.transform().name();
-    // DBG_SIM_INFO("%ld %ld %s %s", newTf.header.stamp.sec, newTf.header.stamp.nanosec, newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
+    // DBG_SIM_INFO("%ld %ld %s %s",
+    //              newTf.header.stamp.sec, newTf.header.stamp.nanosec,
+    //              newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
     SetTf2(newTf,
            pb_transform_stamped.transform(),
            pb_transform_stamped.transform().name(),
@@ -161,7 +163,7 @@ void Base::CloseBridges()
 
 void Base::AddPublisherThread(
     zmq::Bridge* const bridge_ptr,
-    function<void(const string&)> thread_func)
+    std::function<void(const string&)> thread_func)
 {
   m_threads.emplace_back(
       [this, bridge_ptr, thread_func]()
@@ -173,7 +175,8 @@ void Base::AddPublisherThread(
           const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength);
           if (!succeeded || bufferLength < 0)
           {
-            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength, zmq_strerror(zmq_errno()));
+            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s",
+                    get_name(), bufferLength, zmq_strerror(zmq_errno()));
             continue;
           }
 
@@ -221,7 +224,7 @@ void Base::GetStaticTransforms(zmq::Bridge* const bridge_ptr)
     {
       if (link.IsInitialized() && link.has_name() && link.has_value())
       {
-        const auto parent_frame_id = (link.value().type() == msgs::Any_ValueType_STRING &&
+        const auto parent_frame_id = (link.value().type() == cloisim::msgs::Any_ValueType_STRING &&
                                       link.name().compare("parent_frame_id") == 0)
                                          ? link.value().string_value()
                                          : "base_link";
@@ -233,7 +236,7 @@ void Base::GetStaticTransforms(zmq::Bridge* const bridge_ptr)
           if (child.has_name() && child.has_value())
           {
             if ((child.name().compare("pose") == 0) &&
-                child.value().type() == msgs::Any_ValueType_POSE3D)
+                child.value().type() == cloisim::msgs::Any_ValueType_POSE3D)
             {
               pose = child.value().pose3d_value();
             }
@@ -247,12 +250,12 @@ void Base::GetStaticTransforms(zmq::Bridge* const bridge_ptr)
   }
 }
 
-msgs::Pose Base::GetObjectTransform(
+cloisim::msgs::Pose Base::GetObjectTransform(
     zmq::Bridge* const bridge_ptr,
     const string target_name,
     string& parent_frame_id)
 {
-  msgs::Pose transform;
+  cloisim::msgs::Pose transform;
   transform.Clear();
 
   if (bridge_ptr == nullptr)
@@ -272,7 +275,7 @@ msgs::Pose Base::GetObjectTransform(
       {
         const auto child_param = reply.children(0);
         if (child_param.name() == "parent_frame_id" && child_param.has_value() &&
-            child_param.value().type() == msgs::Any_ValueType_STRING &&
+            child_param.value().type() == cloisim::msgs::Any_ValueType_STRING &&
             !child_param.value().string_value().empty())
         {
           // set parent_frame_id into name if exists.
@@ -303,7 +306,7 @@ void Base::GetRos2Parameter(zmq::Bridge* const bridge_ptr)
       {
         const auto param = reply.children(i);
         const auto paramValue = (param.has_value() &&
-                                 param.value().type() == msgs::Any_ValueType_STRING)
+                                 param.value().type() == cloisim::msgs::Any_ValueType_STRING)
                                     ? param.value().string_value()
                                     : "";
 
@@ -347,7 +350,7 @@ bool Base::GetBufferFromSimulator(
 
 void Base::SetTf2(
     geometry_msgs::msg::TransformStamped& target_msg,
-    const msgs::Pose transform,
+    const cloisim::msgs::Pose transform,
     const string child_frame_id,
     const string header_frame_id)
 {
@@ -358,7 +361,7 @@ void Base::SetTf2(
 }
 
 void Base::SetStaticTf2(
-    const msgs::Pose transform,
+    const cloisim::msgs::Pose transform,
     const string parent_header_frame_id)
 {
   geometry_msgs::msg::TransformStamped static_tf;
@@ -370,12 +373,12 @@ void Base::SetStaticTf2(
   AddStaticTf2(static_tf);
 }
 
-msgs::Param Base::RequestReplyMessage(
+cloisim::msgs::Param Base::RequestReplyMessage(
     zmq::Bridge* const bridge_ptr,
     const string request_message,
     const string request_value)
 {
-  msgs::Param reply;
+  cloisim::msgs::Param reply;
 
   if (bridge_ptr == nullptr)
   {
@@ -384,7 +387,7 @@ msgs::Param Base::RequestReplyMessage(
   }
 
   string serialized_request_data;
-  msgs::Param request;
+  cloisim::msgs::Param request;
   request.set_name(request_message);
 
   if (!request_value.empty())
@@ -401,7 +404,10 @@ msgs::Param Base::RequestReplyMessage(
   if (serialized_reply_data.size() > 0)
   {
     if (reply.ParseFromString(serialized_reply_data) == false)
-      DBG_SIM_ERR("Failed to parse serialized buffer, buffer_ptr(%p) length(%ld)", serialized_reply_data.data(), serialized_reply_data.size());
+    {
+      DBG_SIM_ERR("Failed to parse serialized buffer, buffer_ptr(%p) length(%ld)",
+                  serialized_reply_data.data(), serialized_reply_data.size());
+    }
   }
   else
     DBG_SIM_ERR("Failed to get reply data, length(%ld)", serialized_reply_data.size());
@@ -409,11 +415,11 @@ msgs::Param Base::RequestReplyMessage(
   return reply;
 }
 
-msgs::Param Base::RequestReplyMessage(
+cloisim::msgs::Param Base::RequestReplyMessage(
     zmq::Bridge* const bridge_ptr,
-    const msgs::Param request_message)
+    const cloisim::msgs::Param request_message)
 {
-  msgs::Param response_msg;
+  cloisim::msgs::Param response_msg;
 
   string serializedBuffer;
   request_message.SerializeToString(&serializedBuffer);
@@ -427,9 +433,9 @@ msgs::Param Base::RequestReplyMessage(
   return response_msg;
 }
 
-msgs::Pose Base::IdentityPose()
+cloisim::msgs::Pose Base::IdentityPose()
 {
-  msgs::Pose identityTransform;
+  cloisim::msgs::Pose identityTransform;
   identityTransform.mutable_position()->set_x(0.0);
   identityTransform.mutable_position()->set_y(0.0);
   identityTransform.mutable_position()->set_z(0.0);

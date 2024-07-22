@@ -5,7 +5,7 @@
  *  @brief
  *        ROS2 Segmentation Camera class for simulator
  *  @remark
- *  @warning
+ *  @copyright
  *      LGE Advanced Robotics Laboratory
  *      Copyright(C) 2024 LG Electronics Co., LTD., Seoul, Korea
  *      All Rights are Reserved.
@@ -18,7 +18,8 @@
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  run_standalone_single_executor<cloisim_ros::SegmentationCamera>("cloisim_ros_segmentationcamera", "SEGMENTCAMERA");
+  run_standalone_single_executor<cloisim_ros::SegmentationCamera>(
+      "cloisim_ros_segmentationcamera", "SEGMENTCAMERA");
   rclcpp::shutdown();
   return 0;
 }
