@@ -1,0 +1,4 @@
+[submodule "cloi_common_interfaces"]
+	path = cloi_common_interfaces
+	url = https://github.com/lge-ros2/cloi_common_interfaces.git
+	branch = 4.0.0
