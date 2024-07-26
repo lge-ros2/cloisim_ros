@@ -16,13 +16,18 @@
 #include "cloisim_ros_elevator_system/elevator_system.hpp"
 
 using namespace std::placeholders;
-using namespace elevator_system_msgs;
 using std::shared_ptr;
 using string = std::string;
 
 namespace cloisim_ros
 {
 #define BindCallback(func) bind(&ElevatorSystem::func, this, _1, _2, _3)
+
+using RequestDoor = elevator_system_msgs::srv::RequestDoor;
+using SelectElevatorFloor = elevator_system_msgs::srv::SelectElevatorFloor;
+using CallElevator = elevator_system_msgs::srv::CallElevator;
+using GetElevatorInformation = elevator_system_msgs::srv::GetElevatorInformation;
+using ReturnBool = elevator_system_msgs::srv::ReturnBool;
 
 ElevatorSystem::ElevatorSystem(const rclcpp::NodeOptions &options_, const string node_name)
     : Base(node_name, options_)
@@ -74,38 +79,38 @@ void ElevatorSystem::Initialize()
     }
   }
 
-  srvCallElevator_ = this->create_service<srv::CallElevator>(
-      nodeName + string("/call_elevator"), BindCallback(CallElevator));
+  srvCallElevator_ = this->create_service<CallElevator>(
+      nodeName + string("/call_elevator"), BindCallback(DoElevatorCalling));
 
-  srvGetCalledElevator_ = this->create_service<srv::CallElevator>(
+  srvGetCalledElevator_ = this->create_service<CallElevator>(
       nodeName + string("/get_called_elevator"), BindCallback(GetElevatorCalled));
 
-  srvGetElevatorInfo_ = this->create_service<srv::GetElevatorInformation>(
+  srvGetElevatorInfo_ = this->create_service<GetElevatorInformation>(
       nodeName + string("/get_elevator_information"), BindCallback(GetElevatorInfo));
 
-  srvSelectElevatorFloor_ = this->create_service<srv::SelectElevatorFloor>(
+  srvSelectElevatorFloor_ = this->create_service<SelectElevatorFloor>(
       nodeName + string("/select_elevator_floor"), BindCallback(SelectFloor));
 
-  srvRequestDoorOpen_ = this->create_service<srv::RequestDoor>(
+  srvRequestDoorOpen_ = this->create_service<RequestDoor>(
       nodeName + string("/request_door_open"), BindCallback(RequestDoorOpen));
 
-  srvRequestDoorClose_ = this->create_service<srv::RequestDoor>(
+  srvRequestDoorClose_ = this->create_service<RequestDoor>(
       nodeName + string("/request_door_close"), BindCallback(RequestDoorClose));
 
-  srvIsDoorOpened_ = this->create_service<srv::RequestDoor>(
+  srvIsDoorOpened_ = this->create_service<RequestDoor>(
       nodeName + string("/is_door_opened"), BindCallback(IsDoorOpened));
 
-  srvReserveElevator_ = this->create_service<srv::ReturnBool>(
+  srvReserveElevator_ = this->create_service<ReturnBool>(
       nodeName + string("/reserve_elevator"), BindCallback(ReserveElevator));
 
-  srvReleaseElevator_ = this->create_service<srv::ReturnBool>(
+  srvReleaseElevator_ = this->create_service<ReturnBool>(
       nodeName + string("/release_elevator"), BindCallback(ReleaseElevator));
 }
 
-void ElevatorSystem::CallElevator(
+void ElevatorSystem::DoElevatorCalling(
     const shared_ptr<rmw_request_id_t> /*request_header*/,
-    const shared_ptr<srv::CallElevator::Request> request,
-    const shared_ptr<srv::CallElevator::Response> response)
+    const shared_ptr<CallElevator::Request> request,
+    const shared_ptr<CallElevator::Response> response)
 {
   const auto message = CreateRequest("call_elevator",
                                      request->current_floor,
@@ -120,8 +125,8 @@ void ElevatorSystem::CallElevator(
 
 void ElevatorSystem::GetElevatorCalled(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::CallElevator::Request> request,
-    const std::shared_ptr<srv::CallElevator::Response> response)
+    const std::shared_ptr<CallElevator::Request> request,
+    const std::shared_ptr<CallElevator::Response> response)
 {
   auto message = CreateRequest("get_called_elevator",
                                request->current_floor,
@@ -146,8 +151,8 @@ void ElevatorSystem::GetElevatorCalled(
 
 void ElevatorSystem::GetElevatorInfo(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::GetElevatorInformation::Request> request,
-    const std::shared_ptr<srv::GetElevatorInformation::Response> response)
+    const std::shared_ptr<GetElevatorInformation::Request> request,
+    const std::shared_ptr<GetElevatorInformation::Response> response)
 {
   auto message = CreateRequest("get_elevator_information", request->elevator_index);
 
@@ -182,8 +187,8 @@ void ElevatorSystem::GetElevatorInfo(
 
 void ElevatorSystem::SelectFloor(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::SelectElevatorFloor::Request> request,
-    const std::shared_ptr<srv::SelectElevatorFloor::Response> response)
+    const std::shared_ptr<SelectElevatorFloor::Request> request,
+    const std::shared_ptr<SelectElevatorFloor::Response> response)
 {
   auto message = CreateRequest("select_elevator_floor",
                                request->current_floor,
@@ -199,8 +204,8 @@ void ElevatorSystem::SelectFloor(
 
 void ElevatorSystem::RequestDoorOpen(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::RequestDoor::Request> request,
-    const std::shared_ptr<srv::RequestDoor::Response> response)
+    const std::shared_ptr<RequestDoor::Request> request,
+    const std::shared_ptr<RequestDoor::Response> response)
 {
   auto message = CreateRequest("request_door_open", request->elevator_index);
 
@@ -213,8 +218,8 @@ void ElevatorSystem::RequestDoorOpen(
 
 void ElevatorSystem::RequestDoorClose(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::RequestDoor::Request> request,
-    const std::shared_ptr<srv::RequestDoor::Response> response)
+    const std::shared_ptr<RequestDoor::Request> request,
+    const std::shared_ptr<RequestDoor::Response> response)
 {
   auto message = CreateRequest("request_door_close", request->elevator_index);
 
@@ -227,8 +232,8 @@ void ElevatorSystem::RequestDoorClose(
 
 void ElevatorSystem::IsDoorOpened(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::RequestDoor::Request> request,
-    const std::shared_ptr<srv::RequestDoor::Response> response)
+    const std::shared_ptr<RequestDoor::Request> request,
+    const std::shared_ptr<RequestDoor::Response> response)
 {
   auto message = CreateRequest("is_door_opened", request->elevator_index);
 
@@ -241,16 +246,16 @@ void ElevatorSystem::IsDoorOpened(
 
 void ElevatorSystem::ReserveElevator(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::ReturnBool::Request> /*request*/,
-    const std::shared_ptr<srv::ReturnBool::Response> response)
+    const std::shared_ptr<ReturnBool::Request> /*request*/,
+    const std::shared_ptr<ReturnBool::Response> response)
 {
   response->result = srv_mode_;
 }
 
 void ElevatorSystem::ReleaseElevator(
     const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<srv::ReturnBool::Request> /*request*/,
-    const std::shared_ptr<srv::ReturnBool::Response> response)
+    const std::shared_ptr<ReturnBool::Request> /*request*/,
+    const std::shared_ptr<ReturnBool::Response> response)
 {
   response->result = srv_mode_;
 }

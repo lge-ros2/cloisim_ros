@@ -34,7 +34,8 @@ namespace cloisim_ros
 class ElevatorSystem : public Base
 {
  public:
-  explicit ElevatorSystem(const rclcpp::NodeOptions &options_, const std::string node_name);
+  explicit ElevatorSystem(
+      const rclcpp::NodeOptions &options_, const std::string node_name);
   ElevatorSystem();
   virtual ~ElevatorSystem();
 
@@ -67,7 +68,7 @@ class ElevatorSystem : public Base
       SharedPtr srvReleaseElevator_;
 
  private:
-  void CallElevator(
+  void DoElevatorCalling(
       const std::shared_ptr<rmw_request_id_t> /*request_header*/,
       const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Request> /*request*/,
       const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Response> response);
