@@ -126,13 +126,13 @@ void Gps::PublishData(const string &buffer)
 
   if (pb_buf_gps_.has_heading())
   {
-    ConvertCLOiSimToRos2(
+    msg::Convert(
         pb_buf_gps_.heading().orientation(),
         msg_heading_.orientation);
-    ConvertCLOiSimToRos2(
+    msg::Convert(
         pb_buf_gps_.heading().angular_velocity(),
         msg_heading_.angular_velocity);
-    ConvertCLOiSimToRos2(
+    msg::Convert(
         pb_buf_gps_.heading().linear_acceleration(),
         msg_heading_.linear_acceleration);
   }
