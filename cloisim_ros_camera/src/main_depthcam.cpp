@@ -16,11 +16,11 @@
 #include "cloisim_ros_camera/depth_camera.hpp"
 #include "cloisim_ros_camera/standalone.hpp"
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   run_standalone_single_executor<cloisim_ros::DepthCamera>(
-      "cloisim_ros_depthcamera", "DEPTHCAMERA");
+    "cloisim_ros_depthcamera", "DEPTHCAMERA");
   rclcpp::shutdown();
   return 0;
 }

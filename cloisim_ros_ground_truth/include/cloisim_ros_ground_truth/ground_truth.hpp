@@ -28,19 +28,19 @@ namespace cloisim_ros
 {
 class GroundTruth : public Base
 {
- public:
-  explicit GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name);
+public:
+  explicit GroundTruth(const rclcpp::NodeOptions & options_, const std::string node_name);
   GroundTruth();
   virtual ~GroundTruth();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
-  void PublishData(const std::string &buffer);
+  void PublishData(const std::string & buffer);
   void UpdatePerceptionData();
 
- private:
+private:
   cloisim::msgs::Perception_V pb_buf_;
 
   perception_msgs::msg::ObjectArray msg_;

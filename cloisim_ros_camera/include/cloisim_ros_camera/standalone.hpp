@@ -16,14 +16,14 @@
 #ifndef CLOISIM_ROS_CAMERA__STANDALONE_HPP_
 #define CLOISIM_ROS_CAMERA__STANDALONE_HPP_
 
-#include <string>
 #include <memory>
+#include <string>
+
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 
-template <class T>
+template<class T>
 static void run_standalone_single_executor(
-    const std::string target_node_name,
-    const std::string target_parts_name)
+  const std::string target_node_name, const std::string target_parts_name)
 {
   rclcpp::executors::SingleThreadedExecutor executor;
 
@@ -33,8 +33,7 @@ static void run_standalone_single_executor(
   executor.add_node(bringup_param_node);
 
   const auto filtered_result = bringup_param_node->GetBringUpList(true);
-  if (filtered_result.empty())
-  {
+  if (filtered_result.empty()) {
     return;
   }
 
@@ -45,8 +44,8 @@ static void run_standalone_single_executor(
   const auto model_name = bringup_param_node->TargetModel();
   const auto node_name = bringup_param_node->TargetPartsName();
 
-  auto node = (is_single_mode) ? std::make_shared<T>(node_options, node_name)
-                               : std::make_shared<T>(node_options, node_name, model_name);
+  auto node = (is_single_mode) ? std::make_shared<T>(node_options, node_name) :
+    std::make_shared<T>(node_options, node_name, model_name);
 
   executor.add_node(node);
   executor.spin();

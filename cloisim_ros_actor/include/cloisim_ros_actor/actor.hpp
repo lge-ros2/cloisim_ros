@@ -28,30 +28,30 @@ namespace cloisim_ros
 {
 class Actor : public Base
 {
- public:
-  explicit Actor(const rclcpp::NodeOptions &options_, const std::string node_name);
+public:
+  explicit Actor(const rclcpp::NodeOptions & options_, const std::string node_name);
   Actor();
   virtual ~Actor();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
-  zmq::Bridge *control_bridge_ptr;
+private:
+  zmq::Bridge * control_bridge_ptr;
 
   rclcpp::Service<cloisim_ros_msgs::srv::MoveActor>::SharedPtr srvCallMoveActor_;
 
- private:
-  void CallMoveActor(const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-                     const std::shared_ptr<cloisim_ros_msgs::srv::MoveActor::Request> request,
-                     const std::shared_ptr<cloisim_ros_msgs::srv::MoveActor::Response> response);
+private:
+  void CallMoveActor(
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<cloisim_ros_msgs::srv::MoveActor::Request> request,
+    const std::shared_ptr<cloisim_ros_msgs::srv::MoveActor::Response> response);
 
   cloisim::msgs::Param CreateMoveRequest(
-      const std::string target_name,
-      const geometry_msgs::msg::Vector3 point);
+    const std::string target_name, const geometry_msgs::msg::Vector3 point);
 
-  bool GetResultFromResponse(const cloisim::msgs::Param &response_msg);
+  bool GetResultFromResponse(const cloisim::msgs::Param & response_msg);
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_ACTOR__ACTOR_HPP_

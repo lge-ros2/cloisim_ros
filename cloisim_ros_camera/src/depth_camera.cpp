@@ -20,18 +20,14 @@ namespace cloisim_ros
 {
 
 DepthCamera::DepthCamera(
-    const rclcpp::NodeOptions &options_,
-    const string node_name,
-    const string namespace_)
-    : CameraBase(options_, node_name, namespace_)
+  const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: CameraBase(options_, node_name, namespace_)
 {
   Start();
 }
 
-DepthCamera::DepthCamera(
-    const string node_name,
-    const string namespace_)
-    : DepthCamera(rclcpp::NodeOptions(), node_name, namespace_)
+DepthCamera::DepthCamera(const string node_name, const string namespace_)
+: DepthCamera(rclcpp::NodeOptions(), node_name, namespace_)
 {
 }
 

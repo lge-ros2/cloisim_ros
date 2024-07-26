@@ -26,23 +26,18 @@ namespace cloisim_ros
 {
 
 MultiCamera::MultiCamera(
-    const rclcpp::NodeOptions &options_,
-    const string node_name,
-    const std::string namespace_)
-    : Base(node_name, namespace_, options_)
+  const rclcpp::NodeOptions & options_, const string node_name, const std::string namespace_)
+: Base(node_name, namespace_, options_)
 {
   Start();
 }
 
 MultiCamera::MultiCamera(const std::string namespace_)
-    : MultiCamera(rclcpp::NodeOptions(), "cloisim_ros_multicamera", namespace_)
+: MultiCamera(rclcpp::NodeOptions(), "cloisim_ros_multicamera", namespace_)
 {
 }
 
-MultiCamera::~MultiCamera()
-{
-  Stop();
-}
+MultiCamera::~MultiCamera() {Stop();}
 
 void MultiCamera::Initialize()
 {
@@ -52,21 +47,18 @@ void MultiCamera::Initialize()
 
   const auto hashKeyData = GetTargetHashKey("Data");
   const auto hashKeyInfo = GetTargetHashKey("Info");
-  DBG_SIM_INFO("hashKey: data(%s), info(%s)",
-               hashKeyData.c_str(), hashKeyInfo.c_str());
+  DBG_SIM_INFO("hashKey: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
 
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
-  if (info_bridge_ptr != nullptr)
-  {
+  if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
     GetRos2Parameter(info_bridge_ptr);
 
     image_transport::ImageTransport it(GetNode());
-    for (auto frame_id : frame_id_list_)
-    {
+    for (auto frame_id : frame_id_list_) {
       auto transform_pose = GetObjectTransform(info_bridge_ptr, frame_id);
       transform_pose.set_name(GetPartsName() + "_" + frame_id);
       SetStaticTf2(transform_pose);
@@ -83,46 +75,44 @@ void MultiCamera::Initialize()
       pubs_.push_back(it.advertiseCamera(topic_base_name_ + "/image_raw", 1));
 
       camera_info_manager_.push_back(
-          std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
+        std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get()));
       const auto camSensorMsg = GetCameraSensorMessage(info_bridge_ptr, frame_id);
       SetCameraInfoInManager(camera_info_manager_.back(), camSensorMsg, frame_id);
     }
 
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr,
-                       bind(&MultiCamera::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(
+      data_bridge_ptr, bind(&MultiCamera::PublishData, this, std::placeholders::_1));
   }
 }
 
 void MultiCamera::Deinitialize()
 {
-  for (auto &pub_ : pubs_)
+  for (auto & pub_ : pubs_) {
     pub_.shutdown();
+  }
   pubs_.clear();
 }
 
-void MultiCamera::PublishData(const string &buffer)
+void MultiCamera::PublishData(const string & buffer)
 {
-  if (pubs_.size() == 0)
-    return;
+  if (pubs_.size() == 0) {return;}
 
-  if (!pb_buf_.ParseFromString(buffer))
-  {
+  if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
   SetTime(pb_buf_.time());
 
-  if (static_cast<int>(camera_info_manager_.size()) != pb_buf_.image_size())
-  {
-    DBG_SIM_ERR("camera_info_manager is not ready for multi-camera %d != %d",
-                camera_info_manager_.size(), pb_buf_.image_size());
+  if (static_cast<int>(camera_info_manager_.size()) != pb_buf_.image_size()) {
+    DBG_SIM_ERR(
+      "camera_info_manager is not ready for multi-camera %d != %d", camera_info_manager_.size(),
+      pb_buf_.image_size());
     return;
   }
 
-  for (auto i = 0; i < pb_buf_.image_size(); i++)
-  {
+  for (auto i = 0; i < pb_buf_.image_size(); i++) {
     auto img = &pb_buf_.image(i);
     const auto encoding_arg = GetImageEncondingType(img->pixel_format());
     const uint32_t cols_arg = img->width();
@@ -131,8 +121,9 @@ void MultiCamera::PublishData(const string &buffer)
 
     auto const msg_img = &msg_imgs_[i];
     msg_img->header.stamp = GetTime();
-    sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-                           reinterpret_cast<const void *>(img->data().data()));
+    sensor_msgs::fillImage(
+      *msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
+      reinterpret_cast<const void *>(img->data().data()));
 
     // Publish camera info
     auto camera_info_msg = camera_info_manager_[i]->getCameraInfo();

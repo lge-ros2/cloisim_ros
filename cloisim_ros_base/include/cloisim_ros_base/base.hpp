@@ -44,37 +44,36 @@ static rclcpp::Time Convert(const int32_t seconds, const uint32_t nanoseconds)
   return rclcpp::Time(seconds, nanoseconds);
 }
 
-static rclcpp::Time Convert(const cloisim::msgs::Time& time)
+static rclcpp::Time Convert(const cloisim::msgs::Time & time)
 {
   return Convert(time.sec(), time.nsec());
 }
 
 class Base : public rclcpp::Node
 {
- public:
+public:
   explicit Base(const std::string node_name);
-  explicit Base(const std::string node_name, const rclcpp::NodeOptions& options);
+  explicit Base(const std::string node_name, const rclcpp::NodeOptions & options);
   explicit Base(const std::string node_name, const std::string namespace_);
-  explicit Base(const std::string node_name, const std::string namespace_,
-                const rclcpp::NodeOptions& options);
+  explicit Base(
+    const std::string node_name, const std::string namespace_, const rclcpp::NodeOptions & options);
   ~Base();
 
- protected:
+protected:
   virtual void Initialize() = 0;
   virtual void Deinitialize() = 0;
 
- protected:
-  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg,
-              const std::string child_frame_id,
-              const std::string header_frame_id = "base_link");
+protected:
+  void SetTf2(
+    geometry_msgs::msg::TransformStamped & target_msg, const std::string child_frame_id,
+    const std::string header_frame_id = "base_link");
 
-  void SetTf2(geometry_msgs::msg::TransformStamped& target_msg,
-              const cloisim::msgs::Pose transform,
-              const std::string child_frame_id,
-              const std::string header_frame_id = "base_link");
+  void SetTf2(
+    geometry_msgs::msg::TransformStamped & target_msg, const cloisim::msgs::Pose transform,
+    const std::string child_frame_id, const std::string header_frame_id = "base_link");
 
-  void SetStaticTf2(const cloisim::msgs::Pose transform,
-                    const std::string parent_header_frame_id = "base_link");
+  void SetStaticTf2(
+    const cloisim::msgs::Pose transform, const std::string parent_header_frame_id = "base_link");
 
   void Start();
   void Start(const bool enable_tf_publish);
@@ -83,63 +82,62 @@ class Base : public rclcpp::Node
   void AddTf2(const geometry_msgs::msg::TransformStamped tf);
   void AddStaticTf2(const geometry_msgs::msg::TransformStamped tf);
 
-  bool IsRunThread() { return m_bRunThread; }
+  bool IsRunThread() {return m_bRunThread;}
 
-  rclcpp::Node::SharedPtr GetNode() { return m_node_handle; }
+  rclcpp::Node::SharedPtr GetNode() {return m_node_handle;}
 
-  zmq::Bridge* CreateBridge();
+  zmq::Bridge * CreateBridge();
 
   void CloseBridges();
 
-  void AddPublisherThread(zmq::Bridge* const bridge_ptr,
-                          std::function<void(const std::string&)> thread_func);
+  void AddPublisherThread(
+    zmq::Bridge * const bridge_ptr, std::function<void(const std::string &)> thread_func);
 
   std::string GetModelName();
   std::string GetRobotName();
-  std::string GetPartsName() { return get_name(); }
-  std::string GetMainHashKey() { return GetRobotName() + GetPartsName(); }
-  std::string GetTargetHashKey(const std::string value) { return GetMainHashKey() + value; }
+  std::string GetPartsName() {return get_name();}
+  std::string GetMainHashKey() {return GetRobotName() + GetPartsName();}
+  std::string GetTargetHashKey(const std::string value) {return GetMainHashKey() + value;}
 
   void PublishTF();
-  void PublishTF(const geometry_msgs::msg::TransformStamped& tf);
+  void PublishTF(const geometry_msgs::msg::TransformStamped & tf);
 
-  void GetStaticTransforms(zmq::Bridge* const bridge_ptr);
+  void GetStaticTransforms(zmq::Bridge * const bridge_ptr);
 
-  cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr,
-                                         const std::string target_name = "");
+  cloisim::msgs::Pose GetObjectTransform(
+    zmq::Bridge * const bridge_ptr, const std::string target_name = "");
 
-  cloisim::msgs::Pose GetObjectTransform(zmq::Bridge* const bridge_ptr,
-                                         const std::string target_name,
-                                         std::string& parent_frame_id);
+  cloisim::msgs::Pose GetObjectTransform(
+    zmq::Bridge * const bridge_ptr, const std::string target_name, std::string & parent_frame_id);
 
-  void GetRos2Parameter(zmq::Bridge* const bridge_ptr);
+  void GetRos2Parameter(zmq::Bridge * const bridge_ptr);
 
-  static bool GetBufferFromSimulator(zmq::Bridge* const bridge_ptr,
-                                     void** ppBbuffer, int& bufferLength,
-                                     const bool isNonBlockingMode = false);
+  static bool GetBufferFromSimulator(
+    zmq::Bridge * const bridge_ptr, void ** ppBbuffer, int & bufferLength,
+    const bool isNonBlockingMode = false);
 
-  static bool SetBufferToSimulator(zmq::Bridge* const bridge_ptr, const std::string& buffer);
+  static bool SetBufferToSimulator(zmq::Bridge * const bridge_ptr, const std::string & buffer);
 
   std::string GetFrameId(const std::string default_frame_id = "base_link");
 
-  static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr,
-                                                  const std::string request_message,
-                                                  const std::string request_value = "");
-  static cloisim::msgs::Param RequestReplyMessage(zmq::Bridge* const bridge_ptr,
-                                                  const cloisim::msgs::Param request_message);
+  static cloisim::msgs::Param RequestReplyMessage(
+    zmq::Bridge * const bridge_ptr, const std::string request_message,
+    const std::string request_value = "");
+  static cloisim::msgs::Param RequestReplyMessage(
+    zmq::Bridge * const bridge_ptr, const cloisim::msgs::Param request_message);
   static cloisim::msgs::Pose IdentityPose();
 
-  void SetTime(const cloisim::msgs::Time& time);
+  void SetTime(const cloisim::msgs::Time & time);
   void SetTime(const int32_t seconds, const uint32_t nanoseconds);
-  rclcpp::Time GetTime() { return m_sim_time; }
+  rclcpp::Time GetTime() {return m_sim_time;}
 
- public:
-  void GenerateTF(const std::string& buffer);
+public:
+  void GenerateTF(const std::string & buffer);
 
- private:
+private:
   void PublishStaticTF();
 
- private:
+private:
   std::vector<std::unique_ptr<zmq::Bridge>> m_created_bridges;
 
   bool m_bRunThread;
@@ -157,7 +155,7 @@ class Base : public rclcpp::Node
   std::vector<geometry_msgs::msg::TransformStamped> m_tf_list;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
- protected:
+protected:
   // for ros2 default parameters
   std::string topic_name_;
   std::vector<std::string> frame_id_list_;
@@ -165,48 +163,41 @@ class Base : public rclcpp::Node
   bool enable_tf_publish_;
 };
 
-inline void Base::Start()
-{
-  Start(enable_tf_publish_);
-}
+inline void Base::Start() {Start(enable_tf_publish_);}
 
-inline void Base::AddTf2(const geometry_msgs::msg::TransformStamped tf)
-{
-  m_tf_list.push_back(tf);
-}
+inline void Base::AddTf2(const geometry_msgs::msg::TransformStamped tf) {m_tf_list.push_back(tf);}
 
 inline void Base::AddStaticTf2(const geometry_msgs::msg::TransformStamped tf)
 {
   m_static_tf_list.push_back(tf);
 }
 
-inline void Base::PublishTF(const geometry_msgs::msg::TransformStamped& tf)
+inline void Base::PublishTF(const geometry_msgs::msg::TransformStamped & tf)
 {
-  if (m_tf_broadcaster != nullptr)
-  {
+  if (m_tf_broadcaster != nullptr) {
     m_tf_broadcaster->sendTransform(tf);
   }
 }
 
-inline cloisim::msgs::Pose Base::GetObjectTransform(zmq::Bridge* const bridge_ptr,
-                                                    const std::string target_name)
+inline cloisim::msgs::Pose Base::GetObjectTransform(
+  zmq::Bridge * const bridge_ptr, const std::string target_name)
 {
   std::string empty_arg("");
   return GetObjectTransform(bridge_ptr, target_name, empty_arg);
 }
 
-inline bool Base::SetBufferToSimulator(zmq::Bridge* const bridge_ptr, const std::string& buffer)
+inline bool Base::SetBufferToSimulator(zmq::Bridge * const bridge_ptr, const std::string & buffer)
 {
-  if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr)
+  if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr) {
     return bridge_ptr->Send(buffer.data(), buffer.size());
-  else
+  } else {
     return false;
+  }
 }
 
 inline void Base::SetTf2(
-    geometry_msgs::msg::TransformStamped& target_msg,
-    const std::string child_frame_id,
-    const std::string header_frame_id)
+  geometry_msgs::msg::TransformStamped & target_msg, const std::string child_frame_id,
+  const std::string header_frame_id)
 {
   SetTf2(target_msg, IdentityPose(), child_frame_id, header_frame_id);
 }
@@ -216,10 +207,7 @@ inline std::string Base::GetFrameId(const std::string default_frame_id)
   return (frame_id_list_.size() == 0) ? default_frame_id : frame_id_list_.back();
 }
 
-inline void Base::SetTime(const cloisim::msgs::Time& time)
-{
-  SetTime(time.sec(), time.nsec());
-}
+inline void Base::SetTime(const cloisim::msgs::Time & time) {SetTime(time.sec(), time.nsec());}
 
 inline void Base::SetTime(const int32_t seconds, const uint32_t nanoseconds)
 {

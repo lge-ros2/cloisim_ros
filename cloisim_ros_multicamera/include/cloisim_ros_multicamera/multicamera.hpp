@@ -31,21 +31,21 @@ namespace cloisim_ros
 {
 class MultiCamera : public Base
 {
- public:
+public:
   explicit MultiCamera(
-      const rclcpp::NodeOptions &options_,
-      const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit MultiCamera(const std::string namespace_ = "");
   virtual ~MultiCamera();
 
- private:
+private:
   void Initialize() override;
   void Deinitialize() override;
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
- private:
+private:
   // buffer from simulation
   cloisim::msgs::ImagesStamped pb_buf_;
 

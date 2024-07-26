@@ -30,38 +30,37 @@ namespace cloisim_ros
 {
 class Micom : public Base
 {
- public:
+public:
   explicit Micom(
-      const rclcpp::NodeOptions &options_,
-      const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit Micom(const std::string namespace_ = "");
   virtual ~Micom();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
   void ResetOdometryCallback(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
-      std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<std_srvs::srv::Empty::Request>/*request*/,
+    std::shared_ptr<std_srvs::srv::Empty::Response>/*response*/);
 
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
 
   bool CalculateOdometry(
-      const rclcpp::Duration duration,
-      const double _wheel_angular_vel_left, const double _wheel_angular_vel_right,
-      const double _theta);
+    const rclcpp::Duration duration, const double _wheel_angular_vel_left,
+    const double _wheel_angular_vel_right, const double _theta);
 
   void UpdateOdom();
   void UpdateImu();
   void UpdateBattery();
 
- private:
-  zmq::Bridge *info_bridge_ptr;
+private:
+  zmq::Bridge * info_bridge_ptr;
 
   // Micom msgs
   cloisim::msgs::Micom pb_micom_;
