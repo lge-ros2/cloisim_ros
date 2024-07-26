@@ -25,10 +25,8 @@ using string = std::string;
 namespace cloisim_ros
 {
 
-Lidar::Lidar(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
-    : Base(node_name, namespace_, options_)
-    , pub_laser_(nullptr)
-    , pub_pc2_(nullptr)
+Lidar::Lidar(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: Base(node_name, namespace_, options_), pub_laser_(nullptr), pub_pc2_(nullptr)
 {
   topic_name_ = "scan";
 
@@ -36,14 +34,11 @@ Lidar::Lidar(const rclcpp::NodeOptions &options_, const string node_name, const 
 }
 
 Lidar::Lidar(const string namespace_)
-    : Lidar(rclcpp::NodeOptions(), "cloisim_ros_lidar", namespace_)
+: Lidar(rclcpp::NodeOptions(), "cloisim_ros_lidar", namespace_)
 {
 }
 
-Lidar::~Lidar()
-{
-  Stop();
-}
+Lidar::~Lidar() {Stop();}
 
 void Lidar::Initialize()
 {
@@ -59,8 +54,7 @@ void Lidar::Initialize()
   auto info_bridge_ptr = CreateBridge();
 
   auto output_type = string("LaserScan");
-  if (info_bridge_ptr != nullptr)
-  {
+  if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
     GetRos2Parameter(info_bridge_ptr);
@@ -78,36 +72,30 @@ void Lidar::Initialize()
   }
 
   // ROS2 Publisher
-  if (output_type.compare("LaserScan") == 0)
-  {
+  if (output_type.compare("LaserScan") == 0) {
     pub_laser_ =
-        this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
-  }
-  else if (output_type.compare("PointCloud2") == 0)
-  {
+      this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
+  } else if (output_type.compare("PointCloud2") == 0) {
     pub_pc2_ =
-        this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
-  }
-  else
-  {
+      this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
+  } else {
     DBG_SIM_ERR("Failed to create publisher, invalid output_type: %s", output_type.c_str());
   }
 
-  if (data_bridge_ptr != nullptr)
-  {
+  if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
     AddPublisherThread(data_bridge_ptr, bind(&Lidar::PublishData, this, _1));
   }
 }
 
-string Lidar::GetOutputType(zmq::Bridge *const bridge_ptr)
+string Lidar::GetOutputType(zmq::Bridge * const bridge_ptr)
 {
   const auto reply = RequestReplyMessage(bridge_ptr, "request_output_type");
 
-  if (reply.IsInitialized() &&
-      (reply.name().compare("output_type") == 0) &&
-      reply.has_value() && reply.value().type() == cloisim::msgs::Any_ValueType_STRING &&
-      !reply.value().string_value().empty())
+  if (
+    reply.IsInitialized() && (reply.name().compare("output_type") == 0) && reply.has_value() &&
+    reply.value().type() == cloisim::msgs::Any_ValueType_STRING &&
+    !reply.value().string_value().empty())
   {
     const auto output_type = reply.value().string_value();
     DBG_SIM_INFO("output_type: %s", output_type.c_str());
@@ -117,23 +105,19 @@ string Lidar::GetOutputType(zmq::Bridge *const bridge_ptr)
   return "";
 }
 
-void Lidar::PublishData(const string &buffer)
+void Lidar::PublishData(const string & buffer)
 {
-  if (!pb_buf_.ParseFromString(buffer))
-  {
+  if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
 
   SetTime(pb_buf_.time());
 
-  if (pub_laser_ != nullptr)
-  {
+  if (pub_laser_ != nullptr) {
     UpdateLaserData();
     pub_laser_->publish(msg_laser_);
-  }
-  else if (pub_pc2_ != nullptr)
-  {
+  } else if (pub_pc2_ != nullptr) {
     UpdatePointCloudData();
     pub_pc2_->publish(msg_pc2_);
   }
@@ -156,8 +140,7 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
 
   // Gazebo sends an infinite vertical step if the number of samples is 1
   // Surprisingly, not setting the <vertical> tag results in nan instead of inf, which is ok
-  if (std::isinf(vertical_angle_step))
-  {
+  if (std::isinf(vertical_angle_step)) {
     DBG_SIM_WRN("Infinite angle step results in wrong PointCloud2");
   }
 
@@ -165,11 +148,9 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
 
   pcd_modifier.setPointCloud2Fields(
-      4,
-      "x", 1, sensor_msgs::msg::PointField::FLOAT32,
-      "y", 1, sensor_msgs::msg::PointField::FLOAT32,
-      "z", 1, sensor_msgs::msg::PointField::FLOAT32,
-      "intensity", 1, sensor_msgs::msg::PointField::FLOAT32);
+    4, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1, sensor_msgs::msg::PointField::FLOAT32,
+    "z", 1, sensor_msgs::msg::PointField::FLOAT32, "intensity", 1,
+    sensor_msgs::msg::PointField::FLOAT32);
 
   pcd_modifier.resize(vertical_beam_count * beam_count);
   sensor_msgs::PointCloud2Iterator<float> iter_x(msg_pc2_, "x");
@@ -191,31 +172,27 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   size_t i, j;
 
   // Fill pointcloud with laser scan data, converting spherical to Cartesian
-  for (j = 0, inclination = pb_buf_.scan().vertical_angle_min();
-       j < vertical_beam_count;
-       ++j, inclination += vertical_angle_step)
+  for (j = 0, inclination = pb_buf_.scan().vertical_angle_min(); j < vertical_beam_count;
+    ++j, inclination += vertical_angle_step)
   {
     auto c_inclination = cos(inclination);
     auto s_inclination = sin(inclination);
 
-    for (i = 0, azimuth = pb_buf_.scan().angle_min();
-         i < beam_count;
-         ++i, azimuth += angle_step, ++range_iter, ++intensity_iter)
+    for (i = 0, azimuth = pb_buf_.scan().angle_min(); i < beam_count;
+      ++i, azimuth += angle_step, ++range_iter, ++intensity_iter)
     {
       auto c_azimuth = cos(azimuth);
       auto s_azimuth = sin(azimuth);
 
       auto r = *range_iter;
       // Skip NaN / inf points
-      if (!std::isfinite(r))
-      {
+      if (!std::isfinite(r)) {
         continue;
       }
 
       // Get intensity, clipping at min_intensity
       auto intensity = *intensity_iter;
-      if (intensity < min_intensity)
-      {
+      if (intensity < min_intensity) {
         intensity = min_intensity;
       }
 
@@ -256,23 +233,18 @@ void Lidar::UpdateLaserData(const double min_intensity)
 
   const auto start = (vertical_beam_count / 2) * beam_count;
 
-  if (msg_laser_.ranges.size() != beam_count)
-    msg_laser_.ranges.resize(beam_count);
+  if (msg_laser_.ranges.size() != beam_count) {msg_laser_.ranges.resize(beam_count);}
 
   std::copy(
-      pb_buf_.scan().ranges().begin() + start,
-      pb_buf_.scan().ranges().begin() + start + beam_count,
-      msg_laser_.ranges.begin());
+    pb_buf_.scan().ranges().begin() + start, pb_buf_.scan().ranges().begin() + start + beam_count,
+    msg_laser_.ranges.begin());
 
-  if (msg_laser_.intensities.size() != beam_count)
-    msg_laser_.intensities.resize(beam_count);
+  if (msg_laser_.intensities.size() != beam_count) {msg_laser_.intensities.resize(beam_count);}
 
   std::transform(
-      pb_buf_.scan().intensities().begin() + start,
-      pb_buf_.scan().intensities().begin() + start + beam_count,
-      msg_laser_.intensities.begin(),
-      [min_intensity](double i) -> double
-      { return i > min_intensity ? i : min_intensity; });
+    pb_buf_.scan().intensities().begin() + start,
+    pb_buf_.scan().intensities().begin() + start + beam_count, msg_laser_.intensities.begin(),
+    [min_intensity](double i) -> double {return i > min_intensity ? i : min_intensity;});
 }
 
 }  // namespace cloisim_ros

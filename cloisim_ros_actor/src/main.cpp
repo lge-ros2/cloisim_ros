@@ -18,7 +18,7 @@
 
 using namespace std::literals;
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
   // Force flush of the stdout buffer.
   // This ensures a correct sync of all prints
@@ -37,16 +37,14 @@ int main(int argc, char *argv[])
   const auto filtered_result = bringup_param_node->GetBringUpList(true);
 
   std::shared_ptr<cloisim_ros::Base> node = nullptr;
-  if (!filtered_result.empty())
-  {
+  if (!filtered_result.empty()) {
     rclcpp::NodeOptions node_options;
     bringup_param_node->StoreFilteredInfoAsParameters(filtered_result, node_options);
     const auto node_name = bringup_param_node->TargetPartsName();
     node = std::make_shared<cloisim_ros::Actor>(node_options, node_name);
   }
 
-  if (node != nullptr)
-  {
+  if (node != nullptr) {
     executor.add_node(node);
   }
 

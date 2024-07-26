@@ -31,25 +31,25 @@ class Lidar : public Base
   using LaserScanPub = rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr;
   using PointCloud2Pub = rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr;
 
- public:
+public:
   explicit Lidar(
-      const rclcpp::NodeOptions &options_,
-      const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit Lidar(const std::string namespace_ = "");
   ~Lidar();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
-  std::string GetOutputType(zmq::Bridge *const bridge_ptr);
+private:
+  std::string GetOutputType(zmq::Bridge * const bridge_ptr);
 
-  void PublishData(const std::string &buffer);
+  void PublishData(const std::string & buffer);
   void UpdatePointCloudData(const double min_intensity = 0.0);
   void UpdateLaserData(const double min_intensity = 0.0);
 
- private:
+private:
   // buffer from simulation
   cloisim::msgs::LaserScanStamped pb_buf_;
 

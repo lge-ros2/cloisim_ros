@@ -33,101 +33,89 @@ namespace cloisim_ros
 
 class ElevatorSystem : public Base
 {
- public:
-  explicit ElevatorSystem(
-      const rclcpp::NodeOptions &options_, const std::string node_name);
+public:
+  explicit ElevatorSystem(const rclcpp::NodeOptions & options_, const std::string node_name);
   ElevatorSystem();
   virtual ~ElevatorSystem();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
+private:
   bool srv_mode_;
-  zmq::Bridge *control_bridge_ptr;
+  zmq::Bridge * control_bridge_ptr;
   cloisim::msgs::Param request_msg_;
 
-  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::
-      SharedPtr srvCallElevator_;
-  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::
-      SharedPtr srvGetCalledElevator_;
-  rclcpp::Service<elevator_system_msgs::srv::GetElevatorInformation>::
-      SharedPtr srvGetElevatorInfo_;
-  rclcpp::Service<elevator_system_msgs::srv::SelectElevatorFloor>::
-      SharedPtr srvSelectElevatorFloor_;
-  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::
-      SharedPtr srvRequestDoorOpen_;
-  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::
-      SharedPtr srvRequestDoorClose_;
-  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::
-      SharedPtr srvIsDoorOpened_;
-  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::
-      SharedPtr srvReserveElevator_;
-  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::
-      SharedPtr srvReleaseElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::SharedPtr srvCallElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::CallElevator>::SharedPtr srvGetCalledElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::GetElevatorInformation>::SharedPtr srvGetElevatorInfo_;
+  rclcpp::Service<elevator_system_msgs::srv::SelectElevatorFloor>::SharedPtr
+    srvSelectElevatorFloor_;
+  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::SharedPtr srvRequestDoorOpen_;
+  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::SharedPtr srvRequestDoorClose_;
+  rclcpp::Service<elevator_system_msgs::srv::RequestDoor>::SharedPtr srvIsDoorOpened_;
+  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::SharedPtr srvReserveElevator_;
+  rclcpp::Service<elevator_system_msgs::srv::ReturnBool>::SharedPtr srvReleaseElevator_;
 
- private:
+private:
   void DoElevatorCalling(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Request> /*request*/,
-      const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Request>/*request*/,
+    const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Response> response);
 
   void GetElevatorCalled(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Request> request,
-      const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Request> request,
+    const std::shared_ptr<elevator_system_msgs::srv::CallElevator::Response> response);
 
   void GetElevatorInfo(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::GetElevatorInformation::Request> request,
-      const std::shared_ptr<elevator_system_msgs::srv::GetElevatorInformation::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::GetElevatorInformation::Request> request,
+    const std::shared_ptr<elevator_system_msgs::srv::GetElevatorInformation::Response> response);
 
   void SelectFloor(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::SelectElevatorFloor::Request> request,
-      const std::shared_ptr<elevator_system_msgs::srv::SelectElevatorFloor::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::SelectElevatorFloor::Request> request,
+    const std::shared_ptr<elevator_system_msgs::srv::SelectElevatorFloor::Response> response);
 
   void RequestDoorOpen(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Request> request,
-      const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Request> request,
+    const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Response> response);
 
   void RequestDoorClose(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Request> request,
-      const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Request> request,
+    const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Response> response);
 
   void IsDoorOpened(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Request> request,
-      const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Request> request,
+    const std::shared_ptr<elevator_system_msgs::srv::RequestDoor::Response> response);
 
   void ReserveElevator(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Request> /*request*/,
-      const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Request>/*request*/,
+    const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Response> response);
 
   void ReleaseElevator(
-      const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-      const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Request> /*request*/,
-      const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Response> response);
+    const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+    const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Request>/*request*/,
+    const std::shared_ptr<elevator_system_msgs::srv::ReturnBool::Response> response);
 
   cloisim::msgs::Param CreateRequest(
-      const std::string service_name, const std::string elevator_index)
+    const std::string service_name, const std::string elevator_index)
   {
     return CreateRequest(service_name, "", "", elevator_index);
   }
 
   cloisim::msgs::Param CreateRequest(
-      const std::string service_name,
-      const std::string current_floor,
-      const std::string target_floor,
-      const std::string elevator_index = "");
+    const std::string service_name, const std::string current_floor, const std::string target_floor,
+    const std::string elevator_index = "");
 
   bool GetResultFromResponse(
-      const cloisim::msgs::Param &response_msg,
-      const int children_index = 1);
+    const cloisim::msgs::Param & response_msg, const int children_index = 1);
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_ELEVATOR_SYSTEM__ELEVATOR_SYSTEM_HPP_

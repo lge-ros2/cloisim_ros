@@ -27,36 +27,28 @@ namespace cloisim_ros
 {
 namespace msg
 {
-static void Convert(
-    const cloisim::msgs::Vector3d &src,
-    geometry_msgs::msg::Vector3 &dst)
+static void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Vector3 & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void Convert(
-    const cloisim::msgs::Vector3d &src,
-    geometry_msgs::msg::Point32 &dst)
+static void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Point32 & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void Convert(
-    const cloisim::msgs::Vector3d &src,
-    geometry_msgs::msg::Point &dst)
+static void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Point & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void Convert(
-    const cloisim::msgs::Quaternion &src,
-    geometry_msgs::msg::Quaternion &dst)
+static void Convert(const cloisim::msgs::Quaternion & src, geometry_msgs::msg::Quaternion & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
@@ -70,9 +62,7 @@ namespace geometry_msgs
 {
 namespace msg
 {
-static void Convert(
-    const tf2::Quaternion &src,
-    geometry_msgs::msg::Quaternion &dst)
+static void Convert(const tf2::Quaternion & src, geometry_msgs::msg::Quaternion & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
@@ -80,9 +70,7 @@ static void Convert(
   dst.w = src.w();
 }
 
-static void Convert(
-    const geometry_msgs::msg::Point &src,
-    geometry_msgs::msg::Vector3 &dst)
+static void Convert(const geometry_msgs::msg::Point & src, geometry_msgs::msg::Vector3 & dst)
 {
   dst.x = src.x;
   dst.y = src.y;

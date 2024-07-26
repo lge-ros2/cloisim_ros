@@ -28,28 +28,28 @@ namespace cloisim_ros
 {
 class JointControl : public Base
 {
- public:
+public:
   explicit JointControl(
-      const rclcpp::NodeOptions &options_,
-      const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit JointControl(const std::string namespace_ = "");
   virtual ~JointControl();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
-  void JointControlWrite(zmq::Bridge *const bridge_ptr, const std::string &buffer);
+  void JointControlWrite(zmq::Bridge * const bridge_ptr, const std::string & buffer);
 
   std::string MakeCommandMessage(control_msgs::msg::JointJog::ConstSharedPtr msg);
 
-  void GetRobotDescription(zmq::Bridge *const bridge_ptr);
+  void GetRobotDescription(zmq::Bridge * const bridge_ptr);
 
- private:
-  zmq::Bridge *info_bridge_ptr;
+private:
+  zmq::Bridge * info_bridge_ptr;
 
   std::map<std::string, std::string> target_transform_name;
 

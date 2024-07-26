@@ -24,16 +24,15 @@ namespace cloisim_ros
 {
 class DepthCamera : public CameraBase
 {
- public:
+public:
   explicit DepthCamera(
-      const rclcpp::NodeOptions &options_,
-      const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit DepthCamera(
-      const std::string node_name = "cloisim_ros_depthcamera",
-      const std::string namespace_ = "");
+    const std::string node_name = "cloisim_ros_depthcamera", const std::string namespace_ = "");
   virtual ~DepthCamera();
 
- private:
+private:
   // Store current point cloud.
   sensor_msgs::msg::PointCloud2 msg_pc2;
 

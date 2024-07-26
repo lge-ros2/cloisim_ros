@@ -28,13 +28,13 @@ namespace cloisim_ros
 {
 class WebSocketService
 {
- public:
+public:
   WebSocketService();
   explicit WebSocketService(const std::string service_port);
   explicit WebSocketService(const std::string bridge_ip, const std::string service_port);
   ~WebSocketService();
 
- private:
+private:
   std::string base_uri_;
   client client_;  // Create a client endpoint
   websocketpp::connection_hdl conn_hdl_;
@@ -46,19 +46,19 @@ class WebSocketService
   bool is_reply_received_;
   bool is_connected_;
 
- private:
+private:
   void on_message(websocketpp::connection_hdl hdl, client::message_ptr msg);
   void on_open(websocketpp::connection_hdl hdl);
   void on_close(websocketpp::connection_hdl hdl);
 
- public:
+public:
   void Request();
 
-  bool IsConnected() const { return is_connected_; }
+  bool IsConnected() const {return is_connected_;}
 
   std::string PopPayload();
 
-  void SetTarget(const std::string target) { target_filter = target; }
+  void SetTarget(const std::string target) {target_filter = target;}
 
   void Run();
 };
