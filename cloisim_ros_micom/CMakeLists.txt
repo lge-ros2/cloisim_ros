@@ -54,7 +54,7 @@ add_executable(
 target_link_libraries(
   ${STANDALONE_EXEC_NAME} PRIVATE
   ${PROJECT_NAME}_core
-  )
+)
 
 ################################################################################
 # Install
