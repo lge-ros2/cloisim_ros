@@ -99,9 +99,9 @@ void Imu::PublishData(const string &buffer)
   // Fill message with latest sensor data
   msg_imu_.header.stamp = GetTime();
 
-  ConvertCLOiSimToRos2(pb_buf_.orientation(), msg_imu_.orientation);
-  ConvertCLOiSimToRos2(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
-  ConvertCLOiSimToRos2(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
+  msg::Convert(pb_buf_.orientation(), msg_imu_.orientation);
+  msg::Convert(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
+  msg::Convert(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
 
   pub_->publish(msg_imu_);
 }

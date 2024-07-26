@@ -276,9 +276,9 @@ void RealSense::PublishImuData(const string& buffer)
   // Fill message with latest sensor data
   msg_imu_.header.stamp = GetTime();
 
-  SetQuaternionMessageToGeometry(pb_buf_.orientation(), msg_imu_.orientation);
-  SetVector3MessageToGeometry(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
-  SetVector3MessageToGeometry(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
+  msg::Convert(pb_buf_.orientation(), msg_imu_.orientation);
+  msg::Convert(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
+  msg::Convert(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
 
   std::fill(begin(msg_imu_.orientation_covariance),
             end(msg_imu_.orientation_covariance), 0.0);

@@ -89,15 +89,15 @@ void GroundTruth::UpdatePerceptionData()
     object_info_msg.tracking_id = pb_perception.tracking_id();
     object_info_msg.class_id = pb_perception.class_id();
 
-    SetVector3MessageToGeometry(pb_perception.position(), object_info_msg.position);
-    SetVector3MessageToGeometry(pb_perception.velocity(), object_info_msg.velocity);
-    SetVector3MessageToGeometry(pb_perception.size(), object_info_msg.size);
+    msg::Convert(pb_perception.position(), object_info_msg.position);
+    msg::Convert(pb_perception.velocity(), object_info_msg.velocity);
+    msg::Convert(pb_perception.size(), object_info_msg.size);
 
     for (auto it = pb_perception.footprint().begin(); it < pb_perception.footprint().end(); ++it)
     {
       const auto point = *it;
       geometry_msgs::msg::Point32 point32;
-      SetVector3MessageToGeometry(point, point32);
+      msg::Convert(point, point32);
       object_info_msg.footprint.points.push_back(point32);
     }
 

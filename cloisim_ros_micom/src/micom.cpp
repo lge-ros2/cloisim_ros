@@ -191,12 +191,12 @@ void Micom::UpdateOdom()
   }
 
   msg_odom_.header.stamp = GetTime();
-  SetVector3MessageToGeometry(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
+  msg::Convert(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
   msg_odom_.pose.pose.position.z = 0.0;  // position.z contians yaw value
 
   tf2::Quaternion tf2_q;
   tf2_q.setRPY(0.0, 0.0, pb_micom_.odom().pose().z());
-  SetTf2QuaternionToGeometry(tf2_q, msg_odom_.pose.pose.orientation);
+  geometry_msgs::msg::Convert(tf2_q, msg_odom_.pose.pose.orientation);
 
   // static int cnt = 0;
   // if (cnt++ % LOGGING_PERIOD == 0)
@@ -208,12 +208,12 @@ void Micom::UpdateOdom()
   //       msg_odom_.twist.twist.linear.x, msg_odom_.twist.twist.angular.z, step_time);
   // }
 
-  SetVector3MessageToGeometry(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
-  SetVector3MessageToGeometry(pb_micom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
+  msg::Convert(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
+  msg::Convert(pb_micom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
 
   // Update TF
   odom_tf_.header.stamp = msg_odom_.header.stamp;
-  ConvertPointToVector3(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
+  geometry_msgs::msg::Convert(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
   odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
 }
 
@@ -226,9 +226,9 @@ void Micom::UpdateImu()
 
   msg_imu_.header.stamp = GetTime();
 
-  SetQuaternionMessageToGeometry(pb_micom_.imu().orientation(), msg_imu_.orientation);
-  SetVector3MessageToGeometry(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
-  SetVector3MessageToGeometry(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
+  msg::Convert(pb_micom_.imu().orientation(), msg_imu_.orientation);
+  msg::Convert(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
+  msg::Convert(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
 
   std::fill(begin(msg_imu_.orientation_covariance),
             end(msg_imu_.orientation_covariance), 0.0);

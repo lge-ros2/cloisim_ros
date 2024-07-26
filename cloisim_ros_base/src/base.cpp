@@ -356,8 +356,8 @@ void Base::SetTf2(
 {
   target_msg.header.frame_id = header_frame_id;
   target_msg.child_frame_id = child_frame_id;
-  SetVector3MessageToGeometry(transform.position(), target_msg.transform.translation);
-  SetQuaternionMessageToGeometry(transform.orientation(), target_msg.transform.rotation);
+  msg::Convert(transform.position(), target_msg.transform.translation);
+  msg::Convert(transform.orientation(), target_msg.transform.rotation);
 }
 
 void Base::SetStaticTf2(
@@ -367,8 +367,8 @@ void Base::SetStaticTf2(
   geometry_msgs::msg::TransformStamped static_tf;
   static_tf.header.frame_id = parent_header_frame_id;
   static_tf.child_frame_id = transform.name();
-  SetVector3MessageToGeometry(transform.position(), static_tf.transform.translation);
-  SetQuaternionMessageToGeometry(transform.orientation(), static_tf.transform.rotation);
+  msg::Convert(transform.position(), static_tf.transform.translation);
+  msg::Convert(transform.orientation(), static_tf.transform.rotation);
 
   AddStaticTf2(static_tf);
 }
