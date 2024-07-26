@@ -86,6 +86,10 @@ void Gps::Initialize()
   std::fill(begin(msg_heading_.linear_acceleration_covariance),
             end(msg_heading_.linear_acceleration_covariance), 0.0);
 
+  msg_heading_.orientation_covariance[0] = 0.0001f;
+  msg_heading_.orientation_covariance[4] = 0.0001f;
+  msg_heading_.orientation_covariance[8] = 0.0001f;
+
   // ROS2 Publisher
   pub_gps_ =
       this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
