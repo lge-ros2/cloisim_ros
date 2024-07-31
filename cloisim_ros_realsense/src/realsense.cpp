@@ -31,16 +31,14 @@ namespace cloisim_ros
 {
 
 RealSense::RealSense(
-    const rclcpp::NodeOptions& options_,
-    const string node_name,
-    const string namespace_)
-    : Base(node_name, namespace_, options_)
+  const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: Base(node_name, namespace_, options_)
 {
   Start();
 }
 
 RealSense::RealSense(const string namespace_)
-    : RealSense(rclcpp::NodeOptions(), "cloisim_ros_realsense", namespace_)
+: RealSense(rclcpp::NodeOptions(), "cloisim_ros_realsense", namespace_)
 {
 }
 
@@ -58,8 +56,7 @@ void RealSense::Initialize()
   const auto hashKeyInfo = GetTargetHashKey("Info");
 
   auto info_bridge_ptr = CreateBridge();
-  if (info_bridge_ptr != nullptr)
-  {
+  if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
     GetActivatedModules(info_bridge_ptr);
 
@@ -72,8 +69,7 @@ void RealSense::Initialize()
   }
 
   uint16_t portData;
-  for (const auto& module : activated_modules_)
-  {
+  for (const auto & module : activated_modules_) {
     const auto module_type = std::get<0>(module);
     const auto module_name = std::get<1>(module);
 
@@ -83,39 +79,30 @@ void RealSense::Initialize()
     const auto hashKeyData = GetTargetHashKey(module_name + "Data");
     const auto hashKeyInfo = GetTargetHashKey(module_name + "Info");
 
-    DBG_SIM_INFO("module: %s, hashKey: data(%s), info(%s)",
-                 module_name.c_str(), hashKeyData.c_str(), hashKeyInfo.c_str());
+    DBG_SIM_INFO(
+      "module: %s, hashKey: data(%s), info(%s)", module_name.c_str(), hashKeyData.c_str(),
+      hashKeyInfo.c_str());
 
     auto info_bridge_info = CreateBridge();
-    if (info_bridge_info->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo))
-    {
+    if (info_bridge_info->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo)) {
       auto data_bridge_ptr = CreateBridge();
       data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
 
-      if (module_type.compare("camera") == 0)
-      {
+      if (module_type.compare("camera") == 0) {
         InitializeCam(module_name, info_bridge_info, data_bridge_ptr);
-      }
-      else if (module_type.compare("imu") == 0)
-      {
+      } else if (module_type.compare("imu") == 0) {
         InitializeImu(info_bridge_info, data_bridge_ptr);
-      }
-      else
-      {
-        DBG_SIM_ERR("Unknown module type: %s name: %s",
-                    module_type.c_str(), module_name.c_str());
+      } else {
+        DBG_SIM_ERR("Unknown module type: %s name: %s", module_type.c_str(), module_name.c_str());
       }
     }
   }
 }
 
 void RealSense::InitializeCam(
-    const string module_name,
-    zmq::Bridge* const info_ptr,
-    zmq::Bridge* const data_ptr)
+  const string module_name, zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr)
 {
-  if (info_ptr != nullptr)
-  {
+  if (info_ptr != nullptr) {
     auto transform_pose = GetObjectTransform(info_ptr, module_name);
     const auto header_frame_id = GetPartsName() + "_link";
     const auto child_frame_id = GetPartsName() + "_camera_" + module_name + "_frame";
@@ -123,7 +110,7 @@ void RealSense::InitializeCam(
     SetStaticTf2(transform_pose, header_frame_id);
 
     const auto camInfoManager =
-        std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
+      std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
 
     const auto camSensorMsg = GetCameraSensorMessage(info_ptr);
     SetCameraInfoInManager(camInfoManager, camSensorMsg, module_name);
@@ -143,22 +130,18 @@ void RealSense::InitializeCam(
 
   msg_imgs_[data_ptr] = msg_img;
 
-  if (data_ptr != nullptr)
-  {
+  if (data_ptr != nullptr) {
     AddPublisherThread(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1));
   }
 }
 
-void RealSense::InitializeImu(
-    zmq::Bridge* const info_ptr,
-    zmq::Bridge* const data_ptr)
+void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr)
 {
   // Get frame for message
   const auto frame_id = GetFrameId("imu_link");
   msg_imu_.header.frame_id = frame_id;
 
-  if (info_ptr != nullptr)
-  {
+  if (info_ptr != nullptr) {
     auto transform_pose = GetObjectTransform(info_ptr);
     transform_pose.set_name(frame_id);
     SetStaticTf2(transform_pose);
@@ -167,25 +150,24 @@ void RealSense::InitializeImu(
   // ROS2 Publisher
   const auto topic_base_name = GetPartsName() + "/" + topic_name_;
   pub_imu_ =
-      this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
+    this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
 
-  if (data_ptr != nullptr)
-  {
+  if (data_ptr != nullptr) {
     AddPublisherThread(data_ptr, bind(&RealSense::PublishImuData, this, _1));
   }
 }
 
 void RealSense::Deinitialize()
 {
-  for (auto& pub : pubs_)
+  for (auto & pub : pubs_) {
     pub.second.shutdown();
+  }
   pubs_.clear();
 }
 
-void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
+void RealSense::GetActivatedModules(zmq::Bridge * const bridge_ptr)
 {
-  if (bridge_ptr == nullptr)
-  {
+  if (bridge_ptr == nullptr) {
     return;
   }
 
@@ -193,34 +175,26 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   const auto reply = RequestReplyMessage(bridge_ptr, "request_module_list");
 
   const auto reply_size = reply.ByteSizeLong();
-  if (reply_size <= 0)
-  {
+  if (reply_size <= 0) {
     DBG_SIM_ERR("Failed to get activated module info, length(%ld)", reply_size);
-  }
-  else
-  {
-    if (reply.IsInitialized() &&
-        reply.name() == "activated_modules")
-    {
-      for (auto i = 0; i < reply.children_size(); i++)
-      {
+  } else {
+    if (reply.IsInitialized() && reply.name() == "activated_modules") {
+      for (auto i = 0; i < reply.children_size(); i++) {
         const auto param = reply.children(i);
-        if (param.name() == "module" && param.children_size() == 2)
-        {
+        if (param.name() == "module" && param.children_size() == 2) {
           const auto type = param.children(0);
           const auto name = param.children(1);
-          if (type.has_value() &&
-              type.value().type() == cloisim::msgs::Any_ValueType_STRING &&
-              !type.value().string_value().empty() &&
-              name.has_value() &&
-              name.value().type() == cloisim::msgs::Any_ValueType_STRING &&
-              !name.value().string_value().empty())
+          if (
+            type.has_value() && type.value().type() == cloisim::msgs::Any_ValueType_STRING &&
+            !type.value().string_value().empty() && name.has_value() &&
+            name.value().type() == cloisim::msgs::Any_ValueType_STRING &&
+            !name.value().string_value().empty())
           {
             const auto tuple_module =
-                std::make_tuple(type.value().string_value(), name.value().string_value());
+              std::make_tuple(type.value().string_value(), name.value().string_value());
             activated_modules_.push_back(tuple_module);
-            moduleListStr.append(std::get<1>(tuple_module) +
-                                 "(" + std::get<0>(tuple_module) + "), ");
+            moduleListStr.append(
+              std::get<1>(tuple_module) + "(" + std::get<0>(tuple_module) + "), ");
           }
         }
       }
@@ -230,13 +204,10 @@ void RealSense::GetActivatedModules(zmq::Bridge* const bridge_ptr)
   DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
-void RealSense::PublishImgData(
-    const zmq::Bridge* const bridge_ptr,
-    const std::string& buffer)
+void RealSense::PublishImgData(const zmq::Bridge * const bridge_ptr, const std::string & buffer)
 {
   cloisim::msgs::ImageStamped pb_buf_;
-  if (!pb_buf_.ParseFromString(buffer))
-  {
+  if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
@@ -252,8 +223,9 @@ void RealSense::PublishImgData(
   const uint32_t step_arg = pb_buf_.image().step();
 
   // Copy from src to image_msg
-  sensor_msgs::fillImage(*msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-                         reinterpret_cast<const void*>(pb_buf_.image().data().data()));
+  sensor_msgs::fillImage(
+    *msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
+    reinterpret_cast<const void *>(pb_buf_.image().data().data()));
 
   // Publish camera info
   auto camera_info_msg = camera_info_managers_[bridge_ptr]->getCameraInfo();
@@ -262,11 +234,10 @@ void RealSense::PublishImgData(
   pubs_[bridge_ptr].publish(*msg_img, camera_info_msg);
 }
 
-void RealSense::PublishImuData(const string& buffer)
+void RealSense::PublishImuData(const string & buffer)
 {
   cloisim::msgs::IMU pb_buf_;
-  if (!pb_buf_.ParseFromString(buffer))
-  {
+  if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
@@ -276,16 +247,16 @@ void RealSense::PublishImuData(const string& buffer)
   // Fill message with latest sensor data
   msg_imu_.header.stamp = GetTime();
 
-  SetQuaternionMessageToGeometry(pb_buf_.orientation(), msg_imu_.orientation);
-  SetVector3MessageToGeometry(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
-  SetVector3MessageToGeometry(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
+  msg::Convert(pb_buf_.orientation(), msg_imu_.orientation);
+  msg::Convert(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
+  msg::Convert(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
 
-  std::fill(begin(msg_imu_.orientation_covariance),
-            end(msg_imu_.orientation_covariance), 0.0);
-  std::fill(begin(msg_imu_.angular_velocity_covariance),
-            end(msg_imu_.angular_velocity_covariance), 0.0);
-  std::fill(begin(msg_imu_.linear_acceleration_covariance),
-            end(msg_imu_.linear_acceleration_covariance), 0.0);
+  std::fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
+  std::fill(
+    begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
+  std::fill(
+    begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance),
+    0.0);
 
   pub_imu_->publish(msg_imu_);
 }

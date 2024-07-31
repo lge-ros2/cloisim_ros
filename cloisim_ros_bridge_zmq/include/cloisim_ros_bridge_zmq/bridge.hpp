@@ -17,9 +17,10 @@
 #define CLOISIM_ROS_BRIDGE_ZMQ__BRIDGE_HPP_
 
 #include <zmq.h>
-#include <string>
-#include "cloisim_ros_bridge_zmq/log.h"
 
+#include <string>
+
+#include "cloisim_ros_bridge_zmq/log.h"
 
 namespace cloisim_ros
 {
@@ -27,34 +28,25 @@ namespace zmq
 {
 class Bridge
 {
- public:
-  enum Mode
-  {
-    SUB = 0b00001,
-    PUB = 0b00010,
-    SERVICE = 0b00100,
-    CLIENT = 0b01000
-  };
+public:
+  enum Mode { SUB = 0b00001, PUB = 0b00010, SERVICE = 0b00100, CLIENT = 0b01000 };
 
- public:
-  void SetBridgeAddress(const std::string ip_address)
-  {
-    bridgeAddr_ = ip_address;
-  }
+public:
+  void SetBridgeAddress(const std::string ip_address) {bridgeAddr_ = ip_address;}
 
- public:
+public:
   Bridge();
   ~Bridge();
 
   bool Connect(const unsigned char mode, const uint16_t port, const std::string hashKey = "");
   bool Disconnect(const unsigned char mode = 0);
 
-  bool Receive(void** buffer, int& bufferLength, bool isNonBlockingMode = false);
-  bool Send(const void* buffer, const int bufferLength, bool isNonBlockingMode = false);
+  bool Receive(void ** buffer, int & bufferLength, bool isNonBlockingMode = false);
+  bool Send(const void * buffer, const int bufferLength, bool isNonBlockingMode = false);
 
   std::string RequestReply(std::string request_data);
 
- private:
+private:
   const bool useTCP = true;
   const uint8_t tagSize = 8;  // The size of zmq packet header tag
 
@@ -67,24 +59,24 @@ class Bridge
 
   std::string bridgeAddr_;
 
-  void* pCtx_;
+  void * pCtx_;
 
-  void* pPub_;
-  void* pSub_;
-  void* pReq_;
-  void* pRep_;
+  void * pPub_;
+  void * pSub_;
+  void * pReq_;
+  void * pRep_;
 
   zmq_msg_t m_msgRx;         // for subscriber and reply
   std::size_t m_nHashTagTx;  // for publisher and request
 
-  void* pSockTx_;  // for Send function
-  void* pSockRx_;  // for Recieve function
+  void * pSockTx_;  // for Send function
+  void * pSockRx_;  // for Recieve function
 
   std::string lastErrMsg;
 
- private:
+private:
   bool Setup(const unsigned char mode);
-  bool SetupCommon(void* const socket);
+  bool SetupCommon(void * const socket);
   bool SetupSubscriber();
   bool SetupPublisher();
   bool SetupService();
@@ -103,18 +95,15 @@ class Bridge
   // bool ConnectAction() { return false; };
   // bool ConnectClient() { return false; };
 
-  bool CloseSocket(void*& target);
+  bool CloseSocket(void * & target);
 
- private:
+private:
   std::string GetAddress(const uint16_t port)
   {
     return std::string((useTCP) ? "tcp" : "udp") + "://" + bridgeAddr_ + ":" + std::to_string(port);
   }
 
-  std::size_t GetHashCode(const std::string value)
-  {
-    return std::hash<std::string>{}(value);
-  }
+  std::size_t GetHashCode(const std::string value) {return std::hash<std::string>{}(value);}
 };
 }  // namespace zmq
 }  // namespace cloisim_ros

@@ -27,20 +27,21 @@ namespace cloisim_ros
 {
 class Imu : public Base
 {
- public:
-  explicit Imu(const rclcpp::NodeOptions &options_,
-               const std::string node_name, const std::string namespace_ = "");
+public:
+  explicit Imu(
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit Imu(const std::string namespace_ = "");
   ~Imu();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
- private:
+private:
   // buffer from simulation
   cloisim::msgs::IMU pb_buf_;
 

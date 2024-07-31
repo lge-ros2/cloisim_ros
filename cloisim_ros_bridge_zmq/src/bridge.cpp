@@ -23,16 +23,15 @@ using string = std::string;
 
 namespace cloisim_ros::zmq
 {
-
 Bridge::Bridge()
-    : pCtx_(nullptr)
-    , pPub_(nullptr)
-    , pSub_(nullptr)
-    , pReq_(nullptr)
-    , pRep_(nullptr)
-    , pSockTx_(nullptr)
-    , pSockRx_(nullptr)
-    , lastErrMsg("")
+: pCtx_(nullptr)
+  , pPub_(nullptr)
+  , pSub_(nullptr)
+  , pReq_(nullptr)
+  , pRep_(nullptr)
+  , pSockTx_(nullptr)
+  , pSockRx_(nullptr)
+  , lastErrMsg("")
 {
   const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
 
@@ -48,8 +47,7 @@ Bridge::Bridge()
 
 Bridge::~Bridge()
 {
-  if (pCtx_)
-  {
+  if (pCtx_) {
     zmq_ctx_shutdown(pCtx_);
     zmq_ctx_term(pCtx_);
     pCtx_ = nullptr;
@@ -65,46 +63,39 @@ bool Bridge::Setup(const unsigned char mode)
 {
   bool result = true;
 
-  if (mode & Mode::SUB)
-    result &= SetupSubscriber();
+  if (mode & Mode::SUB) {result &= SetupSubscriber();}
 
-  if (mode & Mode::PUB)
-    result &= SetupPublisher();
+  if (mode & Mode::PUB) {result &= SetupPublisher();}
 
-  if (mode & Mode::SERVICE)
-    result &= SetupService();
+  if (mode & Mode::SERVICE) {result &= SetupService();}
 
-  if (mode & Mode::CLIENT)
-    result &= SetupClient();
+  if (mode & Mode::CLIENT) {result &= SetupClient();}
 
-  if (result == false)
-    DBG_SIM_ERR("Error::%s", lastErrMsg.c_str());
+  if (result == false) {DBG_SIM_ERR("Error::%s", lastErrMsg.c_str());}
 
   return result;
 }
 
-bool Bridge::SetupCommon(void *const socket)
+bool Bridge::SetupCommon(void * const socket)
 {
-  if (zmq_setsockopt(socket, ZMQ_CONNECT_TIMEOUT, &connect_timeout, sizeof(connect_timeout)))
+  if (zmq_setsockopt(socket, ZMQ_CONNECT_TIMEOUT, &connect_timeout, sizeof(connect_timeout))) {
+    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    return false;
+  }
+
+  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min, sizeof(reconnect_ivl_min))) {
+    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    return false;
+  }
+
+  if (zmq_setsockopt(
+      socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min, sizeof(reconnect_ivl_min)))
-  {
-    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
-    return false;
-  }
-
-  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
-  {
-    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
-    return false;
-  }
-
-  if (zmq_setsockopt(socket, ZMQ_LINGER, &lingerPeriod, sizeof(lingerPeriod)))
-  {
+  if (zmq_setsockopt(socket, ZMQ_LINGER, &lingerPeriod, sizeof(lingerPeriod))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -115,42 +106,34 @@ bool Bridge::SetupCommon(void *const socket)
 bool Bridge::SetupSubscriber()
 {
   // condition check
-  if (pSub_ != nullptr)
-  {
+  if (pSub_ != nullptr) {
     lastErrMsg = "pSub_ is Already setup!!!";
     return false;
-  }
-  else if (pRep_ != nullptr || pReq_ != nullptr)
-  {
+  } else if (pRep_ != nullptr || pReq_ != nullptr) {
     lastErrMsg = "pReq_ or pRep_ is Already setup!!!";
     return false;
   }
 
   pSub_ = zmq_socket(pCtx_, ZMQ_SUB);
 
-  if (pSub_ == nullptr)
-  {
+  if (pSub_ == nullptr) {
     lastErrMsg = "NULL Socket for sub!!";
     return false;
   }
 
-  if (!SetupCommon(pSub_))
-    return false;
+  if (!SetupCommon(pSub_)) {return false;}
 
-  if (zmq_setsockopt(pSub_, ZMQ_CONFLATE, &keep_only_last_msg, sizeof(keep_only_last_msg)))
-  {
+  if (zmq_setsockopt(pSub_, ZMQ_CONFLATE, &keep_only_last_msg, sizeof(keep_only_last_msg))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
-  {
+  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_msg_init(&m_msgRx) < 0)
-  {
+  if (zmq_msg_init(&m_msgRx) < 0) {
     lastErrMsg = "msg init failed:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -163,21 +146,17 @@ bool Bridge::SetupSubscriber()
 bool Bridge::SetupPublisher()
 {
   // condition check
-  if (pPub_ != nullptr)
-  {
+  if (pPub_ != nullptr) {
     lastErrMsg = "pPub_ is Already setup!!!";
     return false;
-  }
-  else if (pRep_ != nullptr || pReq_ != nullptr)
-  {
+  } else if (pRep_ != nullptr || pReq_ != nullptr) {
     lastErrMsg = "pReq_ or pRep_ is Already setup!!!";
     return false;
   }
 
   pPub_ = zmq_socket(pCtx_, ZMQ_PUB);
 
-  if (!SetupCommon(pPub_))
-    return false;
+  if (!SetupCommon(pPub_)) {return false;}
 
   pSockTx_ = pPub_;
 
@@ -187,30 +166,24 @@ bool Bridge::SetupPublisher()
 bool Bridge::SetupService()
 {
   // condition check
-  if (pRep_ != nullptr)
-  {
+  if (pRep_ != nullptr) {
     lastErrMsg = "pRep_ is Already setup!!!";
     return false;
-  }
-  else if (pSub_ != nullptr || pPub_ != nullptr)
-  {
+  } else if (pSub_ != nullptr || pPub_ != nullptr) {
     lastErrMsg = "pSub_ or pPub_ is Already setup!!!";
     return false;
   }
 
   pRep_ = zmq_socket(pCtx_, ZMQ_REP);
 
-  if (!SetupCommon(pRep_))
-    return false;
+  if (!SetupCommon(pRep_)) {return false;}
 
-  if (zmq_setsockopt(pRep_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
-  {
+  if (zmq_setsockopt(pRep_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_msg_init(&m_msgRx) < 0)
-  {
+  if (zmq_msg_init(&m_msgRx) < 0) {
     lastErrMsg = "msg init failed:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -224,30 +197,24 @@ bool Bridge::SetupService()
 bool Bridge::SetupClient()
 {
   // condition check
-  if (pReq_ != nullptr)
-  {
+  if (pReq_ != nullptr) {
     lastErrMsg = "pRep_ is Already setup!!!";
     return false;
-  }
-  else if (pSub_ != nullptr || pPub_ != nullptr)
-  {
+  } else if (pSub_ != nullptr || pPub_ != nullptr) {
     lastErrMsg = "pSub_ or pPub_ is Already setup!!!";
     return false;
   }
 
   pReq_ = zmq_socket(pCtx_, ZMQ_REQ);
 
-  if (!SetupCommon(pReq_))
-    return false;
+  if (!SetupCommon(pReq_)) {return false;}
 
-  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout)))
-  {
+  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if (zmq_msg_init(&m_msgRx) < 0)
-  {
+  if (zmq_msg_init(&m_msgRx) < 0) {
     lastErrMsg = "msg init failed:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -265,23 +232,17 @@ bool Bridge::Connect(const unsigned char mode, const uint16_t port, const string
   // socket configuration
   result &= Setup(mode);
 
-  if (result)
-  {
+  if (result) {
     // socket connect
-    if (mode & Mode::SUB)
-      result &= ConnectSubscriber(port, hashKey);
+    if (mode & Mode::SUB) {result &= ConnectSubscriber(port, hashKey);}
 
-    if (mode & Mode::PUB)
-      result &= ConnectPublisher(port, hashKey);
+    if (mode & Mode::PUB) {result &= ConnectPublisher(port, hashKey);}
 
-    if (mode & Mode::SERVICE)
-      result &= ConnectService(port, hashKey);
+    if (mode & Mode::SERVICE) {result &= ConnectService(port, hashKey);}
 
-    if (mode & Mode::CLIENT)
-      result &= ConnectClient(port, hashKey);
+    if (mode & Mode::CLIENT) {result &= ConnectClient(port, hashKey);}
 
-    if (!result)
-      DBG_SIM_ERR("Connect()::%s", lastErrMsg.c_str());
+    if (!result) {DBG_SIM_ERR("Connect()::%s", lastErrMsg.c_str());}
   }
 
   return result;
@@ -290,8 +251,7 @@ bool Bridge::Connect(const unsigned char mode, const uint16_t port, const string
 bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
 {
   const auto nHashTag = GetHashCode(hashKey);
-  if (zmq_setsockopt(pSub_, ZMQ_SUBSCRIBE, &nHashTag, tagSize))
-  {
+  if (zmq_setsockopt(pSub_, ZMQ_SUBSCRIBE, &nHashTag, tagSize)) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -300,8 +260,7 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
   // DBG_SIM_MSG("ptr(%p) address(%s) hash(%lX)", (void *)this, bridgeAddress.c_str(), nHashTag);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), nHashTag);
 
-  if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0)
-  {
+  if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0) {
     lastErrMsg = "ConnectSubscriber Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -318,8 +277,7 @@ bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
   //             (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
-  if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0)
-  {
+  if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0) {
     lastErrMsg = "ConnectPublisher Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -336,8 +294,7 @@ bool Bridge::ConnectService(const uint16_t port, const string hashKey)
   //             (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
-  if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0)
-  {
+  if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0) {
     lastErrMsg = "ConnectService Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -354,8 +311,7 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
   //             (void *)this, bridgeAddress.c_str(), m_nHashTagTx);
   DBG_SIM_MSG("address(%s) hash(%lX)", bridgeAddress.c_str(), m_nHashTagTx);
 
-  if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0)
-  {
+  if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0) {
     lastErrMsg = "ConnectClient Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -368,23 +324,19 @@ bool Bridge::Disconnect(const unsigned char mode)
   // DBG_SIM_WRN("Bridge disconnect");
   auto result = true;
 
-  if ((mode == 0 || (mode & Mode::SUB)) && pSub_)
-  {
+  if ((mode == 0 || (mode & Mode::SUB)) && pSub_) {
     zmq_msg_close(&m_msgRx);
     result &= CloseSocket(pSub_);
   }
 
-  if ((mode == 0 || (mode & Mode::SERVICE)) && pRep_)
-  {
+  if ((mode == 0 || (mode & Mode::SERVICE)) && pRep_) {
     zmq_msg_close(&m_msgRx);
     result &= CloseSocket(pRep_);
   }
 
-  if ((mode == 0 || (mode & Mode::PUB)) && pPub_)
-    result &= CloseSocket(pPub_);
+  if ((mode == 0 || (mode & Mode::PUB)) && pPub_) {result &= CloseSocket(pPub_);}
 
-  if ((mode == 0 || (mode & Mode::CLIENT)) && pReq_)
-    result &= CloseSocket(pReq_);
+  if ((mode == 0 || (mode & Mode::CLIENT)) && pReq_) {result &= CloseSocket(pReq_);}
 
   pSockTx_ = nullptr;
   pSockRx_ = nullptr;
@@ -392,10 +344,9 @@ bool Bridge::Disconnect(const unsigned char mode)
   return result;
 }
 
-bool Bridge::CloseSocket(void *&target)
+bool Bridge::CloseSocket(void * & target)
 {
-  if (target == nullptr)
-  {
+  if (target == nullptr) {
     DBG_SIM_ERR("null target");
     return false;
   }
@@ -406,23 +357,22 @@ bool Bridge::CloseSocket(void *&target)
   return true;
 }
 
-bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
+bool Bridge::Receive(void ** buffer, int & bufferLength, bool isNonBlockingMode)
 {
-  if (pSockRx_ == nullptr)
-  {
+  if (pSockRx_ == nullptr) {
     DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer pSockRx_(%p)", pSockRx_);
     return false;
   }
 
-  if ((bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
+  if (
+    (bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
     // DBG_SIM_ERR("Failed to receive message len(%d): %s",
     //             bufferLength, zmq_strerror(zmq_errno()));
     return false;
   }
 
-  if ((*buffer = zmq_msg_data(&m_msgRx)) == nullptr)
-    return false;
+  if ((*buffer = zmq_msg_data(&m_msgRx)) == nullptr) {return false;}
 
   // Get only Contents without tag
   auto ptr = static_cast<unsigned char *>(*buffer);
@@ -432,24 +382,24 @@ bool Bridge::Receive(void **buffer, int &bufferLength, bool isNonBlockingMode)
   return true;
 }
 
-bool Bridge::Send(const void *buffer, const int bufferLength, bool isNonBlockingMode)
+bool Bridge::Send(const void * buffer, const int bufferLength, bool isNonBlockingMode)
 {
   zmq_msg_t msg;
-  if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0)
-  {
-    DBG_SIM_ERR("Cannot Send data due to uninitialized pointer, msg(%p) or pSockTx_(%p)",
-                (void *)&msg, pSockTx_);
+  if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0) {
+    DBG_SIM_ERR(
+      "Cannot Send data due to uninitialized pointer, msg(%p) or pSockTx_(%p)", (void *)&msg,
+      pSockTx_);
     return false;
   }
 
   // Set hash Tag
   memcpy(zmq_msg_data(&msg), &m_nHashTagTx, tagSize);
-  memcpy(reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(zmq_msg_data(&msg)) + tagSize),
-         buffer, bufferLength);
+  memcpy(
+    reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(zmq_msg_data(&msg)) + tagSize), buffer,
+    bufferLength);
 
   /* Send the message to the socket */
-  if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0) < 0)
-  {
+  if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0) < 0) {
     return false;
   }
 
@@ -462,18 +412,18 @@ std::string Bridge::RequestReply(std::string request_data)
 {
   string reply_data;
 
-  if (request_data.size() > 0)
-  {
+  if (request_data.size() > 0) {
     Send(request_data.data(), request_data.size());
 
-    void *buffer_ptr = nullptr;
+    void * buffer_ptr = nullptr;
     int bufferLength = 0;
     const auto succeeded = Receive(&buffer_ptr, bufferLength);
 
-    if (succeeded)
+    if (succeeded) {
       reply_data.assign(static_cast<char *>(buffer_ptr), bufferLength);
-    else
+    } else {
       DBG_SIM_ERR("Failed to get reply buffer, length(%d)", bufferLength);
+    }
   }
 
   return reply_data;

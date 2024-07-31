@@ -21,9 +21,8 @@ using string = std::string;
 namespace cloisim_ros
 {
 
-Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
-    : Base(node_name, namespace_, options_)
-    , topic_name_heading_("navsatfix/heading")
+Gps::Gps(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: Base(node_name, namespace_, options_), topic_name_heading_("navsatfix/heading")
 {
   topic_name_ = "navsatfix";
 
@@ -31,14 +30,9 @@ Gps::Gps(const rclcpp::NodeOptions &options_, const string node_name, const stri
 }
 
 Gps::Gps(const string namespace_)
-    : Gps(rclcpp::NodeOptions(), "cloisim_ros_gps", namespace_)
-{
-}
+: Gps(rclcpp::NodeOptions(), "cloisim_ros_gps", namespace_) {}
 
-Gps::~Gps()
-{
-  Stop();
-}
+Gps::~Gps() {Stop();}
 
 void Gps::Initialize()
 {
@@ -53,8 +47,7 @@ void Gps::Initialize()
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
-  if (info_bridge_ptr != nullptr)
-  {
+  if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
     GetRos2Parameter(info_bridge_ptr);
@@ -79,12 +72,14 @@ void Gps::Initialize()
   msg_gps_.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
   msg_gps_.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
 
-  std::fill(begin(msg_heading_.orientation_covariance),
-            end(msg_heading_.orientation_covariance), 0.0);
-  std::fill(begin(msg_heading_.angular_velocity_covariance),
-            end(msg_heading_.angular_velocity_covariance), 0.0);
-  std::fill(begin(msg_heading_.linear_acceleration_covariance),
-            end(msg_heading_.linear_acceleration_covariance), 0.0);
+  std::fill(
+    begin(msg_heading_.orientation_covariance), end(msg_heading_.orientation_covariance), 0.0);
+  std::fill(
+    begin(msg_heading_.angular_velocity_covariance), end(msg_heading_.angular_velocity_covariance),
+    0.0);
+  std::fill(
+    begin(msg_heading_.linear_acceleration_covariance),
+    end(msg_heading_.linear_acceleration_covariance), 0.0);
 
   msg_heading_.orientation_covariance[0] = 0.0001f;
   msg_heading_.orientation_covariance[4] = 0.0001f;
@@ -92,22 +87,20 @@ void Gps::Initialize()
 
   // ROS2 Publisher
   pub_gps_ =
-      this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
+    this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
 
   pub_heading_ =
-      this->create_publisher<sensor_msgs::msg::Imu>(topic_name_heading_, rclcpp::SensorDataQoS());
+    this->create_publisher<sensor_msgs::msg::Imu>(topic_name_heading_, rclcpp::SensorDataQoS());
 
-  if (data_bridge_ptr != nullptr)
-  {
+  if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
     AddPublisherThread(data_bridge_ptr, bind(&Gps::PublishData, this, std::placeholders::_1));
   }
 }
 
-void Gps::PublishData(const string &buffer)
+void Gps::PublishData(const string & buffer)
 {
-  if (!pb_buf_gps_.ParseFromString(buffer))
-  {
+  if (!pb_buf_gps_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
@@ -124,17 +117,10 @@ void Gps::PublishData(const string &buffer)
 
   msg_heading_.header.stamp = GetTime();
 
-  if (pb_buf_gps_.has_heading())
-  {
-    ConvertCLOiSimToRos2(
-        pb_buf_gps_.heading().orientation(),
-        msg_heading_.orientation);
-    ConvertCLOiSimToRos2(
-        pb_buf_gps_.heading().angular_velocity(),
-        msg_heading_.angular_velocity);
-    ConvertCLOiSimToRos2(
-        pb_buf_gps_.heading().linear_acceleration(),
-        msg_heading_.linear_acceleration);
+  if (pb_buf_gps_.has_heading()) {
+    msg::Convert(pb_buf_gps_.heading().orientation(), msg_heading_.orientation);
+    msg::Convert(pb_buf_gps_.heading().angular_velocity(), msg_heading_.angular_velocity);
+    msg::Convert(pb_buf_gps_.heading().linear_acceleration(), msg_heading_.linear_acceleration);
   }
 
   pub_heading_->publish(msg_heading_);

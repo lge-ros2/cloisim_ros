@@ -16,6 +16,7 @@
 #define CLOISIM_ROS_CAMERA__SEGMENTATION_CAMERA_HPP_
 
 #include <cloisim_msgs/segmentation.pb.h>
+
 #include <string>
 #include <cloisim_ros_camera/camera_base.hpp>
 #include <vision_msgs/msg/label_info.hpp>
@@ -24,22 +25,22 @@ namespace cloisim_ros
 {
 class SegmentationCamera : public CameraBase
 {
- public:
+public:
   explicit SegmentationCamera(
-      const rclcpp::NodeOptions &options_,
-      const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit SegmentationCamera(
-      const std::string node_name = "cloisim_ros_segmentationcamera",
-      const std::string namespace_ = "");
+    const std::string node_name = "cloisim_ros_segmentationcamera",
+    const std::string namespace_ = "");
   virtual ~SegmentationCamera();
 
- private:
+private:
   void InitializeCameraData() override;
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
- private:
+private:
   cloisim::msgs::Segmentation pb_seg_;
 
   //

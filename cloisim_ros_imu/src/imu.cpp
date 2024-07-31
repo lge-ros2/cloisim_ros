@@ -23,8 +23,8 @@ using string = std::string;
 namespace cloisim_ros
 {
 
-Imu::Imu(const rclcpp::NodeOptions &options_, const string node_name, const string namespace_)
-    : Base(node_name, namespace_, options_)
+Imu::Imu(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: Base(node_name, namespace_, options_)
 {
   topic_name_ = "imu/data_raw";
 
@@ -32,14 +32,9 @@ Imu::Imu(const rclcpp::NodeOptions &options_, const string node_name, const stri
 }
 
 Imu::Imu(const string namespace_)
-    : Imu(rclcpp::NodeOptions(), "cloisim_ros_imu", namespace_)
-{
-}
+: Imu(rclcpp::NodeOptions(), "cloisim_ros_imu", namespace_) {}
 
-Imu::~Imu()
-{
-  Stop();
-}
+Imu::~Imu() {Stop();}
 
 void Imu::Initialize()
 {
@@ -54,8 +49,7 @@ void Imu::Initialize()
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
 
-  if (info_bridge_ptr != nullptr)
-  {
+  if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
     GetRos2Parameter(info_bridge_ptr);
@@ -69,27 +63,25 @@ void Imu::Initialize()
     SetStaticTf2(transform_pose);
   }
 
-  std::fill(begin(msg_imu_.orientation_covariance),
-            end(msg_imu_.orientation_covariance), 0.0);
-  std::fill(begin(msg_imu_.angular_velocity_covariance),
-            end(msg_imu_.angular_velocity_covariance), 0.0);
-  std::fill(begin(msg_imu_.linear_acceleration_covariance),
-            end(msg_imu_.linear_acceleration_covariance), 0.0);
+  std::fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
+  std::fill(
+    begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
+  std::fill(
+    begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance),
+    0.0);
 
   // ROS2 Publisher
   pub_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name_, rclcpp::SensorDataQoS());
 
-  if (data_bridge_ptr != nullptr)
-  {
+  if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
     AddPublisherThread(data_bridge_ptr, bind(&Imu::PublishData, this, std::placeholders::_1));
   }
 }
 
-void Imu::PublishData(const string &buffer)
+void Imu::PublishData(const string & buffer)
 {
-  if (!pb_buf_.ParseFromString(buffer))
-  {
+  if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
@@ -99,9 +91,9 @@ void Imu::PublishData(const string &buffer)
   // Fill message with latest sensor data
   msg_imu_.header.stamp = GetTime();
 
-  ConvertCLOiSimToRos2(pb_buf_.orientation(), msg_imu_.orientation);
-  ConvertCLOiSimToRos2(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
-  ConvertCLOiSimToRos2(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
+  msg::Convert(pb_buf_.orientation(), msg_imu_.orientation);
+  msg::Convert(pb_buf_.angular_velocity(), msg_imu_.angular_velocity);
+  msg::Convert(pb_buf_.linear_acceleration(), msg_imu_.linear_acceleration);
 
   pub_->publish(msg_imu_);
 }

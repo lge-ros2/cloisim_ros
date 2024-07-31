@@ -23,16 +23,14 @@ using string = std::string;
 
 namespace cloisim_ros
 {
-World::World(const rclcpp::NodeOptions &options_, const string node_name)
-    : Base(node_name, options_)
+World::World(const rclcpp::NodeOptions & options_, const string node_name)
+: Base(node_name, options_)
 {
   Start(false);
 }
 
 World::World()
-    : World(rclcpp::NodeOptions(), "cloisim_ros_world")
-{
-}
+: World(rclcpp::NodeOptions(), "cloisim_ros_world") {}
 
 World::~World()
 {
@@ -52,8 +50,7 @@ void World::Initialize()
   pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::ClockQoS());
 
   auto data_bridge_ptr = CreateBridge();
-  if (data_bridge_ptr != nullptr)
-  {
+  if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portClock, hashKey);
     AddPublisherThread(data_bridge_ptr, bind(&World::PublishData, this, std::placeholders::_1));
   }
@@ -65,10 +62,9 @@ void World::Deinitialize()
   pub_.reset();
 }
 
-void World::PublishData(const string &buffer)
+void World::PublishData(const string & buffer)
 {
-  if (!pb_buf_.ParseFromString(buffer))
-  {
+  if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }

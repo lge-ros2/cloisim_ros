@@ -22,28 +22,28 @@
 
 #include <cloisim_ros_base/base.hpp>
 #include <cloisim_ros_base/helper.hpp>
-#include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
 
 namespace cloisim_ros
 {
 class Gps : public Base
 {
- public:
+public:
   explicit Gps(
-      const rclcpp::NodeOptions &options_,
-      const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit Gps(const std::string namespace_ = "");
   ~Gps();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
- private:
+private:
   std::string topic_name_heading_;
 
   // buffer from simulation
