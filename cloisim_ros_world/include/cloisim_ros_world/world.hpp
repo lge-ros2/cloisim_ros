@@ -28,19 +28,19 @@ namespace cloisim_ros
 {
 class World : public Base
 {
- public:
-  explicit World(const rclcpp::NodeOptions &options_, const std::string node_name);
+public:
+  explicit World(const rclcpp::NodeOptions & options_, const std::string node_name);
   World();
   ~World();
 
- private:
+private:
   void Initialize() override;
   void Deinitialize() override;
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
- private:
+private:
   cloisim::msgs::WorldStatistics pb_buf_;
 
   rosgraph_msgs::msg::Clock msg_clock_;

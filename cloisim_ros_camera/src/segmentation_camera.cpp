@@ -20,18 +20,14 @@ using string = std::string;
 namespace cloisim_ros
 {
 SegmentationCamera::SegmentationCamera(
-    const rclcpp::NodeOptions &options_,
-    const string node_name,
-    const string namespace_)
-    : CameraBase(options_, node_name, namespace_)
+  const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: CameraBase(options_, node_name, namespace_)
 {
   Start();
 }
 
-SegmentationCamera::SegmentationCamera(
-    const string node_name,
-    const string namespace_)
-    : SegmentationCamera(rclcpp::NodeOptions(), node_name, namespace_)
+SegmentationCamera::SegmentationCamera(const string node_name, const string namespace_)
+: SegmentationCamera(rclcpp::NodeOptions(), node_name, namespace_)
 {
 }
 
@@ -49,22 +45,20 @@ void SegmentationCamera::InitializeCameraData()
   const auto hashKeyData = GetTargetHashKey("Data");
 
   auto data_bridge_ptr = CreateBridge();
-  if (data_bridge_ptr != nullptr)
-  {
+  if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
     AddPublisherThread(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, _1));
   }
 
   pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>(
-      topic_base_name_ + "/label_info", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local());
+    topic_base_name_ + "/label_info", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local());
 
   DBG_SIM_INFO("%s hashKey: data(%s)", typeid(this).name(), hashKeyData.c_str());
 }
 
-void SegmentationCamera::PublishData(const string &buffer)
+void SegmentationCamera::PublishData(const string & buffer)
 {
-  if (!pb_seg_.ParseFromString(buffer))
-  {
+  if (!pb_seg_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
@@ -75,9 +69,8 @@ void SegmentationCamera::PublishData(const string &buffer)
   vision_msgs::msg::VisionClass msg_vision_class;
   msg_label_info.header.stamp = GetTime();
 
-  for (auto i = 0; i < pb_seg_.class_map_size(); i++)
-  {
-    auto &class_map = pb_seg_.class_map(i);
+  for (auto i = 0; i < pb_seg_.class_map_size(); i++) {
+    auto & class_map = pb_seg_.class_map(i);
     msg_vision_class.class_id = class_map.class_id();
     msg_vision_class.class_name = class_map.class_name();
 
