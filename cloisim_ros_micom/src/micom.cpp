@@ -28,24 +28,18 @@ using string = std::string;
 namespace cloisim_ros
 {
 
-Micom::Micom(
-    const rclcpp::NodeOptions &options_,
-    const string node_name,
-    const string namespace_)
-    : Base(node_name, namespace_, options_)
+Micom::Micom(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: Base(node_name, namespace_, options_)
 {
   Start();
 }
 
 Micom::Micom(const string namespace_)
-    : Micom(rclcpp::NodeOptions(), "cloisim_ros_micom", namespace_)
+: Micom(rclcpp::NodeOptions(), "cloisim_ros_micom", namespace_)
 {
 }
 
-Micom::~Micom()
-{
-  Stop();
-}
+Micom::~Micom() {Stop();}
 
 void Micom::Initialize()
 {
@@ -58,9 +52,9 @@ void Micom::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  DBG_SIM_INFO("hashKey: info(%s) pub(%s) sub(%s) tf(%s)",
-               hashKeyInfo.c_str(), hashKeyPub.c_str(),
-               hashKeySub.c_str(), hashKeyTf.c_str());
+  DBG_SIM_INFO(
+    "hashKey: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(),
+    hashKeySub.c_str(), hashKeyTf.c_str());
 
   {
     auto base_link_pose = IdentityPose();
@@ -69,14 +63,13 @@ void Micom::Initialize()
   }
 
   info_bridge_ptr = CreateBridge();
-  if (info_bridge_ptr != nullptr)
-  {
+  if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
     GetStaticTransforms(info_bridge_ptr);
   }
 
-  pub_battery_ = create_publisher<sensor_msgs::msg::BatteryState>(
-      "battery_state", rclcpp::SensorDataQoS());
+  pub_battery_ =
+    create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
 
   {
     msg_odom_.header.frame_id = "odom";
@@ -84,57 +77,51 @@ void Micom::Initialize()
 
     SetTf2(odom_tf_, msg_odom_.child_frame_id, msg_odom_.header.frame_id);
 
-    pub_odom_ = create_publisher<nav_msgs::msg::Odometry>(
-        "odom", rclcpp::SystemDefaultsQoS());
+    pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SystemDefaultsQoS());
   }
 
   {
     msg_imu_.header.frame_id = "imu_link";
 
-    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>(
-        "imu", rclcpp::SensorDataQoS());
+    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
   }
 
   auto data_bridge_ptr = CreateBridge();
-  if (data_bridge_ptr != nullptr)
-  {
+  if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
     AddPublisherThread(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
   }
 
   auto tf_bridge_ptr = CreateBridge();
-  if (tf_bridge_ptr != nullptr)
-  {
+  if (tf_bridge_ptr != nullptr) {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
     AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub =
-      [this, data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void
-  {
-    const auto msgBuf = MakeControlMessage(msg);
-    SetBufferToSimulator(data_bridge_ptr, msgBuf);
-  };
+  auto callback_sub = [this,
+      data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
+      const auto msgBuf = MakeControlMessage(msg);
+      SetBufferToSimulator(data_bridge_ptr, msgBuf);
+    };
 
   // ROS2 Subscriber
   sub_micom_ = create_subscription<geometry_msgs::msg::Twist>(
-      "cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
+    "cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
 
   srv_reset_odom_ = create_service<std_srvs::srv::Empty>(
-      "reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
+    "reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
 }
 
 void Micom::ResetOdometryCallback(
-    const std::shared_ptr<rmw_request_id_t> /*request_header*/,
-    const std::shared_ptr<std_srvs::srv::Empty::Request> /*request*/,
-    std::shared_ptr<std_srvs::srv::Empty::Response> /*response*/)
+  const std::shared_ptr<rmw_request_id_t>/*request_header*/,
+  const std::shared_ptr<std_srvs::srv::Empty::Request>/*request*/,
+  std::shared_ptr<std_srvs::srv::Empty::Response>/*response*/)
 {
   RequestReplyMessage(info_bridge_ptr, "reset_odometry");
 }
 
-string Micom::MakeControlMessage(
-    const geometry_msgs::msg::Twist::SharedPtr msg) const
+string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
 {
   cloisim::msgs::Twist twistBuf;  // m/s and rad/s
   auto linear_ptr = twistBuf.mutable_linear();
@@ -159,10 +146,9 @@ string Micom::MakeControlMessage(
   return message;
 }
 
-void Micom::PublishData(const string &buffer)
+void Micom::PublishData(const string & buffer)
 {
-  if (!pb_micom_.ParseFromString(buffer))
-  {
+  if (!pb_micom_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
@@ -185,18 +171,17 @@ void Micom::PublishData(const string &buffer)
 
 void Micom::UpdateOdom()
 {
-  if (!pb_micom_.has_odom())
-  {
+  if (!pb_micom_.has_odom()) {
     return;
   }
 
   msg_odom_.header.stamp = GetTime();
-  SetVector3MessageToGeometry(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
+  msg::Convert(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
   msg_odom_.pose.pose.position.z = 0.0;  // position.z contians yaw value
 
   tf2::Quaternion tf2_q;
   tf2_q.setRPY(0.0, 0.0, pb_micom_.odom().pose().z());
-  SetTf2QuaternionToGeometry(tf2_q, msg_odom_.pose.pose.orientation);
+  geometry_msgs::msg::Convert(tf2_q, msg_odom_.pose.pose.orientation);
 
   // static int cnt = 0;
   // if (cnt++ % LOGGING_PERIOD == 0)
@@ -208,40 +193,38 @@ void Micom::UpdateOdom()
   //       msg_odom_.twist.twist.linear.x, msg_odom_.twist.twist.angular.z, step_time);
   // }
 
-  SetVector3MessageToGeometry(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
-  SetVector3MessageToGeometry(pb_micom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
+  msg::Convert(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
+  msg::Convert(pb_micom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
 
   // Update TF
   odom_tf_.header.stamp = msg_odom_.header.stamp;
-  ConvertPointToVector3(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
+  geometry_msgs::msg::Convert(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
   odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
 }
 
 void Micom::UpdateImu()
 {
-  if (!pb_micom_.has_imu())
-  {
+  if (!pb_micom_.has_imu()) {
     return;
   }
 
   msg_imu_.header.stamp = GetTime();
 
-  SetQuaternionMessageToGeometry(pb_micom_.imu().orientation(), msg_imu_.orientation);
-  SetVector3MessageToGeometry(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
-  SetVector3MessageToGeometry(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
+  msg::Convert(pb_micom_.imu().orientation(), msg_imu_.orientation);
+  msg::Convert(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
+  msg::Convert(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
 
-  std::fill(begin(msg_imu_.orientation_covariance),
-            end(msg_imu_.orientation_covariance), 0.0);
-  std::fill(begin(msg_imu_.angular_velocity_covariance),
-            end(msg_imu_.angular_velocity_covariance), 0.0);
-  std::fill(begin(msg_imu_.linear_acceleration_covariance),
-            end(msg_imu_.linear_acceleration_covariance), 0.0);
+  std::fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
+  std::fill(
+    begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
+  std::fill(
+    begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance),
+    0.0);
 }
 
 void Micom::UpdateBattery()
 {
-  if (pb_micom_.has_battery())
-  {
+  if (pb_micom_.has_battery()) {
     msg_battery_.header.stamp = GetTime();
     msg_battery_.voltage = pb_micom_.battery().voltage();
     msg_battery_.current = 0.0;

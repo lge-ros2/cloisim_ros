@@ -30,10 +30,10 @@ namespace cloisim_ros
 {
 class Camera : public CameraBase
 {
- public:
+public:
   explicit Camera(
-    const rclcpp::NodeOptions &options_,
-    const std::string node_name = "cloisim_ros_camera", const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name = "cloisim_ros_camera",
+    const std::string namespace_ = "");
   explicit Camera(
     const std::string node_name = "cloisim_ros_camera", const std::string namespace_ = "");
   virtual ~Camera();

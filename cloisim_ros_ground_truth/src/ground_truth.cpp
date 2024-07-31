@@ -21,21 +21,16 @@ using string = std::string;
 
 namespace cloisim_ros
 {
-GroundTruth::GroundTruth(const rclcpp::NodeOptions &options_, const std::string node_name)
-    : Base(node_name, options_)
+GroundTruth::GroundTruth(const rclcpp::NodeOptions & options_, const std::string node_name)
+: Base(node_name, options_)
 {
   Start(false);
 }
 
 GroundTruth::GroundTruth()
-    : GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_ground_truth")
-{
-}
+: GroundTruth(rclcpp::NodeOptions(), "cloisim_ros_ground_truth") {}
 
-GroundTruth::~GroundTruth()
-{
-  Stop();
-}
+GroundTruth::~GroundTruth() {Stop();}
 
 void GroundTruth::Initialize()
 {
@@ -46,22 +41,19 @@ void GroundTruth::Initialize()
   DBG_SIM_INFO("hashKey: %s", hashKey.c_str());
 
   pub_ = create_publisher<perception_msgs::msg::ObjectArray>(
-      "/ground_truth",
-      rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
+    "/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());
 
   auto data_bridge_ptr = CreateBridge();
-  if (data_bridge_ptr != nullptr)
-  {
+  if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
-    AddPublisherThread(data_bridge_ptr,
-                       bind(&GroundTruth::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(
+      data_bridge_ptr, bind(&GroundTruth::PublishData, this, std::placeholders::_1));
   }
 }
 
-void GroundTruth::PublishData(const string &buffer)
+void GroundTruth::PublishData(const string & buffer)
 {
-  if (!pb_buf_.ParseFromString(buffer))
-  {
+  if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
     return;
   }
@@ -79,8 +71,7 @@ void GroundTruth::UpdatePerceptionData()
 
   msg_.objects.clear();
 
-  for (auto i = 0; i < pb_buf_.perception_size(); i++)
-  {
+  for (auto i = 0; i < pb_buf_.perception_size(); i++) {
     const auto pb_perception = pb_buf_.perception(i);
 
     auto object_info_msg = perception_msgs::msg::ObjectInfo();
@@ -89,15 +80,14 @@ void GroundTruth::UpdatePerceptionData()
     object_info_msg.tracking_id = pb_perception.tracking_id();
     object_info_msg.class_id = pb_perception.class_id();
 
-    SetVector3MessageToGeometry(pb_perception.position(), object_info_msg.position);
-    SetVector3MessageToGeometry(pb_perception.velocity(), object_info_msg.velocity);
-    SetVector3MessageToGeometry(pb_perception.size(), object_info_msg.size);
+    msg::Convert(pb_perception.position(), object_info_msg.position);
+    msg::Convert(pb_perception.velocity(), object_info_msg.velocity);
+    msg::Convert(pb_perception.size(), object_info_msg.size);
 
-    for (auto it = pb_perception.footprint().begin(); it < pb_perception.footprint().end(); ++it)
-    {
+    for (auto it = pb_perception.footprint().begin(); it < pb_perception.footprint().end(); ++it) {
       const auto point = *it;
       geometry_msgs::msg::Point32 point32;
-      SetVector3MessageToGeometry(point, point32);
+      msg::Convert(point, point32);
       object_info_msg.footprint.points.push_back(point32);
     }
 

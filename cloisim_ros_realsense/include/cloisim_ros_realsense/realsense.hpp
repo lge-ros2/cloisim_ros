@@ -31,37 +31,37 @@ namespace cloisim_ros
 {
 class RealSense : public Base
 {
- public:
-  explicit RealSense(const rclcpp::NodeOptions& options_,
-                     const std::string node_name, const std::string namespace_ = "");
+public:
+  explicit RealSense(
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit RealSense(const std::string namespace_ = "");
   virtual ~RealSense();
 
- private:
+private:
   void Initialize() override;
   void Deinitialize() override;
 
- private:
-  void InitializeCam(const std::string module_name,
-                     zmq::Bridge* const info_ptr, zmq::Bridge* const data_ptr);
-  void InitializeImu(zmq::Bridge* const info_ptr, zmq::Bridge* const data_ptr);
-  void PublishImgData(const zmq::Bridge* const bridge_ptr, const std::string& buffer);
-  void PublishImuData(const std::string& buffer);
-  void GetActivatedModules(zmq::Bridge* const bridge_ptr);
+private:
+  void InitializeCam(
+    const std::string module_name, zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr);
+  void InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr);
+  void PublishImgData(const zmq::Bridge * const bridge_ptr, const std::string & buffer);
+  void PublishImuData(const std::string & buffer);
+  void GetActivatedModules(zmq::Bridge * const bridge_ptr);
 
- private:
+private:
   std::vector<std::tuple<std::string, std::string>> activated_modules_;
 
   // message for ROS2 communictaion
-  std::map<const zmq::Bridge* const, sensor_msgs::msg::Image> msg_imgs_;
+  std::map<const zmq::Bridge * const, sensor_msgs::msg::Image> msg_imgs_;
 
   // Camera info managers
-  std::map<const zmq::Bridge* const,
-           std::shared_ptr<camera_info_manager::CameraInfoManager>>
-      camera_info_managers_;
+  std::map<const zmq::Bridge * const, std::shared_ptr<camera_info_manager::CameraInfoManager>>
+  camera_info_managers_;
 
   // Image publisher
-  std::map<const zmq::Bridge* const, image_transport::CameraPublisher> pubs_;
+  std::map<const zmq::Bridge * const, image_transport::CameraPublisher> pubs_;
 
   // IMU msgs
   sensor_msgs::msg::Imu msg_imu_;

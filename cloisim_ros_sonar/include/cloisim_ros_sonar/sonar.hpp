@@ -27,20 +27,21 @@ namespace cloisim_ros
 {
 class Sonar : public Base
 {
- public:
-  explicit Sonar(const rclcpp::NodeOptions &options_, const std::string node_name,
-                 const std::string namespace_ = "");
+public:
+  explicit Sonar(
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit Sonar(const std::string namespace_ = "");
   ~Sonar();
 
- private:
+private:
   void Initialize() override;
-  void Deinitialize() override{};
+  void Deinitialize() override {}
 
- private:
-  void PublishData(const std::string &buffer);
+private:
+  void PublishData(const std::string & buffer);
 
- private:
+private:
   // buffer from simulation
   cloisim::msgs::SonarStamped pb_buf_;
 

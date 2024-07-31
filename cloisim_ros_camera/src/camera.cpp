@@ -13,6 +13,7 @@
 
 #include <cloisim_msgs/param.pb.h>
 #include <tf2/LinearMath/Quaternion.h>
+
 #include <cloisim_ros_base/camera_helper.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <sensor_msgs/fill_image.hpp>
@@ -24,19 +25,15 @@ using string = std::string;
 namespace cloisim_ros
 {
 Camera::Camera(
-    const rclcpp::NodeOptions &options_,
-    const string node_name,
-    const string namespace_)
-    : CameraBase(options_, node_name, namespace_)
+  const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+: CameraBase(options_, node_name, namespace_)
 {
   // DBG_SIM_INFO("Camera");
   Start();
 }
 
-Camera::Camera(
-    const string node_name,
-    const string namespace_)
-    : Camera(rclcpp::NodeOptions(), node_name, namespace_)
+Camera::Camera(const string node_name, const string namespace_)
+: Camera(rclcpp::NodeOptions(), node_name, namespace_)
 {
   // DBG_SIM_INFO("Camera");
 }

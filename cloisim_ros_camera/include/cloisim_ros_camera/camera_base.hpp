@@ -29,14 +29,14 @@ namespace cloisim_ros
 {
 class CameraBase : public Base
 {
- public:
+public:
   explicit CameraBase(
-    const rclcpp::NodeOptions &options_,
-    const std::string node_name, const std::string namespace_ = "");
+    const rclcpp::NodeOptions & options_, const std::string node_name,
+    const std::string namespace_ = "");
   explicit CameraBase(const std::string node_name, const std::string namespace_ = "");
   virtual ~CameraBase();
 
- protected:
+protected:
   void Initialize() override;
   void Deinitialize() override;
 
@@ -45,11 +45,11 @@ class CameraBase : public Base
   void InitializeCameraPublish();
   virtual void InitializeCameraData();
 
- protected:
-  void PublishData(const std::string &buffer);
-  void PublishData(const cloisim::msgs::ImageStamped& pb_msg);
+protected:
+  void PublishData(const std::string & buffer);
+  void PublishData(const cloisim::msgs::ImageStamped & pb_msg);
 
- protected:
+protected:
   std::string frame_id_;
   std::string optical_frame_id_;
   std::string topic_base_name_;
