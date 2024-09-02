@@ -51,10 +51,6 @@ private:
 
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
 
-  bool CalculateOdometry(
-    const rclcpp::Duration duration, const double _wheel_angular_vel_left,
-    const double _wheel_angular_vel_right, const double _theta);
-
   void UpdateOdom();
   void UpdateImu();
   void UpdateBattery();
