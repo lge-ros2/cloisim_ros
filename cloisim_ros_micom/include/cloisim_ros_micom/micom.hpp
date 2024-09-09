@@ -16,6 +16,7 @@
 #define CLOISIM_ROS_MICOM__MICOM_HPP_
 
 #include <cloisim_msgs/micom.pb.h>
+#include <cloisim_msgs/param.pb.h>
 
 #include <memory>
 #include <string>
@@ -25,6 +26,8 @@
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <std_srvs/srv/empty.hpp>
+#include <std_msgs/msg/float32.hpp>
+#include <std_msgs/msg/u_int16.hpp>
 
 namespace cloisim_ros
 {
@@ -50,6 +53,10 @@ private:
     std::shared_ptr<std_srvs::srv::Empty::Response>/*response*/);
 
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
+
+  std::string MakeMowingBladeHeightMessage(const std_msgs::msg::Float32::SharedPtr msg) const;
+
+  std::string MakeMowingRevSpeedMessage(const std_msgs::msg::UInt16::SharedPtr msg) const;
 
   void UpdateOdom();
   void UpdateImu();
@@ -78,7 +85,13 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
 
   // wheel command subscriber
-  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_micom_;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmd_;
+
+  // set height of blade
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr sub_blade_height_;
+
+  // set rev speed of blade
+  rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr sub_blade_rev_speed_;
 
   // reset odometry pose service
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_reset_odom_;
