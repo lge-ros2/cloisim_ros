@@ -99,15 +99,33 @@ void Micom::Initialize()
     AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
-  auto callback_sub = [this,
+  auto callback_sub_cmdvel = [this,
       data_bridge_ptr](const geometry_msgs::msg::Twist::SharedPtr msg) -> void {
       const auto msgBuf = MakeControlMessage(msg);
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
     };
 
+  auto callback_sub_mowing_blade_height = [this,
+      data_bridge_ptr](const std_msgs::msg::Float32::SharedPtr msg) -> void {
+      const auto msgBuf = MakeMowingBladeHeightMessage(msg);
+      SetBufferToSimulator(data_bridge_ptr, msgBuf);
+    };
+
+  auto callback_sub_mowing_rev_speed = [this,
+      data_bridge_ptr](const std_msgs::msg::UInt16::SharedPtr msg) -> void {
+      const auto msgBuf = MakeMowingRevSpeedMessage(msg);
+      SetBufferToSimulator(data_bridge_ptr, msgBuf);
+    };
+
   // ROS2 Subscriber
-  sub_micom_ = create_subscription<geometry_msgs::msg::Twist>(
-    "cmd_vel", rclcpp::SensorDataQoS(), callback_sub);
+  sub_cmd_ = create_subscription<geometry_msgs::msg::Twist>(
+    "cmd_vel", rclcpp::SensorDataQoS(), callback_sub_cmdvel);
+
+  sub_blade_height_ = create_subscription<std_msgs::msg::Float32>(
+    "mowing/blade/height", rclcpp::ServicesQoS(), callback_sub_mowing_blade_height);
+
+  sub_blade_rev_speed_ = create_subscription<std_msgs::msg::UInt16>(
+    "mowing/blade/rev_speed", rclcpp::ServicesQoS(), callback_sub_mowing_rev_speed);
 
   srv_reset_odom_ = create_service<std_srvs::srv::Empty>(
     "reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
@@ -146,6 +164,34 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
   return message;
 }
 
+string Micom::MakeMowingBladeHeightMessage(const std_msgs::msg::Float32::SharedPtr msg) const
+{
+  cloisim::msgs::Param paramBuf;
+
+  paramBuf.set_name("mowing_blade_height");
+  auto pVal = paramBuf.mutable_value();
+  pVal->set_type(cloisim::msgs::Any::DOUBLE);
+  pVal->set_double_value(msg->data);
+
+  string message;
+  paramBuf.SerializeToString(&message);
+  return message;
+}
+
+string Micom::MakeMowingRevSpeedMessage(const std_msgs::msg::UInt16::SharedPtr msg) const
+{
+  cloisim::msgs::Param paramBuf;
+
+  paramBuf.set_name("mowing_blade_rev_speed");
+  auto pVal = paramBuf.mutable_value();
+  pVal->set_type(cloisim::msgs::Any::INT32);
+  pVal->set_int_value(msg->data);
+
+  string message;
+  paramBuf.SerializeToString(&message);
+  return message;
+}
+
 void Micom::PublishData(const string & buffer)
 {
   if (!pb_micom_.ParseFromString(buffer)) {
@@ -164,6 +210,7 @@ void Micom::PublishData(const string & buffer)
 
   // publish data
   PublishTF(odom_tf_);
+
   pub_odom_->publish(msg_odom_);
   pub_imu_->publish(msg_imu_);
   pub_battery_->publish(msg_battery_);
