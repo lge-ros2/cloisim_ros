@@ -25,6 +25,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/joy.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/u_int16.hpp>
@@ -53,6 +54,8 @@ private:
     std::shared_ptr<std_srvs::srv::Empty::Response>/*response*/);
 
   std::string MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const;
+
+  std::string MakeControlMessage(const sensor_msgs::msg::Joy::SharedPtr msg) const;
 
   std::string MakeMowingBladeHeightMessage(const std_msgs::msg::Float32::SharedPtr msg) const;
 
@@ -86,6 +89,9 @@ private:
 
   // wheel command subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmd_;
+
+  // joy command subscriber
+  rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr sub_joy_;
 
   // set height of blade
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr sub_blade_height_;
