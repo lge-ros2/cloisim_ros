@@ -15,6 +15,7 @@
 
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/twist.pb.h>
+#include <cloisim_msgs/joystick.pb.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 
@@ -105,6 +106,12 @@ void Micom::Initialize()
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
     };
 
+  auto callback_sub_joy = [this,
+      data_bridge_ptr](const sensor_msgs::msg::Joy::SharedPtr msg) -> void {
+      const auto msgBuf = MakeControlMessage(msg);
+      SetBufferToSimulator(data_bridge_ptr, msgBuf);
+    };
+
   auto callback_sub_mowing_blade_height = [this,
       data_bridge_ptr](const std_msgs::msg::Float32::SharedPtr msg) -> void {
       const auto msgBuf = MakeMowingBladeHeightMessage(msg);
@@ -120,6 +127,9 @@ void Micom::Initialize()
   // ROS2 Subscriber
   sub_cmd_ = create_subscription<geometry_msgs::msg::Twist>(
     "cmd_vel", rclcpp::SensorDataQoS(), callback_sub_cmdvel);
+
+  sub_joy_ = create_subscription<sensor_msgs::msg::Joy>(
+    "joy", rclcpp::SensorDataQoS(), callback_sub_joy);
 
   sub_blade_height_ = create_subscription<std_msgs::msg::Float32>(
     "mowing/blade/height", rclcpp::ServicesQoS(), callback_sub_mowing_blade_height);
@@ -161,6 +171,42 @@ string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg)
 
   string message;
   twistBuf.SerializeToString(&message);
+  return message;
+}
+
+string Micom::MakeControlMessage(const sensor_msgs::msg::Joy::SharedPtr msg) const
+{
+  cloisim::msgs::Joystick joyBuf;
+
+  auto translation_ptr = joyBuf.mutable_translation();
+  auto rotation_ptr = joyBuf.mutable_rotation();
+
+  // std::cout << "msg Axis=";
+  // for (const auto & msg_axis : msg->axes) std::cout << msg_axis << ", ";
+  // std::cout << std::endl;
+  const auto roll = msg->axes[0];
+  const auto linear_x = msg->axes[1];
+  const auto yaw = msg->axes[2];  // angular
+  const auto pitch = msg->axes[3];
+  const auto linear_z = ((msg->axes[4] + 1.0) - (msg->axes[5] + 1.0)) * 0.5;
+
+  translation_ptr->set_x(linear_x);
+  translation_ptr->set_y(0);
+  translation_ptr->set_z(linear_z);
+  rotation_ptr->set_x(roll);
+  rotation_ptr->set_y(pitch);
+  rotation_ptr->set_z(yaw);
+
+  // std::cout << "msg Button=";
+  for (const auto& msg_button : msg->buttons)
+  {
+    joyBuf.add_buttons(msg_button);
+    // std::cout << msg_button << ", ";
+  }
+  // std::cout << std::endl;
+
+  string message;
+  joyBuf.SerializeToString(&message);
   return message;
 }
 
