@@ -50,3 +50,13 @@ for example, adjust height of blade.
 ros2 topic pub -1 /mowing/blade/height std_msgs/msg/Float32 "{data: 0.02}"
 ros2 topic pub -1 /mowing/blade/height std_msgs/msg/Float32 "{data: 0.09}"
 ```
+
+## Two-Wheel Self Balanced Robot(Q9) control
+
+### Joystick control
+
+Please refer to joy.config.yaml
+
+```shell
+clear && ros2 launch teleop_twist_joy teleop-launch.py config_filepath:=./joy.config.yaml
+```
