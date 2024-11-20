@@ -72,6 +72,15 @@ void Micom::Initialize()
   pub_battery_ =
     create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
 
+  pub_bumper_ =
+    create_publisher<std_msgs::msg::UInt8MultiArray>("bumper", rclcpp::SensorDataQoS());
+
+  pub_ir_ =
+    create_publisher<std_msgs::msg::Float64MultiArray>("ir", rclcpp::SensorDataQoS());
+
+  pub_uss_ =
+    create_publisher<std_msgs::msg::Float64MultiArray>("uss", rclcpp::SensorDataQoS());
+
   {
     msg_odom_.header.frame_id = "odom";
     msg_odom_.child_frame_id = "base_footprint";
@@ -198,8 +207,7 @@ string Micom::MakeControlMessage(const sensor_msgs::msg::Joy::SharedPtr msg) con
   rotation_ptr->set_z(yaw);
 
   // std::cout << "msg Button=";
-  for (const auto& msg_button : msg->buttons)
-  {
+  for (const auto & msg_button : msg->buttons) {
     joyBuf.add_buttons(msg_button);
     // std::cout << msg_button << ", ";
   }
@@ -253,6 +261,9 @@ void Micom::PublishData(const string & buffer)
   UpdateOdom();
   UpdateImu();
   UpdateBattery();
+  UpdateBumper();
+  UpdateIR();
+  UpdateUSS();
 
   // publish data
   PublishTF(odom_tf_);
@@ -260,6 +271,9 @@ void Micom::PublishData(const string & buffer)
   pub_odom_->publish(msg_odom_);
   pub_imu_->publish(msg_imu_);
   pub_battery_->publish(msg_battery_);
+  pub_bumper_->publish(msg_bumper_);
+  pub_uss_->publish(msg_uss_);
+  pub_ir_->publish(msg_ir_);
 }
 
 void Micom::UpdateOdom()
@@ -321,6 +335,51 @@ void Micom::UpdateBattery()
     msg_battery_.header.stamp = GetTime();
     msg_battery_.voltage = pb_micom_.battery().voltage();
     msg_battery_.current = 0.0;
+  }
+}
+
+void Micom::UpdateBumper()
+{
+  if (pb_micom_.has_bumper()) {
+    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
+    msg_bumper_.data.clear();
+    msg_bumper_.data.resize(pb_micom_.bumper().bumped_size());
+
+    for (auto i = 0; i < pb_micom_.bumper().bumped_size(); i++) {
+      // std::cout << pb_micom_.bumper().bumped(i) << " ";
+      msg_bumper_.data[i] = pb_micom_.bumper().bumped(i);
+    }
+    // std::cout << std::endl;
+  }
+}
+
+void Micom::UpdateIR()
+{
+  if (pb_micom_.has_ir()) {
+    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
+    msg_ir_.data.clear();
+    msg_ir_.data.resize(pb_micom_.ir().distance_size());
+
+    for (auto i = 0; i < pb_micom_.ir().distance_size(); i++) {
+      // std::cout << pb_micom_.bumper().bumped(i) << " ";
+      msg_ir_.data[i] = pb_micom_.ir().distance(i);
+    }
+    // std::cout << std::endl;
+  }
+}
+
+void Micom::UpdateUSS()
+{
+  if (pb_micom_.has_uss()) {
+    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
+    msg_uss_.data.clear();
+    msg_uss_.data.resize(pb_micom_.uss().distance_size());
+
+    for (auto i = 0; i < pb_micom_.uss().distance_size(); i++) {
+      // std::cout << pb_micom_.bumper().bumped(i) << " ";
+      msg_uss_.data[i] = pb_micom_.uss().distance(i);
+    }
+    // std::cout << std::endl;
   }
 }
 
