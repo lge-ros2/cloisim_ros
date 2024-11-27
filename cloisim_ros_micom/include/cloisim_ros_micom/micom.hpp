@@ -29,6 +29,8 @@
 #include <std_srvs/srv/empty.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/u_int16.hpp>
+#include <std_msgs/msg/u_int8_multi_array.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 
 namespace cloisim_ros
 {
@@ -64,6 +66,9 @@ private:
   void UpdateOdom();
   void UpdateImu();
   void UpdateBattery();
+  void UpdateBumper();
+  void UpdateIR();
+  void UpdateUSS();
 
 private:
   zmq::Bridge * info_bridge_ptr;
@@ -82,10 +87,22 @@ private:
   // Battery
   sensor_msgs::msg::BatteryState msg_battery_;
 
+  // Bumper
+  std_msgs::msg::UInt8MultiArray msg_bumper_;
+
+  // USS
+  std_msgs::msg::Float64MultiArray msg_uss_;
+
+  // IR
+  std_msgs::msg::Float64MultiArray msg_ir_;
+
   // ROS2 micom publisher
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
   rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
+  rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr pub_bumper_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_ir_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_uss_;
 
   // wheel command subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmd_;
