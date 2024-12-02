@@ -61,7 +61,7 @@ message Micom
   }
 
   required Time time        = 1;
-  required Odometry odom    = 2;
+  optional Odometry odom    = 2;
   optional USS uss          = 3;
   optional IR ir            = 4;
   optional Magnet magnet    = 5;
