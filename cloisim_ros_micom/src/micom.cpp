@@ -266,9 +266,11 @@ void Micom::PublishData(const string & buffer)
   UpdateUSS();
 
   // publish data
-  PublishTF(odom_tf_);
+  if (pb_micom_.has_odom()) {
+    PublishTF(odom_tf_);
+    pub_odom_->publish(msg_odom_);
+  }
 
-  pub_odom_->publish(msg_odom_);
   pub_imu_->publish(msg_imu_);
   pub_battery_->publish(msg_battery_);
   pub_bumper_->publish(msg_bumper_);
