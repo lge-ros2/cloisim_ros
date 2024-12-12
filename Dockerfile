@@ -11,7 +11,7 @@ RUN git clone --recursive https://github.com/lge-ros2/cloisim_ros.git -b ${ROS_D
 
 WORKDIR /opt/lge-ros2
 
-RUN apt update && apt upgrade -y && \
+RUN apt -qq update && apt -qq upgrade -y && \
     apt install -y -q ros-${ROS_DISTRO}-rmw-cyclonedds-cpp && \
     rosdep update && \
     rosdep install -y -r -q --from-paths src --ignore-src --rosdistro ${ROS_DISTRO}
