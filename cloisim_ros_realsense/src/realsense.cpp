@@ -34,6 +34,7 @@ RealSense::RealSense(
   const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
 : Base(node_name, namespace_, options_)
 {
+  topic_name_ = "_";
   Start();
 }
 
@@ -138,6 +139,7 @@ void RealSense::InitializeCam(
 void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr)
 {
   // Get frame for message
+  const auto topic_name = "imu";
   const auto frame_id = GetFrameId("imu_link");
   msg_imu_.header.frame_id = frame_id;
 
@@ -148,7 +150,7 @@ void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const 
   }
 
   // ROS2 Publisher
-  const auto topic_base_name = GetPartsName() + "/" + topic_name_;
+  const auto topic_base_name = GetPartsName() + "/" + topic_name;
   pub_imu_ =
     this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
 
