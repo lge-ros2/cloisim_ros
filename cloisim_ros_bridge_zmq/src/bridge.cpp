@@ -17,6 +17,8 @@
 #include <cstring>
 #include <thread>
 
+#include <iostream>
+
 #define DEFAULT_CLOISIM_BRIDGE_IP "127.0.0.1"
 
 using string = std::string;
@@ -364,21 +366,35 @@ bool Bridge::Receive(void ** buffer, int & bufferLength, bool isNonBlockingMode)
     return false;
   }
 
+  zmq_msg_t msgRx;
+  zmq_msg_init(&msgRx);
   if (
-    (bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
+    (bufferLength = zmq_msg_recv(&msgRx, pSockRx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
     // DBG_SIM_ERR("Failed to receive message len(%d): %s",
     //             bufferLength, zmq_strerror(zmq_errno()));
+    zmq_msg_close (&msgRx);
     return false;
   }
 
-  if ((*buffer = zmq_msg_data(&m_msgRx)) == nullptr) {return false;}
+  if ((*buffer = zmq_msg_data(&msgRx)) == nullptr)
+  {
+    zmq_msg_close (&msgRx);
+    return false;
+  }
+
+  // Extract the prefix length
+  // uint32_t prefix_length = 0;
+  // memcpy(&prefix_length, *buffer, sizeof(prefix_length));
+  // bufferLength = prefix_length;
+  // std::cout << prefix_length << std::endl;
 
   // Get only Contents without tag
   auto ptr = static_cast<unsigned char *>(*buffer);
+  // *buffer = reinterpret_cast<void *>(ptr + sizeof(prefix_length) + tagSize);
   *buffer = reinterpret_cast<void *>(ptr + tagSize);
   bufferLength -= tagSize;
-
+  zmq_msg_close (&msgRx);
   return true;
 }
 
