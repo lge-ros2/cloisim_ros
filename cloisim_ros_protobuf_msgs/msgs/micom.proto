@@ -20,18 +20,22 @@ import "imu.proto";
 import "battery.proto";
 import "pose.proto";
 import "vector3d.proto";
-// import "twist.proto";
+import "sonar.proto";
+import "contacts.proto";
+import "twist.proto";
 
 message Micom
 {
   message USS
   {
     repeated double distance  = 1;
+    repeated Sonar states      = 2;
   }
 
   message IR
   {
     repeated double distance  = 1;
+    repeated Sonar states      = 2;
   }
 
   message Odometry
@@ -45,9 +49,7 @@ message Micom
     required Wheel angular_velocity = 1;
     optional Wheel linear_velocity  = 2;
     optional Vector3d pose          = 3;
-    // optional Twist twist = 4;
-    optional Vector3d twist_linear  = 4;
-    optional Vector3d twist_angular = 5;
+    optional Twist twist            = 4;
   }
 
   message Magnet
@@ -57,7 +59,8 @@ message Micom
 
   message Bumper
   {
-    repeated bool bumped = 1;
+    repeated bool bumped        = 1;
+    repeated Contacts contacts  = 2;
   }
 
   required Time time        = 1;
