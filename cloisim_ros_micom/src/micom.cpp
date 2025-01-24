@@ -284,12 +284,14 @@ void Micom::UpdateOdom()
     return;
   }
 
+  const auto & odom = pb_micom_.odom();
+
   msg_odom_.header.stamp = GetTime();
-  msg::Convert(pb_micom_.odom().pose(), msg_odom_.pose.pose.position);
+  msg::Convert(odom.pose(), msg_odom_.pose.pose.position);
   msg_odom_.pose.pose.position.z = 0.0;  // position.z contians yaw value
 
   tf2::Quaternion tf2_q;
-  tf2_q.setRPY(0.0, 0.0, pb_micom_.odom().pose().z());
+  tf2_q.setRPY(0.0, 0.0, odom.pose().z());
   geometry_msgs::msg::Convert(tf2_q, msg_odom_.pose.pose.orientation);
 
   // static int cnt = 0;
@@ -301,9 +303,11 @@ void Micom::UpdateOdom()
   //       pb_micom_.odom().pose().z(),
   //       msg_odom_.twist.twist.linear.x, msg_odom_.twist.twist.angular.z, step_time);
   // }
-
-  msg::Convert(pb_micom_.odom().twist_linear(), msg_odom_.twist.twist.linear);
-  msg::Convert(pb_micom_.odom().twist_angular(), msg_odom_.twist.twist.angular);
+  if (odom.has_twist()) {
+    const auto & twist = odom.twist();
+    msg::Convert(twist.linear(), msg_odom_.twist.twist.linear);
+    msg::Convert(twist.angular(), msg_odom_.twist.twist.angular);
+  }
 
   // Update TF
   odom_tf_.header.stamp = msg_odom_.header.stamp;
