@@ -116,9 +116,13 @@ void Base::GenerateTF(const string & buffer)
       newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(),
       pb_transform_stamped.header().str_id());
     PublishTF(newTf);
-  // } else {
-  //   DBG_SIM_WRN("empty child frame id or parent frame id");
+#if 1
   }
+#else
+  } else {
+    DBG_SIM_WRN("empty child frame id or parent frame id");
+  }
+#endif
 }
 
 void Base::PublishTF()
