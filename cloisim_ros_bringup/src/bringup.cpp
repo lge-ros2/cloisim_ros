@@ -28,6 +28,7 @@
 #include <cloisim_ros_multicamera/multicamera.hpp>
 #include <cloisim_ros_realsense/realsense.hpp>
 #include <cloisim_ros_sonar/sonar.hpp>
+#include <cloisim_ros_contact/contact.hpp>
 #include <cloisim_ros_world/world.hpp>
 
 using namespace std::literals::chrono_literals;
@@ -122,8 +123,13 @@ static std::shared_ptr<cloisim_ros::Base> make_device_node(
     } else {
       node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name, model_name);
     }
-  } else {
-  }
+  } else if (!node_type.compare("CONTACT")) {
+    if (g_enable_single_mode) {
+      node = std::make_shared<cloisim_ros::Contact>(node_options, node_name);
+    } else {
+      node = std::make_shared<cloisim_ros::Contact>(node_options, node_name, model_name);
+    }
+  } else {}
 
   return node;
 }
