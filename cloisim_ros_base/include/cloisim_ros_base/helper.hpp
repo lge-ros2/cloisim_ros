@@ -62,7 +62,7 @@ namespace geometry_msgs
 {
 namespace msg
 {
-static void Convert(const tf2::Quaternion & src, geometry_msgs::msg::Quaternion & dst)
+static void Convert(const tf2::Quaternion & src, Quaternion & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
@@ -70,7 +70,7 @@ static void Convert(const tf2::Quaternion & src, geometry_msgs::msg::Quaternion 
   dst.w = src.w();
 }
 
-static void Convert(const geometry_msgs::msg::Point & src, geometry_msgs::msg::Vector3 & dst)
+static void Convert(const Point & src, Vector3 & dst)
 {
   dst.x = src.x;
   dst.y = src.y;
