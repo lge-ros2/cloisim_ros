@@ -1,9 +1,9 @@
 /**
- *  @file   sonar.hpp
- *  @date   2023-05-21
+ *  @file   range.hpp
+ *  @date   2025-02-05
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 Sonar class for simulator
+ *        ROS2 Range class for simulator
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory
@@ -13,8 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef CLOISIM_ROS_SONAR__SONAR_HPP_
-#define CLOISIM_ROS_SONAR__SONAR_HPP_
+#ifndef CLOISIM_ROS_RANGE__RANGE_HPP_
+#define CLOISIM_ROS_RANGE__RANGE_HPP_
 
 #include <cloisim_msgs/sonar_stamped.pb.h>
 
@@ -25,14 +25,16 @@
 
 namespace cloisim_ros
 {
-class Sonar : public Base
+class Range : public Base
 {
 public:
-  explicit Sonar(
+  explicit Range(
     const rclcpp::NodeOptions & options_, const std::string node_name,
     const std::string namespace_ = "");
-  explicit Sonar(const std::string namespace_ = "");
-  ~Sonar();
+  explicit Range(const std::string namespace_ = "");
+  ~Range();
+
+  void SetRadiationType(uint8_t value) {radiation_type_ = value;}
 
 private:
   void Initialize() override;
@@ -42,6 +44,8 @@ private:
   void PublishData(const std::string & buffer);
 
 private:
+  uint8_t radiation_type_;
+
   // buffer from simulation
   cloisim::msgs::SonarStamped pb_buf_;
 
@@ -52,4 +56,4 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr pub_;
 };
 }  // namespace cloisim_ros
-#endif  // CLOISIM_ROS_SONAR__SONAR_HPP_
+#endif  // CLOISIM_ROS_RANGE__RANGE_HPP_

@@ -2,10 +2,13 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_sonar)
+project(cloisim_ros_range)
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
+
+set(STANDALONE_EXEC_NAME_SONAR "sonar")
+set(STANDALONE_EXEC_NAME_IR "ir")
 
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
@@ -26,7 +29,7 @@ set(dependencies
 ################################################################################
 add_library(
   ${PROJECT_NAME}_core SHARED
-  src/sonar.cpp
+  src/range.cpp
 )
 
 target_include_directories(
@@ -41,12 +44,22 @@ ament_target_dependencies(
 )
 
 add_executable(
-  ${STANDALONE_EXEC_NAME}
-  src/main.cpp
+  ${STANDALONE_EXEC_NAME_SONAR}
+  src/main_ir.cpp
 )
 
 target_link_libraries(
-  ${STANDALONE_EXEC_NAME} PRIVATE
+  ${STANDALONE_EXEC_NAME_SONAR} PRIVATE
+  ${PROJECT_NAME}_core
+)
+
+add_executable(
+  ${STANDALONE_EXEC_NAME_IR}
+  src/main_ir.cpp
+)
+
+target_link_libraries(
+  ${STANDALONE_EXEC_NAME_IR} PRIVATE
   ${PROJECT_NAME}_core
 )
 
@@ -67,7 +80,12 @@ install(
 )
 
 install(
-  TARGETS ${STANDALONE_EXEC_NAME}
+  TARGETS ${STANDALONE_EXEC_NAME_SONAR}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS ${STANDALONE_EXEC_NAME_IR}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
