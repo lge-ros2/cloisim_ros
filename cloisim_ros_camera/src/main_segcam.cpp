@@ -1,7 +1,7 @@
 /**
  *  @file   main_segcam.cpp
- *  @date   2024-03-01
- *  @author hyunseok Yang
+ *  @date   2024-02-05
+ *  @author Hyunseok Yang
  *  @brief
  *        ROS2 Segmentation Camera class for simulator
  *  @remark
@@ -13,7 +13,7 @@
  */
 
 #include "cloisim_ros_camera/segmentation_camera.hpp"
-#include "cloisim_ros_camera/standalone.hpp"
+#include <cloisim_ros_bringup_param/standalone.hpp>
 
 int main(int argc, char ** argv)
 {
