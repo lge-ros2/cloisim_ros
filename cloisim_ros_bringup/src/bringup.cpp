@@ -27,7 +27,7 @@
 #include <cloisim_ros_micom/micom.hpp>
 #include <cloisim_ros_multicamera/multicamera.hpp>
 #include <cloisim_ros_realsense/realsense.hpp>
-#include <cloisim_ros_sonar/sonar.hpp>
+#include <cloisim_ros_range/range.hpp>
 #include <cloisim_ros_contact/contact.hpp>
 #include <cloisim_ros_world/world.hpp>
 
@@ -117,12 +117,18 @@ static std::shared_ptr<cloisim_ros::Base> make_device_node(
     } else {
       node = std::make_shared<cloisim_ros::Imu>(node_options, node_name, model_name);
     }
-  } else if (!node_type.compare("SONAR")) {
+  } else if (!node_type.compare("IR") || !node_type.compare("SONAR")) {
     if (g_enable_single_mode) {
-      node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name);
+      node = std::make_shared<cloisim_ros::Range>(node_options, node_name);
     } else {
-      node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name, model_name);
+      node = std::make_shared<cloisim_ros::Range>(node_options, node_name, model_name);
     }
+
+    uint8_t radiation_type = sensor_msgs::msg::Range::ULTRASOUND;
+    if (!node_type.compare("IR")) {
+      radiation_type = sensor_msgs::msg::Range::INFRARED;
+    }
+    std::static_pointer_cast<cloisim_ros::Range>(node)->SetRadiationType(radiation_type);
   } else if (!node_type.compare("CONTACT")) {
     if (g_enable_single_mode) {
       node = std::make_shared<cloisim_ros::Contact>(node_options, node_name);
