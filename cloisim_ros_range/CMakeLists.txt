@@ -15,6 +15,7 @@ set(STANDALONE_EXEC_NAME_IR "ir")
 ################################################################################
 find_package(ament_cmake REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 

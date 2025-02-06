@@ -21,6 +21,7 @@
 #include <string>
 
 #include <cloisim_ros_base/base.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <sensor_msgs/msg/range.hpp>
 
 namespace cloisim_ros
@@ -49,11 +50,12 @@ private:
   // buffer from simulation
   cloisim::msgs::SonarStamped pb_buf_;
 
-  // Sonar msgs
   sensor_msgs::msg::Range msg_range_;
+  geometry_msgs::msg::PoseStamped msg_pose_;
 
   // publisher
   rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_pose_;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_RANGE__RANGE_HPP_
