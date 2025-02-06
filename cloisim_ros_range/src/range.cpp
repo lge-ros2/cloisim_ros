@@ -70,6 +70,11 @@ void Range::Initialize()
   const auto new_topic = GetPartsName() + "/" + topic_name_;
   pub_ = this->create_publisher<sensor_msgs::msg::Range>(new_topic, rclcpp::SensorDataQoS());
 
+  const auto new_pose_topic = GetPartsName() + "/" + topic_name_ + "/pose";
+  pub_pose_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+    new_pose_topic,
+    rclcpp::SensorDataQoS());
+
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
     AddPublisherThread(data_bridge_ptr, bind(&Range::PublishData, this, std::placeholders::_1));
@@ -89,7 +94,13 @@ void Range::PublishData(const string & buffer)
   msg_range_.header.stamp = GetTime();
   msg_range_.header.frame_id = pb_buf_.sonar().frame();
 
-  // const auto & world_pose = pb_buf_.sonar().world_pose();
+  msg_pose_.header.stamp = GetTime();
+  msg_pose_.header.frame_id = pb_buf_.sonar().frame();
+
+  const auto & world_pose = pb_buf_.sonar().world_pose();
+
+  msg::Convert(world_pose.position(), msg_pose_.pose.position);
+  msg::Convert(world_pose.orientation(), msg_pose_.pose.orientation);
 
   msg_range_.radiation_type = radiation_type_;
   if (pb_buf_.sonar().has_radius()) {msg_range_.field_of_view = pb_buf_.sonar().radius();}
@@ -98,6 +109,7 @@ void Range::PublishData(const string & buffer)
   if (pb_buf_.sonar().has_range()) {msg_range_.range = static_cast<float>(pb_buf_.sonar().range());}
 
   pub_->publish(msg_range_);
+  pub_pose_->publish(msg_pose_);
 }
 
 }  // namespace cloisim_ros
