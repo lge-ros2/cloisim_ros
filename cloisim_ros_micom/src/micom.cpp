@@ -78,8 +78,14 @@ void Micom::Initialize()
   pub_ir_ =
     create_publisher<std_msgs::msg::Float64MultiArray>("ir", rclcpp::SensorDataQoS());
 
+  pub_ir_pose_ =
+    create_publisher<geometry_msgs::msg::PoseArray>("ir/pose", rclcpp::SensorDataQoS());
+
   pub_uss_ =
     create_publisher<std_msgs::msg::Float64MultiArray>("uss", rclcpp::SensorDataQoS());
+
+  pub_uss_pose_ =
+    create_publisher<geometry_msgs::msg::PoseArray>("uss/pose", rclcpp::SensorDataQoS());
 
   {
     msg_odom_.header.frame_id = "odom";
@@ -275,7 +281,9 @@ void Micom::PublishData(const string & buffer)
   pub_battery_->publish(msg_battery_);
   pub_bumper_->publish(msg_bumper_);
   pub_uss_->publish(msg_uss_);
+  pub_uss_pose_->publish(msg_uss_posearray_);
   pub_ir_->publish(msg_ir_);
+  pub_ir_pose_->publish(msg_ir_posearray_);
 }
 
 void Micom::UpdateOdom()
