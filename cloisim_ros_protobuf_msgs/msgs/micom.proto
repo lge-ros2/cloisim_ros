@@ -26,18 +26,6 @@ import "twist.proto";
 
 message Micom
 {
-  message USS
-  {
-    repeated double distance  = 1;
-    repeated Sonar states      = 2;
-  }
-
-  message IR
-  {
-    repeated double distance  = 1;
-    repeated Sonar states      = 2;
-  }
-
   message Odometry
   {
     message Wheel
@@ -52,24 +40,36 @@ message Micom
     optional Twist twist            = 4;
   }
 
+  message USS
+  {
+    required double distance  = 1;
+    optional Sonar states     = 2;
+  }
+
+  message IR
+  {
+    required double distance  = 1;
+    optional Sonar states     = 2;
+  }
+
   message Magnet
   {
-    repeated bool detected = 1;
+    required bool detected = 1;
   }
 
   message Bumper
   {
-    repeated bool bumped        = 1;
-    repeated Contacts contacts  = 2;
+    required bool bumped        = 1;
+    optional Contacts contacts  = 2;
   }
 
   required Time time        = 1;
   optional Odometry odom    = 2;
-  optional USS uss          = 3;
-  optional IR ir            = 4;
-  optional Magnet magnet    = 5;
-  optional IMU imu          = 6;
-  optional Bumper bumper    = 7;
+  optional IMU imu          = 3;
+  repeated USS uss          = 4;
+  repeated IR ir            = 5;
+  repeated Magnet magnet    = 6;
+  repeated Bumper bumper    = 7;
   optional Battery battery  = 8;
   optional Pose pose        = 9;
 }
