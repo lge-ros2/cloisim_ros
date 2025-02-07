@@ -32,6 +32,7 @@
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
+#include <gazebo_msgs/msg/contacts_state.hpp>
 
 
 namespace cloisim_ros
@@ -105,6 +106,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
   rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr pub_bumper_;
+  rclcpp::Publisher<gazebo_msgs::msg::ContactsState>::SharedPtr pub_bumper_states_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_ir_;
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pub_ir_pose_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_uss_;
