@@ -354,46 +354,59 @@ void Micom::UpdateBattery()
 
 void Micom::UpdateBumper()
 {
-  if (pb_micom_.has_bumper()) {
-    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
-    msg_bumper_.data.clear();
-    msg_bumper_.data.resize(pb_micom_.bumper().bumped_size());
+  msg_bumper_.data.clear();
 
-    for (auto i = 0; i < pb_micom_.bumper().bumped_size(); i++) {
-      // std::cout << pb_micom_.bumper().bumped(i) << " ";
-      msg_bumper_.data[i] = pb_micom_.bumper().bumped(i);
+  if (pb_micom_.bumper_size() > 0) {
+    msg_bumper_.data.resize(pb_micom_.bumper_size());
+
+    for (auto i = 0; i < pb_micom_.bumper_size(); i++) {
+      const auto & bumper = pb_micom_.bumper(i);
+
+      msg_bumper_.data[i] = bumper.bumped();
+
+      if (bumper.has_contacts()) {
+        const auto & contacts = bumper.contacts();
+        // msg_contacts_state_.
+      }
     }
-    // std::cout << std::endl;
+    // std::cout << "bumper Size " << pb_micom_.bumper_size() << std::endl;
   }
 }
 
 void Micom::UpdateIR()
 {
-  if (pb_micom_.has_ir()) {
-    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
-    msg_ir_.data.clear();
-    msg_ir_.data.resize(pb_micom_.ir().distance_size());
+  msg_ir_.data.clear();
+  if (pb_micom_.ir_size()) {
+    msg_ir_.data.resize(pb_micom_.ir_size());
+    for (auto i = 0; i < pb_micom_.ir_size(); i++) {
+      const auto & ir = pb_micom_.ir(i);
 
-    for (auto i = 0; i < pb_micom_.ir().distance_size(); i++) {
-      // std::cout << pb_micom_.bumper().bumped(i) << " ";
-      msg_ir_.data[i] = pb_micom_.ir().distance(i);
+      msg_ir_.data[i] = ir.distance();
+
+      if (ir.has_states()) {
+        const auto & states = ir.states();
+      }
     }
-    // std::cout << std::endl;
+    // std::cout << "ir Size " <<  pb_micom_.ir_size() << std::endl;
   }
 }
 
 void Micom::UpdateUSS()
 {
-  if (pb_micom_.has_uss()) {
-    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
-    msg_uss_.data.clear();
-    msg_uss_.data.resize(pb_micom_.uss().distance_size());
+  msg_uss_.data.clear();
+  if (pb_micom_.uss_size()) {
+    msg_uss_.data.resize(pb_micom_.uss_size());
 
-    for (auto i = 0; i < pb_micom_.uss().distance_size(); i++) {
-      // std::cout << pb_micom_.bumper().bumped(i) << " ";
-      msg_uss_.data[i] = pb_micom_.uss().distance(i);
+    for (auto i = 0; i < pb_micom_.uss_size(); i++) {
+      const auto & uss = pb_micom_.uss(i);
+
+      msg_uss_.data[i] = uss.distance();
+
+      if (uss.has_states()) {
+        const auto & states = uss.states();
+      }
     }
-    // std::cout << std::endl;
+    // std::cout << "ir Size " <<  pb_micom_.ir_size() << std::endl;
   }
 }
 
