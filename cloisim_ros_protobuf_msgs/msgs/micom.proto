@@ -43,13 +43,13 @@ message Micom
   message USS
   {
     required double distance  = 1;
-    optional Sonar states     = 2;
+    optional Sonar state      = 2;
   }
 
   message IR
   {
     required double distance  = 1;
-    optional Sonar states     = 2;
+    optional Sonar state      = 2;
   }
 
   message Magnet
