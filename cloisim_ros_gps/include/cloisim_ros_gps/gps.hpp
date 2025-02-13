@@ -21,7 +21,6 @@
 #include <string>
 
 #include <cloisim_ros_base/base.hpp>
-#include <cloisim_ros_base/helper.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 
