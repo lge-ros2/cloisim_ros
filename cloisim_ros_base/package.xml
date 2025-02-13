@@ -16,6 +16,7 @@
   <depend>cloisim_ros_protobuf_msgs</depend>
   <depend>cloisim_ros_bridge_zmq</depend>
   <depend>geometry_msgs</depend>
+  <depend>gazebo_msgs</depend>
 
   <test_depend>ament_cmake_cppcheck</test_depend>
 

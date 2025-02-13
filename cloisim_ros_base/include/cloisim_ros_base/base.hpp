@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 
+#include <cloisim_ros_base/helper.hpp>
 #include <cloisim_ros_bridge_zmq/bridge.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -38,17 +39,6 @@
 
 namespace cloisim_ros
 {
-
-static rclcpp::Time Convert(const int32_t seconds, const uint32_t nanoseconds)
-{
-  return rclcpp::Time(seconds, nanoseconds);
-}
-
-static rclcpp::Time Convert(const cloisim::msgs::Time & time)
-{
-  return Convert(time.sec(), time.nsec());
-}
-
 class Base : public rclcpp::Node
 {
 public:
@@ -211,7 +201,7 @@ inline void Base::SetTime(const cloisim::msgs::Time & time) {SetTime(time.sec(),
 
 inline void Base::SetTime(const int32_t seconds, const uint32_t nanoseconds)
 {
-  m_sim_time = Convert(seconds, nanoseconds);
+  m_sim_time = rclcpp::Time(seconds, nanoseconds);
 }
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_BASE__BASE_HPP_
