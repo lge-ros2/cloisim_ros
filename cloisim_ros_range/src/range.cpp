@@ -16,7 +16,6 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_range/range.hpp"
-#include <cloisim_ros_base/helper.hpp>
 
 using string = std::string;
 
@@ -97,10 +96,7 @@ void Range::PublishData(const string & buffer)
   msg_pose_.header.stamp = GetTime();
   msg_pose_.header.frame_id = pb_buf_.sonar().frame();
 
-  const auto & world_pose = pb_buf_.sonar().world_pose();
-
-  msg::Convert(world_pose.position(), msg_pose_.pose.position);
-  msg::Convert(world_pose.orientation(), msg_pose_.pose.orientation);
+  msg::Convert(pb_buf_.sonar().world_pose(), msg_pose_.pose);
 
   msg_range_.radiation_type = radiation_type_;
   if (pb_buf_.sonar().has_radius()) {msg_range_.field_of_view = pb_buf_.sonar().radius();}

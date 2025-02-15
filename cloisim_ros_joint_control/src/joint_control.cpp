@@ -19,7 +19,6 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_joint_control/joint_control.hpp"
-#include <cloisim_ros_base/helper.hpp>
 
 using namespace std::literals::chrono_literals;
 using namespace std::placeholders;

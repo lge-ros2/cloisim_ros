@@ -20,7 +20,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_micom/micom.hpp"
-#include <cloisim_ros_base/helper.hpp>
+// #include <cloisim_ros_base/helper.hpp>
 
 using namespace std::literals::chrono_literals;
 using namespace std::placeholders;
@@ -75,11 +75,22 @@ void Micom::Initialize()
   pub_bumper_ =
     create_publisher<std_msgs::msg::UInt8MultiArray>("bumper", rclcpp::SensorDataQoS());
 
+  pub_bumper_states_ =
+    create_publisher<cloisim_msgs::msg::ContactsStateArray>(
+    "bumper/contacts",
+    rclcpp::SensorDataQoS());
+
   pub_ir_ =
     create_publisher<std_msgs::msg::Float64MultiArray>("ir", rclcpp::SensorDataQoS());
 
+  pub_ir_pose_ =
+    create_publisher<geometry_msgs::msg::PoseArray>("ir/pose", rclcpp::SensorDataQoS());
+
   pub_uss_ =
     create_publisher<std_msgs::msg::Float64MultiArray>("uss", rclcpp::SensorDataQoS());
+
+  pub_uss_pose_ =
+    create_publisher<geometry_msgs::msg::PoseArray>("uss/pose", rclcpp::SensorDataQoS());
 
   {
     msg_odom_.header.frame_id = "odom";
@@ -274,8 +285,11 @@ void Micom::PublishData(const string & buffer)
   pub_imu_->publish(msg_imu_);
   pub_battery_->publish(msg_battery_);
   pub_bumper_->publish(msg_bumper_);
+  pub_bumper_states_->publish(msg_bumper_contacts_array_);
   pub_uss_->publish(msg_uss_);
+  pub_uss_pose_->publish(msg_uss_pose_array_);
   pub_ir_->publish(msg_ir_);
+  pub_ir_pose_->publish(msg_ir_pose_array_);
 }
 
 void Micom::UpdateOdom()
@@ -346,46 +360,76 @@ void Micom::UpdateBattery()
 
 void Micom::UpdateBumper()
 {
-  if (pb_micom_.has_bumper()) {
-    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
-    msg_bumper_.data.clear();
-    msg_bumper_.data.resize(pb_micom_.bumper().bumped_size());
+  msg_bumper_.data.clear();
+  msg_bumper_contacts_array_.contacts.clear();
 
-    for (auto i = 0; i < pb_micom_.bumper().bumped_size(); i++) {
-      // std::cout << pb_micom_.bumper().bumped(i) << " ";
-      msg_bumper_.data[i] = pb_micom_.bumper().bumped(i);
+  msg_bumper_.data.resize(pb_micom_.bumper_size());
+  msg_bumper_contacts_array_.header.stamp = GetTime();
+  msg_bumper_contacts_array_.contacts.resize(pb_micom_.bumper_size());
+
+  if (pb_micom_.bumper_size() > 0) {
+    for (auto i = 0; i < pb_micom_.bumper_size(); i++) {
+      const auto & bumper = pb_micom_.bumper(i);
+
+      msg_bumper_.data[i] = bumper.bumped();
+
+      if (bumper.has_contacts()) {
+        const auto & contacts = bumper.contacts();
+
+        gazebo_msgs::msg::ContactsState contacts_state;
+        msg::Convert(contacts, contacts_state);
+        contacts_state.header.frame_id = "bumper_link";
+
+        msg_bumper_contacts_array_.contacts[i] = contacts_state;
+      }
     }
-    // std::cout << std::endl;
   }
 }
 
 void Micom::UpdateIR()
 {
-  if (pb_micom_.has_ir()) {
-    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
-    msg_ir_.data.clear();
-    msg_ir_.data.resize(pb_micom_.ir().distance_size());
+  msg_ir_.data.clear();
+  msg_ir_pose_array_.poses.clear();
+  if (pb_micom_.ir_size()) {
+    msg_ir_.data.resize(pb_micom_.ir_size());
+    msg_ir_pose_array_.poses.resize(pb_micom_.ir_size());
 
-    for (auto i = 0; i < pb_micom_.ir().distance_size(); i++) {
-      // std::cout << pb_micom_.bumper().bumped(i) << " ";
-      msg_ir_.data[i] = pb_micom_.ir().distance(i);
+    msg_ir_pose_array_.header.stamp = GetTime();
+    msg_ir_pose_array_.header.frame_id = "ir_link";
+
+    for (auto i = 0; i < pb_micom_.ir_size(); i++) {
+      const auto & ir = pb_micom_.ir(i);
+
+      msg_ir_.data[i] = ir.distance();
+
+      if (ir.has_state()) {
+        geometry_msgs::msg::Pose p;
+        msg::Convert(ir.state().world_pose(), p);
+        msg_ir_pose_array_.poses.push_back(p);
+      }
     }
-    // std::cout << std::endl;
+    // std::cout << "ir Size " <<  pb_micom_.ir_size() << std::endl;
   }
 }
 
 void Micom::UpdateUSS()
 {
-  if (pb_micom_.has_uss()) {
-    // std::cout << "bumper Size " <<  pb_micom_.bumper().bumped_size() << std::endl;
-    msg_uss_.data.clear();
-    msg_uss_.data.resize(pb_micom_.uss().distance_size());
+  msg_uss_.data.clear();
+  if (pb_micom_.uss_size()) {
+    msg_uss_.data.resize(pb_micom_.uss_size());
 
-    for (auto i = 0; i < pb_micom_.uss().distance_size(); i++) {
-      // std::cout << pb_micom_.bumper().bumped(i) << " ";
-      msg_uss_.data[i] = pb_micom_.uss().distance(i);
+    for (auto i = 0; i < pb_micom_.uss_size(); i++) {
+      const auto & uss = pb_micom_.uss(i);
+
+      msg_uss_.data[i] = uss.distance();
+
+      if (uss.has_state()) {
+        geometry_msgs::msg::Pose p;
+        msg::Convert(uss.state().world_pose(), p);
+        msg_uss_pose_array_.poses.push_back(p);
+      }
     }
-    // std::cout << std::endl;
+    // std::cout << "ir Size " <<  pb_micom_.ir_size() << std::endl;
   }
 }
 

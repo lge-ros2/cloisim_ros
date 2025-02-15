@@ -15,7 +15,6 @@
  */
 
 #include "cloisim_ros_ground_truth/ground_truth.hpp"
-#include <cloisim_ros_base/helper.hpp>
 
 using string = std::string;
 

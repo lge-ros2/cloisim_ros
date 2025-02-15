@@ -16,7 +16,6 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_imu/imu.hpp"
-#include <cloisim_ros_base/helper.hpp>
 
 using string = std::string;
 
