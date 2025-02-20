@@ -335,7 +335,7 @@ void Micom::UpdateImu()
     return;
   }
 
-  msg_imu_.header.stamp = GetTime();
+  msg_imu_.header.stamp = msg::Convert(pb_micom_.imu().stamp());
 
   msg::Convert(pb_micom_.imu().orientation(), msg_imu_.orientation);
   msg::Convert(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
