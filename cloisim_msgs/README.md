@@ -1,3 +1,0 @@
-# cloisim_msgs
-
-## ContactsStateArray
