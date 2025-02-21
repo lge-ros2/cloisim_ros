@@ -20,7 +20,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([bringup_dir, "launch", "bringup_launch.py"])
         ),
-        launch_arguments={'single_mode': False}.items()
+        launch_arguments={'single_mode': 'False'}.items()
     )
 
     ld = launch.LaunchDescription()

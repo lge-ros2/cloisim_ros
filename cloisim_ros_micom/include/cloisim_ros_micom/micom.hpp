@@ -31,6 +31,8 @@
 #include <std_msgs/msg/u_int16.hpp>
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <cloisim_ros_msgs/msg/contacts_state_array.hpp>
 
 namespace cloisim_ros
 {
@@ -89,20 +91,26 @@ private:
 
   // Bumper
   std_msgs::msg::UInt8MultiArray msg_bumper_;
+  cloisim_ros_msgs::msg::ContactsStateArray msg_bumper_contacts_array_;
 
   // USS
   std_msgs::msg::Float64MultiArray msg_uss_;
+  geometry_msgs::msg::PoseArray msg_uss_pose_array_;
 
   // IR
   std_msgs::msg::Float64MultiArray msg_ir_;
+  geometry_msgs::msg::PoseArray msg_ir_pose_array_;
 
   // ROS2 micom publisher
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
   rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr pub_bumper_;
+  rclcpp::Publisher<cloisim_ros_msgs::msg::ContactsStateArray>::SharedPtr pub_bumper_states_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_ir_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pub_ir_pose_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_uss_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pub_uss_pose_;
 
   // wheel command subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmd_;

@@ -2,10 +2,13 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_micom)
+project(cloisim_ros_range)
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
+
+set(STANDALONE_EXEC_NAME_SONAR "sonar")
+set(STANDALONE_EXEC_NAME_IR "ir")
 
 ################################################################################
 # Find colcon packages and libraries for colcon and system dependencies
@@ -13,20 +16,11 @@ cloisim_ros_package()
 find_package(ament_cmake REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(std_srvs REQUIRED)
-find_package(cloisim_ros_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
   sensor_msgs
-  geometry_msgs
-  nav_msgs
-  std_msgs
-  std_srvs
-  cloisim_ros_msgs
   cloisim_ros_base
   cloisim_ros_bringup_param
 )
@@ -36,7 +30,7 @@ set(dependencies
 ################################################################################
 add_library(
   ${PROJECT_NAME}_core SHARED
-  src/micom.cpp
+  src/range.cpp
 )
 
 target_include_directories(
@@ -51,12 +45,22 @@ ament_target_dependencies(
 )
 
 add_executable(
-  ${STANDALONE_EXEC_NAME}
-  src/main.cpp
+  ${STANDALONE_EXEC_NAME_SONAR}
+  src/main_ir.cpp
 )
 
 target_link_libraries(
-  ${STANDALONE_EXEC_NAME} PRIVATE
+  ${STANDALONE_EXEC_NAME_SONAR} PRIVATE
+  ${PROJECT_NAME}_core
+)
+
+add_executable(
+  ${STANDALONE_EXEC_NAME_IR}
+  src/main_ir.cpp
+)
+
+target_link_libraries(
+  ${STANDALONE_EXEC_NAME_IR} PRIVATE
   ${PROJECT_NAME}_core
 )
 
@@ -77,7 +81,12 @@ install(
 )
 
 install(
-  TARGETS ${STANDALONE_EXEC_NAME}
+  TARGETS ${STANDALONE_EXEC_NAME_SONAR}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS ${STANDALONE_EXEC_NAME_IR}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

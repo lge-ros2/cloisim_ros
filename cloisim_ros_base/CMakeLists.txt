@@ -16,6 +16,7 @@ find_package(tf2_ros REQUIRED)
 find_package(cloisim_ros_bridge_zmq REQUIRED)
 find_package(cloisim_ros_protobuf_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(gazebo_msgs REQUIRED)
 # if(BUILD_TESTING)
   find_package(ament_cmake_cppcheck REQUIRED)
   ament_cppcheck()
@@ -27,6 +28,7 @@ set(dependencies
   cloisim_ros_bridge_zmq
   cloisim_ros_protobuf_msgs
   geometry_msgs
+  gazebo_msgs
 )
 
 ################################################################################

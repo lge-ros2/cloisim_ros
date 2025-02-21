@@ -19,7 +19,6 @@
 
 #include "cloisim_ros_realsense/realsense.hpp"
 #include <cloisim_ros_base/camera_helper.hpp>
-#include <cloisim_ros_base/helper.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
