@@ -3,7 +3,7 @@
  *  @date   2020-06-26
  *  @author Hyunseok Yang
  *  @brief
- *        ROS2 Node that controls sonar sensor for simulation.
+ *        ROS2 Node that controls contact sensor for simulation.
  *  @remark
  *  @copyright
  *      LGE Advanced Robotics Laboratory
@@ -13,7 +13,7 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include "cloisim_ros_sonar/sonar.hpp"
+#include "cloisim_ros_contact/contact.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 int main(int argc, char ** argv)
@@ -21,8 +21,9 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
 
-  const auto bringup_param_node = std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_sonar");
-  bringup_param_node->TargetPartsType("SONAR");
+  const auto bringup_param_node =
+    std::make_shared<cloisim_ros::BringUpParam>("cloisim_ros_contact");
+  bringup_param_node->TargetPartsType("CONTACT");
   executor.add_node(bringup_param_node);
 
   const auto filtered_result = bringup_param_node->GetBringUpList(true);
@@ -37,9 +38,9 @@ int main(int argc, char ** argv)
     const auto node_name = bringup_param_node->TargetPartsName();
 
     if (is_single_mode) {
-      node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name);
+      node = std::make_shared<cloisim_ros::Contact>(node_options, node_name);
     } else {
-      node = std::make_shared<cloisim_ros::Sonar>(node_options, node_name, model_name);
+      node = std::make_shared<cloisim_ros::Contact>(node_options, node_name, model_name);
     }
   }
 

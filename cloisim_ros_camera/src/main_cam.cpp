@@ -1,6 +1,7 @@
 /**
- *  @file   main.cpp
- *  @date   2021-01-14
+ *  @file   main_cam.cpp
+ *  @date   2024-02-05
+ *  @author Hyunseok Yang
  *  @author Sungkyu Kang
  *  @brief
  *        ROS2 Camera class for cloisim
@@ -14,7 +15,7 @@
  */
 
 #include "cloisim_ros_camera/camera.hpp"
-#include "cloisim_ros_camera/standalone.hpp"
+#include <cloisim_ros_bringup_param/standalone.hpp>
 
 int main(int argc, char ** argv)
 {

@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cloisim_ros_bringup</name>
-  <version>4.6.2</version>
+  <version>4.7.0</version>
   <description>Bringup scripts and configurations for cloisim_ros</description>
   <maintainer email="hyunseok7.yang@lge.com">Hyunseok Yang</maintainer>
   <maintainer email="sungkyu.kang@lge.com">Sungkyu Kang</maintainer>
@@ -24,7 +24,8 @@
   <depend>cloisim_ros_realsense</depend>
   <depend>cloisim_ros_gps</depend>
   <depend>cloisim_ros_imu</depend>
-  <depend>cloisim_ros_sonar</depend>
+  <depend>cloisim_ros_range</depend>
+  <depend>cloisim_ros_contact</depend>
   <depend>cloisim_ros_elevator_system</depend>
   <depend>cloisim_ros_ground_truth</depend>
   <depend>cloisim_ros_world</depend>

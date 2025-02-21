@@ -16,7 +16,7 @@
 #include <cloisim_msgs/transform_stamped.pb.h>
 
 #include "cloisim_ros_base/base.hpp"
-#include "cloisim_ros_base/helper.hpp"
+// #include "cloisim_ros_base/helper.hpp"
 
 using namespace std::literals::chrono_literals;
 using string = std::string;
@@ -106,7 +106,7 @@ void Base::GenerateTF(const string & buffer)
 
   if (pb_transform_stamped.header().has_str_id() && pb_transform_stamped.transform().has_name()) {
     geometry_msgs::msg::TransformStamped newTf;
-    newTf.header.stamp = Convert(pb_transform_stamped.header().stamp());
+    newTf.header.stamp = msg::Convert(pb_transform_stamped.header().stamp());
     newTf.header.frame_id = pb_transform_stamped.header().str_id();
     newTf.child_frame_id = pb_transform_stamped.transform().name();
     // DBG_SIM_INFO("%ld %ld %s %s",
@@ -116,9 +116,13 @@ void Base::GenerateTF(const string & buffer)
       newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(),
       pb_transform_stamped.header().str_id());
     PublishTF(newTf);
-  // } else {
-  //   DBG_SIM_WRN("empty child frame id or parent frame id");
+#if 1
   }
+#else
+  } else {
+    DBG_SIM_WRN("empty child frame id or parent frame id");
+  }
+#endif
 }
 
 void Base::PublishTF()

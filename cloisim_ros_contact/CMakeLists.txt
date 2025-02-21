@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(cloisim_ros_sonar)
+project(cloisim_ros_contact)
 
 include("../cloisim_ros_base/cmake/cloisim_ros_package.cmake")
 cloisim_ros_package()
@@ -12,11 +12,15 @@ cloisim_ros_package()
 ################################################################################
 find_package(ament_cmake REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(gazebo_msgs REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
   sensor_msgs
+  geometry_msgs
+  gazebo_msgs
   cloisim_ros_base
   cloisim_ros_bringup_param
 )
@@ -26,7 +30,7 @@ set(dependencies
 ################################################################################
 add_library(
   ${PROJECT_NAME}_core SHARED
-  src/sonar.cpp
+  src/contact.cpp
 )
 
 target_include_directories(

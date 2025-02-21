@@ -1,6 +1,6 @@
 /**
- *  @file   sonar.cpp
- *  @date   2023-05-21
+ *  @file   range.cpp
+ *  @date   2025-02-05
  *  @author Hyunseok Yang
  *  @brief
  *        ROS2 Sonar class for simulator
@@ -15,30 +15,30 @@
 
 #include <tf2/LinearMath/Quaternion.h>
 
-#include "cloisim_ros_sonar/sonar.hpp"
-#include <cloisim_ros_base/helper.hpp>
+#include "cloisim_ros_range/range.hpp"
 
 using string = std::string;
 
 namespace cloisim_ros
 {
 
-Sonar::Sonar(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+Range::Range(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
 : Base(node_name, namespace_, options_)
+  , radiation_type_(sensor_msgs::msg::Range::ULTRASOUND)
 {
   topic_name_ = "range";
 
   Start();
 }
 
-Sonar::Sonar(const string namespace_)
-: Sonar(rclcpp::NodeOptions(), "cloisim_ros_sonar", namespace_)
+Range::Range(const string namespace_)
+: Range(rclcpp::NodeOptions(), "cloisim_ros_range", namespace_)
 {
 }
 
-Sonar::~Sonar() {Stop();}
+Range::~Range() {Stop();}
 
-void Sonar::Initialize()
+void Range::Initialize()
 {
   uint16_t portInfo, portData;
   get_parameter_or("bridge.Data", portData, uint16_t(0));
@@ -57,7 +57,7 @@ void Sonar::Initialize()
     GetRos2Parameter(info_bridge_ptr);
 
     // Get frame for message
-    const auto frame_id = GetFrameId("sonar_link");
+    const auto frame_id = GetFrameId("range_link");
     msg_range_.header.frame_id = frame_id;
 
     auto transform_pose = GetObjectTransform(info_bridge_ptr);
@@ -69,13 +69,18 @@ void Sonar::Initialize()
   const auto new_topic = GetPartsName() + "/" + topic_name_;
   pub_ = this->create_publisher<sensor_msgs::msg::Range>(new_topic, rclcpp::SensorDataQoS());
 
+  const auto new_pose_topic = GetPartsName() + "/" + topic_name_ + "/pose";
+  pub_pose_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+    new_pose_topic,
+    rclcpp::SensorDataQoS());
+
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&Sonar::PublishData, this, std::placeholders::_1));
+    AddPublisherThread(data_bridge_ptr, bind(&Range::PublishData, this, std::placeholders::_1));
   }
 }
 
-void Sonar::PublishData(const string & buffer)
+void Range::PublishData(const string & buffer)
 {
   if (!pb_buf_.ParseFromString(buffer)) {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
@@ -86,13 +91,21 @@ void Sonar::PublishData(const string & buffer)
 
   // Fill message with latest sensor data
   msg_range_.header.stamp = GetTime();
-  msg_range_.radiation_type = sensor_msgs::msg::Range::ULTRASOUND;
+  msg_range_.header.frame_id = pb_buf_.sonar().frame();
+
+  msg_pose_.header.stamp = GetTime();
+  msg_pose_.header.frame_id = pb_buf_.sonar().frame();
+
+  msg::Convert(pb_buf_.sonar().world_pose(), msg_pose_.pose);
+
+  msg_range_.radiation_type = radiation_type_;
   if (pb_buf_.sonar().has_radius()) {msg_range_.field_of_view = pb_buf_.sonar().radius();}
   if (pb_buf_.sonar().has_range_min()) {msg_range_.min_range = pb_buf_.sonar().range_min();}
   if (pb_buf_.sonar().has_range_max()) {msg_range_.max_range = pb_buf_.sonar().range_max();}
   if (pb_buf_.sonar().has_range()) {msg_range_.range = static_cast<float>(pb_buf_.sonar().range());}
 
   pub_->publish(msg_range_);
+  pub_pose_->publish(msg_pose_);
 }
 
 }  // namespace cloisim_ros
