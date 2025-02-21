@@ -76,7 +76,7 @@ void Micom::Initialize()
     create_publisher<std_msgs::msg::UInt8MultiArray>("bumper", rclcpp::SensorDataQoS());
 
   pub_bumper_states_ =
-    create_publisher<cloisim_msgs::msg::ContactsStateArray>(
+    create_publisher<cloisim_ros_msgs::msg::ContactsStateArray>(
     "bumper/contacts",
     rclcpp::SensorDataQoS());
 
