@@ -76,7 +76,7 @@ void Micom::Initialize()
     create_publisher<std_msgs::msg::UInt8MultiArray>("bumper", rclcpp::SensorDataQoS());
 
   pub_bumper_states_ =
-    create_publisher<cloisim_ros_msgs::msg::ContactsStateArray>(
+    create_publisher<cloisim_ros_msgs::msg::ContactsArray>(
     "bumper/contacts",
     rclcpp::SensorDataQoS());
 
@@ -376,11 +376,11 @@ void Micom::UpdateBumper()
       if (bumper.has_contacts()) {
         const auto & contacts = bumper.contacts();
 
-        gazebo_msgs::msg::ContactsState contacts_state;
-        msg::Convert(contacts, contacts_state);
-        contacts_state.header.frame_id = "bumper_link";
+        ros_gz_interfaces::msg::Contacts ros_gz_contacts;
+        msg::Convert(contacts, ros_gz_contacts);
+        ros_gz_contacts.header.frame_id = "bumper_link";
 
-        msg_bumper_contacts_array_.contacts[i] = contacts_state;
+        msg_bumper_contacts_array_.contacts[i] = ros_gz_contacts;
       }
     }
   }

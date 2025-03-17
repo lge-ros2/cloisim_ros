@@ -21,7 +21,8 @@
 
 #include <cmath>
 #include <limits>
-#include <gazebo_msgs/msg/contacts_state.hpp>
+#include <ros_gz_interfaces/msg/contacts.hpp>
+#include <ros_gz_interfaces/msg/joint_wrench.hpp>
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/point32.hpp>
 #include <geometry_msgs/msg/pose.hpp>
@@ -120,10 +121,10 @@ static void Convert(const cloisim::msgs::Pose & src, geometry_msgs::msg::Pose & 
   Convert(src.orientation(), dst.orientation);
 }
 
-static void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::ContactsState & dst)
+static void Convert(const cloisim::msgs::Contacts & src, ros_gz_interfaces::msg::Contacts & dst)
 {
   dst.header.stamp = Convert(src.time());
-  dst.states.clear();
+  dst.contacts.clear();
 
   Quaternion identityQuat{1, 0, 0, 0};
   const auto contactSize = src.contact_size();
@@ -131,60 +132,43 @@ static void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::Conta
     const auto contact = src.contact(i);
 
     // For each collision contact
-    gazebo_msgs::msg::ContactState state;
-    state.collision1_name = contact.collision1();
-    state.collision2_name = contact.collision2();
-
-    std::ostringstream stream;
-    stream << "Debug:  i:(" << i << "/" << contactSize << ")"
-           << "  my geom:" << state.collision1_name
-           << "  other geom:" << state.collision2_name
-           << "  time:" << dst.header.stamp.sec
-           << "." << dst.header.stamp.nanosec;
-    state.info = stream.str();
+    ros_gz_interfaces::msg::Contact state;
+    state.collision1.name = contact.collision1();
+    state.collision2.name = contact.collision2();
 
     state.wrenches.clear();
-    state.contact_positions.clear();
-    state.contact_normals.clear();
+    state.positions.clear();
+    state.normals.clear();
     state.depths.clear();
-
-    // sum up all wrenches for each DOF
-    geometry_msgs::msg::Wrench total_wrench;
-    total_wrench.force.x = 0;
-    total_wrench.force.y = 0;
-    total_wrench.force.z = 0;
-    total_wrench.torque.x = 0;
-    total_wrench.torque.y = 0;
-    total_wrench.torque.z = 0;
 
     const auto contactGroupSize = contact.position_size();
     for (auto j = 0; j < contactGroupSize; ++j) {
       // Get force, torque and rotate into user specified frame.
       // identity is default for now if world is used.
+      const auto wrench = contact.wrench(j);
 
-      const auto forceVec = contact.wrench(j).body_1_wrench().force();
-      const auto force = identityQuat.rotateVectorReverse(forceVec);
+      const auto body1forceVec = wrench.body_1_wrench().force();
+      const auto body1force = identityQuat.rotateVectorReverse(body1forceVec);
+      const auto body2forceVec = wrench.body_2_wrench().force();
+      const auto body2force = identityQuat.rotateVectorReverse(body2forceVec);
 
       // TODO(hyunseok-yang): not support in CLOiSim
-      // const auto torqueVec = contact.wrench(j).body_1_wrench().torque();
+      // const auto torqueVec = wrench.body_1_wrench().torque();
       // const auto torque = identityQuat.rotateVectorReverse(torqueVec);
 
       // set wrenches
-      geometry_msgs::msg::Wrench wrench;
-      wrench.force.x = force.x();
-      wrench.force.y = force.y();
-      wrench.force.z = force.z();
-      // wrench.torque.x = torque.x();
-      // wrench.torque.y = torque.y();
-      // wrench.torque.z = torque.z();
-      state.wrenches.push_back(wrench);
-
-      total_wrench.force.x += wrench.force.x;
-      total_wrench.force.y += wrench.force.y;
-      total_wrench.force.z += wrench.force.z;
-      // total_wrench.torque.x += wrench.torque.x;
-      // total_wrench.torque.y += wrench.torque.y;
-      // total_wrench.torque.z += wrench.torque.z;
+      ros_gz_interfaces::msg::JointWrench jointWrench;
+      jointWrench.body_1_name.data = wrench.body_1_name();
+      jointWrench.body_1_id.data = wrench.body_1_id();
+      jointWrench.body_2_name.data = wrench.body_2_name();
+      jointWrench.body_2_id.data = wrench.body_2_id();
+      jointWrench.body_1_wrench.force.x = body1force.x();
+      jointWrench.body_1_wrench.force.y = body1force.y();
+      jointWrench.body_1_wrench.force.z = body1force.z();
+      // jointWrench.body_1_wrench.torque.x = torque.x();
+      // jointWrench.body_1_wrench.torque.y = torque.y();
+      // jointWrench.body_1_wrench.torque.z = torque.z();
+      state.wrenches.push_back(jointWrench);
 
       // transform contact positions into relative frame
       const auto positionVec = contact.position(j);
@@ -194,7 +178,7 @@ static void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::Conta
       contact_position.x = position.x();
       contact_position.y = position.y();
       contact_position.z = position.z();
-      state.contact_positions.push_back(contact_position);
+      state.positions.push_back(contact_position);
 
       // rotate normal into user specified frame.
       // frame_rot is identity if world is used.
@@ -206,14 +190,12 @@ static void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::Conta
       contact_normal.x = normal.x();
       contact_normal.y = normal.y();
       contact_normal.z = normal.z();
-      state.contact_normals.push_back(contact_normal);
+      state.normals.push_back(contact_normal);
 
       state.depths.push_back(contact.depth(j));
     }
 
-    state.total_wrench = total_wrench;
-
-    dst.states.push_back(state);
+    dst.contacts.push_back(state);
   }
 }
 }  // namespace msg

@@ -6,4 +6,4 @@
 
 std_msgs/Header header
 
-gazebo_msgs/ContactsState[] contacts
+ros_gz_interfaces/Contacts[] contacts

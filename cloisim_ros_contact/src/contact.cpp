@@ -60,7 +60,7 @@ void Contact::Initialize()
 
     // Get frame for message
     const auto frame_id = GetFrameId("contact_link");
-    msg_contacts_state_.header.frame_id = frame_id;
+    msg_contacts_.header.frame_id = frame_id;
 
     auto transform_pose = GetObjectTransform(info_bridge_ptr);
     transform_pose.set_name(frame_id);
@@ -70,7 +70,7 @@ void Contact::Initialize()
   // ROS2 Publisher
   const auto new_topic = GetPartsName() + "/" + topic_name_;
   pub_ =
-    this->create_publisher<gazebo_msgs::msg::ContactsState>(new_topic, rclcpp::SensorDataQoS());
+    this->create_publisher<ros_gz_interfaces::msg::Contacts>(new_topic, rclcpp::SensorDataQoS());
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
@@ -86,9 +86,9 @@ void Contact::PublishData(const string & buffer)
   }
 
   // SetTime(pb_buf_.time());
-  msg::Convert(pb_buf_, msg_contacts_state_);
+  msg::Convert(pb_buf_, msg_contacts_);
 
-  pub_->publish(msg_contacts_state_);
+  pub_->publish(msg_contacts_);
 }
 
 }  // namespace cloisim_ros

@@ -2,7 +2,7 @@
 
 ## msg - message
 
-### ContactsStateArray
+### ContactsArray
 
 ## srv - service
 
