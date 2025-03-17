@@ -21,7 +21,7 @@
 #include <string>
 
 #include <cloisim_ros_base/base.hpp>
-#include <gazebo_msgs/msg/contacts_state.hpp>
+#include <ros_gz_interfaces/msg/contacts.hpp>
 
 namespace cloisim_ros
 {
@@ -47,10 +47,10 @@ private:
   cloisim::msgs::Contacts pb_buf_;
 
   // Contact msgs
-  gazebo_msgs::msg::ContactsState msg_contacts_state_;
+  ros_gz_interfaces::msg::Contacts msg_contacts_;
 
   // publisher
-  rclcpp::Publisher<gazebo_msgs::msg::ContactsState>::SharedPtr pub_;
+  rclcpp::Publisher<ros_gz_interfaces::msg::Contacts>::SharedPtr pub_;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_CONTACT__CONTACT_HPP_

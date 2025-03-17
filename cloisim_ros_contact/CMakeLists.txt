@@ -13,14 +13,14 @@ cloisim_ros_package()
 find_package(ament_cmake REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(gazebo_msgs REQUIRED)
+find_package(ros_gz_interfaces REQUIRED)
 find_package(cloisim_ros_base REQUIRED)
 find_package(cloisim_ros_bringup_param REQUIRED)
 
 set(dependencies
   sensor_msgs
   geometry_msgs
-  gazebo_msgs
+  ros_gz_interfaces
   cloisim_ros_base
   cloisim_ros_bringup_param
 )
