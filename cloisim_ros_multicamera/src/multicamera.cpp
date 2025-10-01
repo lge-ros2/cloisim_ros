@@ -81,7 +81,7 @@ void MultiCamera::Initialize()
     }
 
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(
+    AddBridgeReceiveWorker(
       data_bridge_ptr, bind(&MultiCamera::PublishData, this, std::placeholders::_1));
   }
 }
