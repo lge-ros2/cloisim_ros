@@ -42,17 +42,32 @@ void World::Initialize()
 {
   uint16_t portClock;
   get_parameter_or("bridge.Clock", portClock, uint16_t(0));
-  const auto hashKey = GetModelName() + GetPartsName() + "Clock";
-  DBG_SIM_INFO("hashKey: %s", hashKey.c_str());
+  const auto hashKeyClock = GetModelName() + GetPartsName() + "Clock";
+
+  uint16_t portControl;
+  get_parameter_or("bridge.Control", portControl, uint16_t(0));
+  const auto hashKeyControl = GetModelName() + GetPartsName() + "Control";
+
+  DBG_SIM_INFO("hashKey Clock(%s) Control(%s)", hashKeyClock.c_str(), hashKeyControl.c_str());
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
   pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::ClockQoS());
 
-  auto data_bridge_ptr = CreateBridge();
-  if (data_bridge_ptr != nullptr) {
-    data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portClock, hashKey);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&World::PublishData, this, std::placeholders::_1));
+  client_ = create_client<std_srvs::srv::Empty>("/rviz/reset_time");
+
+  auto data_bridge_clock_ptr = CreateBridge();
+  if (data_bridge_clock_ptr != nullptr) {
+    data_bridge_clock_ptr->Connect(zmq::Bridge::Mode::SUB, portClock, hashKeyClock);
+    AddBridgeReceiveWorker(data_bridge_clock_ptr,
+        bind(&World::PublishData, this, std::placeholders::_1));
+  }
+
+  auto data_bridge_control_ptr = CreateBridge();
+  if (data_bridge_control_ptr != nullptr) {
+    data_bridge_control_ptr->Connect(zmq::Bridge::Mode::SERVICE, portControl, hashKeyControl);
+    AddBridgeServiceWorker(data_bridge_control_ptr,
+        bind(&World::ServiceRequest, this, std::placeholders::_1));
   }
 }
 
@@ -77,5 +92,47 @@ void World::PublishData(const string & buffer)
 
   msg_clock_.clock = GetTime();
   pub_->publish(msg_clock_);
+}
+
+std::string World::ServiceRequest(const string & buffer)
+{
+  cloisim::msgs::Param res_param;
+  res_param.set_name("result");
+
+  auto pVal = res_param.mutable_value();
+  pVal->set_type(cloisim::msgs::Any::STRING);
+  pVal->set_string_value("");
+
+  cloisim::msgs::Param req_param;
+  if (req_param.ParseFromString(buffer)) {
+    if (req_param.name() == "reset_simulation" &&
+      req_param.has_value() && req_param.value().bool_value() == true)
+    {
+      if (client_ != nullptr) {
+        while (!client_->wait_for_service(std::chrono::seconds(1))) {
+          DBG_SIM_WRN("Waiting for service '%s'", client_->get_service_name());
+        }
+
+        auto request = std::make_shared<std_srvs::srv::Empty::Request>();
+        auto future = client_->async_send_request(request);
+        
+        auto status = future.wait_for(std::chrono::seconds(2));
+
+        if (status == std::future_status::ready) {
+          auto result = future.get();
+          DBG_SIM_INFO("Reset rviz");
+          pVal->set_string_value("OK");
+        } else {
+          DBG_SIM_ERR("Service call timed out after 3 seconds.");
+        }
+      }
+    }
+  } else {
+    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  }
+
+  string response_message;
+  res_param.SerializeToString(&response_message);
+  return response_message;
 }
 }  // namespace cloisim_ros

@@ -13,6 +13,7 @@
   <depend>cloisim_ros_bringup_param</depend>
   <depend>cloisim_ros_base</depend>
   <depend>rosgraph_msgs</depend>
+  <depend>std_srvs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
