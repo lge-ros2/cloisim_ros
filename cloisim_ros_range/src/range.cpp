@@ -76,7 +76,7 @@ void Range::Initialize()
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&Range::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Range::PublishData, this, std::placeholders::_1));
   }
 }
 

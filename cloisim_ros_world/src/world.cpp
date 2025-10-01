@@ -52,7 +52,7 @@ void World::Initialize()
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portClock, hashKey);
-    AddPublisherThread(data_bridge_ptr, bind(&World::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&World::PublishData, this, std::placeholders::_1));
   }
 }
 

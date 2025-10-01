@@ -80,7 +80,7 @@ protected:
 
   void CloseBridges();
 
-  void AddPublisherThread(
+  void AddBridgeReceiveWorker(
     zmq::Bridge * const bridge_ptr, std::function<void(const std::string &)> thread_func);
 
   std::string GetModelName();

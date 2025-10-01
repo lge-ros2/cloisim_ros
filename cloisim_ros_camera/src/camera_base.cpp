@@ -112,7 +112,7 @@ void CameraBase::InitializeCameraData()
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(
+    AddBridgeReceiveWorker(
       data_bridge_ptr,
       bind(
         static_cast<void (CameraBase::*)(const string &)>(&CameraBase::PublishData), this,
