@@ -47,7 +47,7 @@ void SegmentationCamera::InitializeCameraData()
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, _1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, _1));
   }
 
   pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>(

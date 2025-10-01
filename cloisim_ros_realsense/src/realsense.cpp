@@ -131,7 +131,7 @@ void RealSense::InitializeCam(
   msg_imgs_[data_ptr] = msg_img;
 
   if (data_ptr != nullptr) {
-    AddPublisherThread(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1));
+    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1));
   }
 }
 
@@ -154,7 +154,7 @@ void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const 
     this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
 
   if (data_ptr != nullptr) {
-    AddPublisherThread(data_ptr, bind(&RealSense::PublishImuData, this, _1));
+    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImuData, this, _1));
   }
 }
 

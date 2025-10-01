@@ -20,7 +20,6 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_micom/micom.hpp"
-// #include <cloisim_ros_base/helper.hpp>
 
 using namespace std::literals::chrono_literals;
 using namespace std::placeholders;
@@ -111,13 +110,13 @@ void Micom::Initialize()
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddPublisherThread(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
   }
 
   auto tf_bridge_ptr = CreateBridge();
   if (tf_bridge_ptr != nullptr) {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
   auto callback_sub_cmdvel = [this,

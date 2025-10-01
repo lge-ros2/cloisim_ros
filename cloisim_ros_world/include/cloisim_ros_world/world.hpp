@@ -23,6 +23,7 @@
 
 #include <cloisim_ros_base/base.hpp>
 #include <rosgraph_msgs/msg/clock.hpp>
+#include <std_srvs/srv/empty.hpp>
 
 namespace cloisim_ros
 {
@@ -39,6 +40,7 @@ private:
 
 private:
   void PublishData(const std::string & buffer);
+  std::string ServiceRequest(const std::string & buffer);
 
 private:
   cloisim::msgs::WorldStatistics pb_buf_;
@@ -46,6 +48,7 @@ private:
   rosgraph_msgs::msg::Clock msg_clock_;
 
   rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub_;
+  rclcpp::Client<std_srvs::srv::Empty>::SharedPtr client_;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_WORLD__WORLD_HPP_

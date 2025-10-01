@@ -45,7 +45,7 @@ void GroundTruth::Initialize()
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKey);
-    AddPublisherThread(
+    AddBridgeReceiveWorker(
       data_bridge_ptr, bind(&GroundTruth::PublishData, this, std::placeholders::_1));
   }
 }
