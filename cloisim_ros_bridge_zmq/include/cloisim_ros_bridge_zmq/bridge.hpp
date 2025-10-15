@@ -41,10 +41,10 @@ public:
   bool Connect(const unsigned char mode, const uint16_t port, const std::string hashKey = "");
   bool Disconnect(const unsigned char mode = 0);
 
-  bool Receive(void ** buffer, int & bufferLength, bool isNonBlockingMode = false);
-  bool Send(const void * buffer, const int bufferLength, bool isNonBlockingMode = false);
+  bool Receive(void ** buffer, int & bufferLength, bool is_non_blocking_mode = false);
+  bool Send(const void * buffer, const int bufferLength, bool is_non_blocking_mode = false);
 
-  std::string RequestReply(std::string request_data);
+  std::string RequestReply(const std::string & request_data);
 
 private:
   const bool useTCP = true;

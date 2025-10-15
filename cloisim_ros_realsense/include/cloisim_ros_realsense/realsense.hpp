@@ -51,6 +51,8 @@ private:
   void GetActivatedModules(zmq::Bridge * const bridge_ptr);
 
 private:
+  std::string header_frame_id_;
+
   std::vector<std::tuple<std::string, std::string>> activated_modules_;
 
   // message for ROS2 communictaion

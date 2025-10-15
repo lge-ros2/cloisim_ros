@@ -16,7 +16,6 @@
 #include <cloisim_msgs/transform_stamped.pb.h>
 
 #include "cloisim_ros_base/base.hpp"
-// #include "cloisim_ros_base/helper.hpp"
 
 using namespace std::literals::chrono_literals;
 using string = std::string;
@@ -73,7 +72,7 @@ void Base::Start(const bool enable_tf_publish)
 
   Initialize();
 
-  DBG_SIM_MSG("node(%s) enable_tf(%d)", get_name(), enable_tf_publish_);
+  DBG_SIM_MSG("node(%s) enable_tf(%d)", get_name(), enable_tf_publish);
 
   auto callback_static_tf_pub = [this]() -> void {PublishStaticTF();};
 
@@ -158,18 +157,19 @@ void Base::CloseBridges()
   }
 }
 
-void Base::AddPublisherThread(
-  zmq::Bridge * const bridge_ptr, std::function<void(const string &)> thread_func)
+void Base::AddBridgeReceiveWorker(
+  zmq::Bridge * const bridge_ptr, std::function<void(const string &)> data_process_func,
+  const bool is_non_block)
 {
   m_threads.emplace_back(
-    [this, bridge_ptr, thread_func]() {
+    [this, bridge_ptr, data_process_func, is_non_block]() {
       while (IsRunThread()) {
         void * buffer_ptr = nullptr;
         int bufferLength = 0;
-        const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength);
+        const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength,
+          is_non_block);
         if (!succeeded || bufferLength < 0) {
-          DBG_ERR(
-            "[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
+          DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
             zmq_strerror(zmq_errno()));
           continue;
         }
@@ -177,7 +177,35 @@ void Base::AddPublisherThread(
         if (IsRunThread() == false) {break;}
 
         const string buffer((const char *)buffer_ptr, bufferLength);
-        thread_func(buffer);
+        data_process_func(buffer);
+      }
+    });
+}
+
+void Base::AddBridgeServiceWorker(
+  zmq::Bridge * const bridge_ptr,
+  std::function<std::string(const std::string &)> service_process_func)
+{
+  m_threads.emplace_back(
+    [this, bridge_ptr, service_process_func]() {
+      while (IsRunThread()) {
+        void * buffer_ptr = nullptr;
+        int bufferLength = 0;
+        const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength, false);
+        if (!succeeded || bufferLength < 0) {
+          DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
+            zmq_strerror(zmq_errno()));
+          continue;
+        }
+
+        if (IsRunThread() == false) {break;}
+
+        const std::string request_buffer((const char *)buffer_ptr, bufferLength);
+        auto response_buffer = service_process_func(request_buffer);
+        if (SetBufferToSimulator(bridge_ptr, response_buffer) == false) {
+          DBG_ERR("[%s] Failed to Set buffer(%d) => Sim, %s", get_name(), bufferLength,
+            zmq_strerror(zmq_errno()));
+        }
       }
     });
 }
@@ -200,7 +228,7 @@ string Base::GetRobotName()
   return (is_single_mode) ? robotName : string(get_namespace()).substr(1);
 }
 
-void Base::GetStaticTransforms(zmq::Bridge * const bridge_ptr)
+void Base::SetStaticTransforms(zmq::Bridge * const bridge_ptr)
 {
   if (bridge_ptr == nullptr) {
     return;
@@ -301,14 +329,14 @@ void Base::GetRos2Parameter(zmq::Bridge * const bridge_ptr)
 
 bool Base::GetBufferFromSimulator(
   zmq::Bridge * const bridge_ptr, void ** ppBbuffer, int & bufferLength,
-  const bool isNonBlockingMode)
+  const bool is_non_blocking_mode)
 {
   if (bridge_ptr == nullptr) {
     DBG_SIM_ERR("Sim Bridge is NULL!!");
     return false;
   }
 
-  const auto succeeded = bridge_ptr->Receive(ppBbuffer, bufferLength, isNonBlockingMode);
+  const auto succeeded = bridge_ptr->Receive(ppBbuffer, bufferLength, is_non_blocking_mode);
   if (!succeeded || bufferLength < 0) {
     // DBG_SIM_WRN("Wrong bufferLength(%d)", bufferLength);
     return false;

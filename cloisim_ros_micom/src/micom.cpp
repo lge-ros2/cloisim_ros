@@ -20,7 +20,6 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_micom/micom.hpp"
-// #include <cloisim_ros_base/helper.hpp>
 
 using namespace std::literals::chrono_literals;
 using namespace std::placeholders;
@@ -58,15 +57,16 @@ void Micom::Initialize()
     hashKeySub.c_str(), hashKeyTf.c_str());
 
   {
+    const auto parent_frame_id = "base_footprint";
     auto base_link_pose = IdentityPose();
     base_link_pose.set_name("base_link");
-    SetStaticTf2(base_link_pose, "base_footprint");
+    SetStaticTf2(base_link_pose, parent_frame_id);
   }
 
   info_bridge_ptr = CreateBridge();
   if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
-    GetStaticTransforms(info_bridge_ptr);
+    SetStaticTransforms(info_bridge_ptr);
   }
 
   pub_battery_ =
@@ -111,13 +111,13 @@ void Micom::Initialize()
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddPublisherThread(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
   }
 
   auto tf_bridge_ptr = CreateBridge();
   if (tf_bridge_ptr != nullptr) {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
   auto callback_sub_cmdvel = [this,

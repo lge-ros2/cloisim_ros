@@ -85,7 +85,7 @@ void JointControl::Initialize()
   if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    GetStaticTransforms(info_bridge_ptr);
+    SetStaticTransforms(info_bridge_ptr);
 
     GetRobotDescription(info_bridge_ptr);
   }
@@ -93,13 +93,13 @@ void JointControl::Initialize()
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddPublisherThread(
+    AddBridgeReceiveWorker(
       data_bridge_ptr, bind(&JointControl::PublishData, this, std::placeholders::_1));
   }
 
   if (tf_bridge_ptr != nullptr) {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddPublisherThread(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
   }
 
   if (pub_robot_desc_ != nullptr) {pub_robot_desc_->publish(msg_description_);}
