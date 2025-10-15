@@ -158,11 +158,11 @@ void Base::CloseBridges()
   }
 }
 
-void Base::AddPublisherThread(
-  zmq::Bridge * const bridge_ptr, std::function<void(const string &)> thread_func)
+void Base::AddBridgeReceiveWorker(
+  zmq::Bridge * const bridge_ptr, std::function<void(const string &)> data_process_func)
 {
   m_threads.emplace_back(
-    [this, bridge_ptr, thread_func]() {
+    [this, bridge_ptr, data_process_func]() {
       while (IsRunThread()) {
         void * buffer_ptr = nullptr;
         int bufferLength = 0;
@@ -177,7 +177,7 @@ void Base::AddPublisherThread(
         if (IsRunThread() == false) {break;}
 
         const string buffer((const char *)buffer_ptr, bufferLength);
-        thread_func(buffer);
+        data_process_func(buffer);
       }
     });
 }
@@ -200,7 +200,7 @@ string Base::GetRobotName()
   return (is_single_mode) ? robotName : string(get_namespace()).substr(1);
 }
 
-void Base::GetStaticTransforms(zmq::Bridge * const bridge_ptr)
+void Base::SetStaticTransforms(zmq::Bridge * const bridge_ptr)
 {
   if (bridge_ptr == nullptr) {
     return;

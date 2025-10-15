@@ -32,6 +32,7 @@ namespace cloisim_ros
 RealSense::RealSense(
   const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
 : Base(node_name, namespace_, options_)
+  , header_frame_id_("realsense_link")
 {
   topic_name_ = "_";
   Start();
@@ -60,10 +61,11 @@ void RealSense::Initialize()
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
     GetActivatedModules(info_bridge_ptr);
 
-    auto transform_pose = GetObjectTransform(info_bridge_ptr);
-    const auto header_frame_id = GetPartsName() + "_link";
-    transform_pose.set_name(header_frame_id);
-    SetStaticTf2(transform_pose);
+    auto parent_frame_id = std::string("base_link");
+    auto transform_pose = GetObjectTransform(info_bridge_ptr, parent_frame_id);
+    header_frame_id_ = GetPartsName() + "_link";
+    transform_pose.set_name(header_frame_id_);
+    SetStaticTf2(transform_pose, parent_frame_id);
 
     GetRos2Parameter(info_bridge_ptr);
   }
@@ -103,11 +105,10 @@ void RealSense::InitializeCam(
   const string module_name, zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr)
 {
   if (info_ptr != nullptr) {
-    auto transform_pose = GetObjectTransform(info_ptr, module_name);
-    const auto header_frame_id = GetPartsName() + "_link";
+    auto transform_pose = GetTargetObjectTransform(info_ptr, module_name);
     const auto child_frame_id = GetPartsName() + "_camera_" + module_name + "_frame";
     transform_pose.set_name(child_frame_id);
-    SetStaticTf2(transform_pose, header_frame_id);
+    SetStaticTf2(transform_pose, header_frame_id_);
 
     const auto camInfoManager =
       std::make_shared<camera_info_manager::CameraInfoManager>(GetNode().get());
@@ -131,7 +132,7 @@ void RealSense::InitializeCam(
   msg_imgs_[data_ptr] = msg_img;
 
   if (data_ptr != nullptr) {
-    AddPublisherThread(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1));
+    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1));
   }
 }
 
@@ -143,9 +144,10 @@ void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const 
   msg_imu_.header.frame_id = frame_id;
 
   if (info_ptr != nullptr) {
-    auto transform_pose = GetObjectTransform(info_ptr);
+    auto parent_frame_id = std::string("base_link");
+    auto transform_pose = GetObjectTransform(info_ptr, parent_frame_id);
     transform_pose.set_name(frame_id);
-    SetStaticTf2(transform_pose);
+    SetStaticTf2(transform_pose, parent_frame_id);
   }
 
   // ROS2 Publisher
@@ -154,7 +156,7 @@ void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const 
     this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
 
   if (data_ptr != nullptr) {
-    AddPublisherThread(data_ptr, bind(&RealSense::PublishImuData, this, _1));
+    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImuData, this, _1));
   }
 }
 

@@ -56,9 +56,10 @@ void Gps::Initialize()
     const auto frame_id = GetFrameId("gps_link");
     msg_gps_.header.frame_id = frame_id;
 
-    auto transform_pose = GetObjectTransform(info_bridge_ptr);
+    auto parent_frame_id = std::string("base_link");
+    auto transform_pose = GetObjectTransform(info_bridge_ptr, parent_frame_id);
     transform_pose.set_name(frame_id);
-    SetStaticTf2(transform_pose);
+    SetStaticTf2(transform_pose, parent_frame_id);
   }
 
   // Fill covariances
@@ -94,7 +95,7 @@ void Gps::Initialize()
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddPublisherThread(data_bridge_ptr, bind(&Gps::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Gps::PublishData, this, std::placeholders::_1));
   }
 }
 

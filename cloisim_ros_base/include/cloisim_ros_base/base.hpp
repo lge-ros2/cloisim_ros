@@ -80,7 +80,7 @@ protected:
 
   void CloseBridges();
 
-  void AddPublisherThread(
+  void AddBridgeReceiveWorker(
     zmq::Bridge * const bridge_ptr, std::function<void(const std::string &)> thread_func);
 
   std::string GetModelName();
@@ -92,10 +92,13 @@ protected:
   void PublishTF();
   void PublishTF(const geometry_msgs::msg::TransformStamped & tf);
 
-  void GetStaticTransforms(zmq::Bridge * const bridge_ptr);
+  void SetStaticTransforms(zmq::Bridge * const bridge_ptr);
+
+  cloisim::msgs::Pose GetTargetObjectTransform(
+    zmq::Bridge * const bridge_ptr, const std::string & target_name);
 
   cloisim::msgs::Pose GetObjectTransform(
-    zmq::Bridge * const bridge_ptr, const std::string target_name = "");
+    zmq::Bridge * const bridge_ptr, std::string & parent_frame_id);
 
   cloisim::msgs::Pose GetObjectTransform(
     zmq::Bridge * const bridge_ptr, const std::string target_name, std::string & parent_frame_id);
@@ -169,11 +172,17 @@ inline void Base::PublishTF(const geometry_msgs::msg::TransformStamped & tf)
   }
 }
 
-inline cloisim::msgs::Pose Base::GetObjectTransform(
-  zmq::Bridge * const bridge_ptr, const std::string target_name)
+inline cloisim::msgs::Pose Base::GetTargetObjectTransform(
+  zmq::Bridge * const bridge_ptr, const std::string & target_name)
 {
-  std::string empty_arg("");
-  return GetObjectTransform(bridge_ptr, target_name, empty_arg);
+  std::string empty_args;
+  return GetObjectTransform(bridge_ptr, target_name, empty_args);
+}
+
+inline cloisim::msgs::Pose Base::GetObjectTransform(
+  zmq::Bridge * const bridge_ptr, std::string & parent_frame_id)
+{
+  return GetObjectTransform(bridge_ptr, "", parent_frame_id);
 }
 
 inline bool Base::SetBufferToSimulator(zmq::Bridge * const bridge_ptr, const std::string & buffer)

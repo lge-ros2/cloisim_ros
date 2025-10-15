@@ -14,7 +14,7 @@
   <depend>cloisim_ros_base</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>cloisim_msgs</depend>
+  <depend>cloisim_ros_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>std_srvs</depend>
 
