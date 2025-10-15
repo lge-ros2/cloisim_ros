@@ -65,7 +65,7 @@ void Micom::Initialize()
   info_bridge_ptr = CreateBridge();
   if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
-    GetStaticTransforms(info_bridge_ptr);
+    SetStaticTransforms(info_bridge_ptr);
   }
 
   pub_battery_ =

@@ -227,7 +227,7 @@ string Base::GetRobotName()
   return (is_single_mode) ? robotName : string(get_namespace()).substr(1);
 }
 
-void Base::GetStaticTransforms(zmq::Bridge * const bridge_ptr)
+void Base::SetStaticTransforms(zmq::Bridge * const bridge_ptr)
 {
   if (bridge_ptr == nullptr) {
     return;
