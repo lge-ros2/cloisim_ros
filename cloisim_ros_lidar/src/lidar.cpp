@@ -64,9 +64,10 @@ void Lidar::Initialize()
     msg_laser_.header.frame_id = frame_id;
     msg_pc2_.header.frame_id = frame_id;
 
-    auto transform_pose = GetObjectTransform(info_bridge_ptr);
+    auto parent_frame_id = std::string("base_link");
+    auto transform_pose = GetObjectTransform(info_bridge_ptr, parent_frame_id);
     transform_pose.set_name(frame_id);
-    SetStaticTf2(transform_pose);
+    SetStaticTf2(transform_pose, parent_frame_id);
 
     output_type = GetOutputType(info_bridge_ptr);
   }
