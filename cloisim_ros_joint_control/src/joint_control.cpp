@@ -85,7 +85,7 @@ void JointControl::Initialize()
   if (info_bridge_ptr != nullptr) {
     info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
 
-    GetStaticTransforms(info_bridge_ptr);
+    SetStaticTransforms(info_bridge_ptr);
 
     GetRobotDescription(info_bridge_ptr);
   }

@@ -92,7 +92,7 @@ protected:
   void PublishTF();
   void PublishTF(const geometry_msgs::msg::TransformStamped & tf);
 
-  void GetStaticTransforms(zmq::Bridge * const bridge_ptr);
+  void SetStaticTransforms(zmq::Bridge * const bridge_ptr);
 
   cloisim::msgs::Pose GetObjectTransform(
     zmq::Bridge * const bridge_ptr, const std::string target_name = "");
