@@ -115,7 +115,7 @@ std::string World::ServiceRequest(const string & buffer)
 
         auto request = std::make_shared<std_srvs::srv::Empty::Request>();
         auto future = client_->async_send_request(request);
-        
+
         auto status = future.wait_for(std::chrono::seconds(2));
 
         if (status == std::future_status::ready) {

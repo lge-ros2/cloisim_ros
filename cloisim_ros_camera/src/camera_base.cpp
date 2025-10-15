@@ -70,9 +70,10 @@ void CameraBase::InitializeCameraInfo()
     GetRos2Parameter(info_bridge_ptr);
 
     frame_id_ = GetPartsName() + "_" + GetFrameId("camera_link");
-    auto link_frame_transform_pose = GetObjectTransform(info_bridge_ptr);
+    auto parent_frame_id = std::string("base_link");
+    auto link_frame_transform_pose = GetObjectTransform(info_bridge_ptr, parent_frame_id);
     link_frame_transform_pose.set_name(frame_id_);
-    SetStaticTf2(link_frame_transform_pose);
+    SetStaticTf2(link_frame_transform_pose, parent_frame_id);
 
     optical_frame_id_ = GetPartsName() + "_camera_optical_frame";
     cloisim::msgs::Pose optical_frame_transform_pose;

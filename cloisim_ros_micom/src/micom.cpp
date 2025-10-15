@@ -57,9 +57,10 @@ void Micom::Initialize()
     hashKeySub.c_str(), hashKeyTf.c_str());
 
   {
+    const auto parent_frame_id = "base_footprint";
     auto base_link_pose = IdentityPose();
     base_link_pose.set_name("base_link");
-    SetStaticTf2(base_link_pose, "base_footprint");
+    SetStaticTf2(base_link_pose, parent_frame_id);
   }
 
   info_bridge_ptr = CreateBridge();

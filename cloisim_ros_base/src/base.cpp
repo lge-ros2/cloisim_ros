@@ -166,7 +166,8 @@ void Base::AddBridgeReceiveWorker(
       while (IsRunThread()) {
         void * buffer_ptr = nullptr;
         int bufferLength = 0;
-        const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength, is_non_block);
+        const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength,
+          is_non_block);
         if (!succeeded || bufferLength < 0) {
           DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
             zmq_strerror(zmq_errno()));

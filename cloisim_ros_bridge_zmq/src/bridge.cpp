@@ -360,7 +360,8 @@ bool Bridge::Receive(void ** buffer, int & bufferLength, bool is_non_blocking_mo
   }
 
   if (
-    (bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (is_non_blocking_mode) ? ZMQ_DONTWAIT : 0)) < 0)
+    (bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_,
+    (is_non_blocking_mode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
     // DBG_SIM_ERR("Failed to receive message len(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return false;
