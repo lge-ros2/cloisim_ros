@@ -250,7 +250,7 @@ cloisim::msgs::Pose Base::GetObjectTransform(
   if (reply.ByteSizeLong() > 0) {
     if (reply.IsInitialized() && reply.name() == "transform" && reply.has_value()) {
       transform.CopyFrom(reply.value().pose3d_value());
-      // DBG_SIM_INFO("transform receivied : %s", transform.name().c_str());
+      // DBG_SIM_INFO("transform received : %s", transform.name().c_str());
 
       if (reply.children_size() > 0) {
         const auto child_param = reply.children(0);
