@@ -73,7 +73,7 @@ private:
   void UpdateUSS();
 
 private:
-  zmq::Bridge * info_bridge_ptr;
+  zmq::Bridge * info_bridge_ptr_;
 
   // Micom msgs
   cloisim::msgs::Micom pb_micom_;

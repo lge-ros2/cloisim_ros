@@ -56,18 +56,23 @@ void Micom::Initialize()
     "hashKey: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(),
     hashKeySub.c_str(), hashKeyTf.c_str());
 
-  {
-    const auto parent_frame_id = "base_footprint";
-    auto base_link_pose = IdentityPose();
-    base_link_pose.set_name("base_link");
-    SetStaticTf2(base_link_pose, parent_frame_id);
+  auto base_link_name = std::string("base_link");
+  info_bridge_ptr_ = CreateBridge();
+  if (info_bridge_ptr_ != nullptr) {
+    info_bridge_ptr_->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
+    SetStaticTransforms(info_bridge_ptr_);
+
+    GetRos2Parameter(info_bridge_ptr_);
+
+    base_link_name = GetFrameId("base_link");
+    DBG_SIM_INFO("base_link_name(%s)", base_link_name.c_str());
   }
 
-  info_bridge_ptr = CreateBridge();
-  if (info_bridge_ptr != nullptr) {
-    info_bridge_ptr->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo);
-    SetStaticTransforms(info_bridge_ptr);
-  }
+  const auto parent_frame_id = "base_footprint";
+  auto base_link_pose = IdentityPose();
+  base_link_pose.set_name(base_link_name);
+
+  SetStaticTf2(base_link_pose, parent_frame_id);
 
   pub_battery_ =
     create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
@@ -166,7 +171,7 @@ void Micom::ResetOdometryCallback(
   const std::shared_ptr<std_srvs::srv::Empty::Request>/*request*/,
   std::shared_ptr<std_srvs::srv::Empty::Response>/*response*/)
 {
-  RequestReplyMessage(info_bridge_ptr, "reset_odometry");
+  RequestReplyMessage(info_bridge_ptr_, "reset_odometry");
 }
 
 string Micom::MakeControlMessage(const geometry_msgs::msg::Twist::SharedPtr msg) const
