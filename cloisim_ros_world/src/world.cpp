@@ -98,7 +98,6 @@ std::string World::ServiceRequest(const string & buffer)
 {
   cloisim::msgs::Param res_param;
   res_param.set_name("result");
-
   auto pVal = res_param.mutable_value();
   pVal->set_type(cloisim::msgs::Any::STRING);
   pVal->set_string_value("");
@@ -109,26 +108,27 @@ std::string World::ServiceRequest(const string & buffer)
       req_param.has_value() && req_param.value().bool_value() == true)
     {
       if (client_ != nullptr) {
-        while (!client_->wait_for_service(std::chrono::seconds(1))) {
-          DBG_SIM_WRN("Waiting for service '%s'", client_->get_service_name());
-        }
+        if (client_->wait_for_service(std::chrono::seconds(1))) {
+          auto request = std::make_shared<std_srvs::srv::Empty::Request>();
+          auto future = client_->async_send_request(request);
 
-        auto request = std::make_shared<std_srvs::srv::Empty::Request>();
-        auto future = client_->async_send_request(request);
-
-        auto status = future.wait_for(std::chrono::seconds(2));
-
-        if (status == std::future_status::ready) {
-          auto result = future.get();
-          DBG_SIM_INFO("Reset rviz");
-          pVal->set_string_value("OK");
+          if (future.wait_for(std::chrono::seconds(1)) == std::future_status::ready) {
+            auto result = future.get();
+            DBG_SIM_INFO("Reset rviz");
+            pVal->set_string_value("OK");
+          } else {
+            DBG_SIM_ERR("Service call timed out after 2 seconds.");
+            pVal->set_string_value("TIMEOUT");
+          }
         } else {
-          DBG_SIM_ERR("Service call timed out after 3 seconds.");
+          DBG_SIM_ERR("Service '%s' not available after waiting.", client_->get_service_name());
+          pVal->set_string_value("SERVICE_UNAVAILABLE");
         }
       }
     }
   } else {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+    pVal->set_string_value("SERVICE_DATA_ERROR");
   }
 
   string response_message;
