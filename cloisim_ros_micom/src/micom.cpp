@@ -410,7 +410,7 @@ void Micom::UpdateIR()
       if (ir.has_state()) {
         geometry_msgs::msg::Pose p;
         msg::Convert(ir.state().world_pose(), p);
-        msg_ir_pose_array_.poses.push_back(p);
+        msg_ir_pose_array_.poses[i] = p;
       }
     }
     // std::cout << "ir Size " <<  pb_micom_.ir_size() << std::endl;
