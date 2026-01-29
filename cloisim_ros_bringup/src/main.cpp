@@ -124,10 +124,13 @@ int main(int argc, char ** argv)
   });
 
   auto thread = std::make_unique<std::thread>([&]() {
-        static const auto maxRetryNum = 5;
+        static const auto defaultMaxRetryNum = 5;
         static const auto waitingTime = 3s;
         static const auto periodicCheckTime = 5s;
         static const auto emptyWaitTime = 500ms;
+
+        const auto env_val = getenv("CLOISIM_CONNECTION_MAX_RETRY");
+        const auto maxRetryNum = env_val ? atoi(env_val) : defaultMaxRetryNum;
 
         auto retry_count = maxRetryNum;
 
