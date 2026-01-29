@@ -13,7 +13,7 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-
+#pragma once
 #ifndef CLOISIM_ROS_WORLD__WORLD_HPP_
 #define CLOISIM_ROS_WORLD__WORLD_HPP_
 
@@ -42,13 +42,19 @@ private:
   void PublishData(const std::string & buffer);
   std::string ServiceRequest(const std::string & buffer);
 
+  std::vector<std::string> FindResetTimeServices() const;
+  rclcpp::Client<std_srvs::srv::Empty>::SharedPtr GetOrCreateResetClient(
+    const std::string & service_name);
+
 private:
   cloisim::msgs::WorldStatistics pb_buf_;
 
   rosgraph_msgs::msg::Clock msg_clock_;
 
   rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub_;
-  rclcpp::Client<std_srvs::srv::Empty>::SharedPtr client_;
+
+  mutable std::mutex rviz_client_mtx_;
+  std::unordered_map<std::string, rclcpp::Client<std_srvs::srv::Empty>::SharedPtr> rviz_clients_;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_WORLD__WORLD_HPP_

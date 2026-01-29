@@ -44,12 +44,12 @@ CameraBase::CameraBase(const string node_name, const string namespace_)
 
 CameraBase::~CameraBase()
 {
-  //   DBG_SIM_INFO("Delete CameraBase");
+  // DBG_SIM_INFO("Delete CameraBase");
 }
 
 void CameraBase::Initialize()
 {
-  //   DBG_SIM_INFO("CameraBase Initialization");
+  // DBG_SIM_INFO("CameraBase Initialization");
   InitializeCameraInfo();
   InitializeCameraPublish();
   InitializeCameraData();

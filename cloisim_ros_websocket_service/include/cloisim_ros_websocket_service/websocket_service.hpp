@@ -50,6 +50,7 @@ private:
   void on_message(websocketpp::connection_hdl hdl, client::message_ptr msg);
   void on_open(websocketpp::connection_hdl hdl);
   void on_close(websocketpp::connection_hdl hdl);
+  void DoClose(websocketpp::close::status::value code, std::string reason);
 
 public:
   void Request();
@@ -61,6 +62,11 @@ public:
   void SetTarget(const std::string target) {target_filter = target;}
 
   void Run();
+
+  void Close(
+    websocketpp::close::status::value code = websocketpp::close::status::normal,
+    const std::string & reason = "shutdown cloisim_ros_websocket_service");
+
 };
 }  // namespace cloisim_ros
 

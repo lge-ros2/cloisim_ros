@@ -18,6 +18,7 @@
 
 #include <zmq.h>
 
+#include <atomic>
 #include <string>
 
 #include "cloisim_ros_bridge_zmq/log.h"
@@ -47,15 +48,18 @@ public:
   std::string RequestReply(const std::string & request_data);
 
 private:
+  std::atomic<bool> ctx_shutdown_called_{false};
+  std::atomic<bool> ctx_term_called_{false};
+
   const bool useTCP = true;
   const uint8_t tagSize = 8;  // The size of zmq packet header tag
 
   const int keep_only_last_msg = 1;
   const int connect_timeout = 0;
-  const int reconnect_ivl_min = 1000;
-  const int reconnect_ivl_max = 5000;
+  const int reconnect_ivl_min_ms = 1000;
+  const int reconnect_ivl_max_ms = 5000;
   const int lingerPeriod = 0;
-  const int recv_timeout = 3000;  // milliseconds
+  const int recv_timeout_ms = 500;
 
   std::string bridgeAddr_;
 

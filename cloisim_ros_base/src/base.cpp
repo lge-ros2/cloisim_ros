@@ -78,12 +78,27 @@ void Base::Start(const bool enable_tf_publish)
 
   // ROS2 timer for static tf
   m_timer = this->create_wall_timer(wallTimerPeriod, callback_static_tf_pub);
+
+  rclcpp::on_shutdown([&] {
+      this->Stop();
+  });
 }
 
 void Base::Stop()
 {
   // DBG_SIM_INFO("%s", __FUNCTION__);
+  auto expected = false;
+  if (!m_stopping.compare_exchange_strong(expected, true)) {
+    return;
+  }
+
   m_bRunThread = false;
+
+  if (m_timer) {
+    m_timer->cancel(); // m_timer.reset();
+  }
+
+  CloseBridges();
 
   for (auto & thread : m_threads) {
     if (thread.joinable()) {
@@ -92,7 +107,6 @@ void Base::Stop()
   }
 
   Deinitialize();
-  CloseBridges();
 }
 
 void Base::GenerateTF(const string & buffer)
@@ -163,18 +177,35 @@ void Base::AddBridgeReceiveWorker(
 {
   m_threads.emplace_back(
     [this, bridge_ptr, data_process_func, is_non_block]() {
+      auto backoff_ms = 1;
       while (IsRunThread()) {
         void * buffer_ptr = nullptr;
         int bufferLength = 0;
         const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength,
           is_non_block);
         if (!succeeded || bufferLength < 0) {
-          DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
-            zmq_strerror(zmq_errno()));
+          if (!IsRunThread()) {break;}
+
+          const auto err = zmq_errno();
+          if (err == EAGAIN) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
+            backoff_ms = std::min(backoff_ms * 2, backoff_max);
+            const auto now = this->get_clock()->now();
+            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", get_name(), now.seconds(),
+              bufferLength, zmq_strerror(zmq_errno()));
+          } else if (err == ETERM) {
+            break;
+          } else {
+            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
+              zmq_strerror(zmq_errno()));
+            std::this_thread::sleep_for(1ms);
+          }
           continue;
         }
 
-        if (IsRunThread() == false) {break;}
+        backoff_ms = 1;
+
+        if (!IsRunThread()) {break;}
 
         const string buffer((const char *)buffer_ptr, bufferLength);
         data_process_func(buffer);
@@ -188,15 +219,32 @@ void Base::AddBridgeServiceWorker(
 {
   m_threads.emplace_back(
     [this, bridge_ptr, service_process_func]() {
+      auto backoff_ms = 1;
       while (IsRunThread()) {
         void * buffer_ptr = nullptr;
         int bufferLength = 0;
         const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength, false);
         if (!succeeded || bufferLength < 0) {
-          DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
-            zmq_strerror(zmq_errno()));
+          if (!IsRunThread()) {break;}
+
+          const auto err = zmq_errno();
+          if (err == EAGAIN) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
+            backoff_ms = std::min(backoff_ms * 2, backoff_max);
+            const auto now = this->get_clock()->now();
+            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", get_name(), now.seconds(),
+              bufferLength, zmq_strerror(zmq_errno()));
+          } else if (err == ETERM) {
+            break;
+          } else {
+            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
+              zmq_strerror(zmq_errno()));
+            std::this_thread::sleep_for(1ms);
+          }
           continue;
         }
+
+        backoff_ms = 1;
 
         if (IsRunThread() == false) {break;}
 
