@@ -86,6 +86,8 @@ WebSocketService::WebSocketService(const string bridge_ip, const string service_
 WebSocketService::~WebSocketService()
 {
   // cout << __FUNCTION__ << endl;
+  Close();
+
   client_.stop_perpetual();
   client_.stop();
 
@@ -105,6 +107,7 @@ void WebSocketService::on_open(websocketpp::connection_hdl hdl)
 {
   (void)hdl;
   // cout << __FUNCTION__ << endl;
+  cout << "Connected to CLOiSim" << endl;
   conn_hdl_ = hdl;
   is_connected_ = true;
 }
@@ -167,7 +170,36 @@ void WebSocketService::Run()
       cout << "other exception" << endl;
     }
 
-    std::this_thread::sleep_for(500ms);
+    std::this_thread::sleep_for(100ms);
+  }
+}
+
+void WebSocketService::DoClose(websocketpp::close::status::value code, std::string reason)
+{
+  if (!IsConnected()) {
+    return;
+  }
+
+  websocketpp::lib::error_code ec;
+  client_.close(conn_hdl_, code, reason, ec);
+  if (ec) {
+    std::cout << "Close failed: " << ec.message() << std::endl;
+  }
+}
+
+void WebSocketService::Close(websocketpp::close::status::value code, const std::string & reason)
+{
+  if (!IsConnected()) {
+    return;
+  }
+  client_.get_io_service().post(
+    websocketpp::lib::bind(&WebSocketService::DoClose, this, code, reason)
+  );
+
+  const auto max_timeout = 50;
+  const auto timeout = 10;
+  for (int i = 0; i < max_timeout && IsConnected(); ++i) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
   }
 }
 }  // namespace cloisim_ros

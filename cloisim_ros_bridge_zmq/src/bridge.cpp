@@ -89,7 +89,9 @@ bool Bridge::SetupCommon(void * const socket)
     return false;
   }
 
-  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min_ms, sizeof(reconnect_ivl_min_ms))) {
+  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min_ms,
+      sizeof(reconnect_ivl_min_ms)))
+  {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }

@@ -143,7 +143,8 @@ int main(int argc, char ** argv)
 
             if (retry_count-- > 0) {
               INFO(logger, "Failed to connect to the CLOiSim. Wait " << waitingTime.count() <<
-                      "sec and retry to connect. Remained retrial=" << retry_count);
+                "sec and retry to connect.");
+              INFO(logger, "Remained retrial=" << retry_count);
               interruptible_sleep(waitingTime);
             } else {
               ERR_ONCE(logger, "Finally, failed to connect CLOiSim.");

@@ -72,6 +72,7 @@ BringUpParam::~BringUpParam()
 {
   // cout << __FUNCTION__ << " destructor called" << endl;
   if (ws_service_ptr_ != nullptr) {
+    ws_service_ptr_->Close();
     delete ws_service_ptr_;
     ws_service_ptr_ = nullptr;
   }
@@ -105,7 +106,8 @@ Json::Value BringUpParam::RequestBringUpList()
         break;
       } else {
         cout << "PayLoad is empty" << endl;
-        continue;
+        result = Json::nullValue;
+        break;
       }
     } else {
       Json::Value root;
