@@ -49,6 +49,13 @@ export CLOISIM_SERVICE_PORT=8080
 
 check here [details](https://github.com/lge-ros2/cloisim_ros/tree/humble/cloisim_ros_bringup) for bring-up guide
 
+
+The default max retry number is 5, if you want to change set environment variable.
+
+```shell
+export CLOISIM_CONNECTION_MAX_RETRY=10
+```
+
 ### Run cloisim_ros (robot + world)
 
 #### DDS
