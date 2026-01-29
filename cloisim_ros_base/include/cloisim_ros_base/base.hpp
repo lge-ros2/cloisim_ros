@@ -22,6 +22,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -136,8 +137,11 @@ private:
   void PublishStaticTF();
 
 private:
+  static const auto backoff_max = 3000;
+
   std::vector<std::unique_ptr<zmq::Bridge>> m_created_bridges;
 
+  std::atomic<bool> m_stopping{false};
   bool m_bRunThread;
   std::vector<std::thread> m_threads;
 

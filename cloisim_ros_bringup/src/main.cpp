@@ -11,11 +11,13 @@
  *
  *      SPDX-License-Identifier: MIT
  */
-
+#include <atomic>
+#include <cloisim_ros_bringup_param/bringup_param.hpp>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 
 #include "cloisim_ros_bringup/type.hpp"
-#include <cloisim_ros_bringup_param/bringup_param.hpp>
 
 using namespace std::literals::chrono_literals;
 using string = std::string;
@@ -53,6 +55,7 @@ void add_all_bringup_nodes(rclcpp::Executor & executor, const rclcpp::Logger & l
 
     const auto node_info = std::get<0>(key) + "/" + std::get<1>(key) + "/" + std::get<2>(key);
     const auto node = std::get<2>(value);
+
     if (std::get<0>(value) == false) {
       WARN(logger, "New Node added(" << node_info << ")");
       executor.add_node(node);
@@ -77,15 +80,14 @@ void bringup_process(
   if (bringup_list_map.empty()) {
     INFO(logger, ">> Check if CLOiSim is launched first!!!");
 
-    if (g_node_map_list.size() > 0) {remove_all_bringup_nodes(executor, logger);}
-
-    rclcpp::sleep_for(500ms);
+    if (g_node_map_list.size() > 0) {
+      remove_all_bringup_nodes(executor, logger);
+    }
   } else {
     const auto is_single_mode = param_node->IsSingleMode();
     const auto targetModel = param_node->TargetModel();
     const auto targetPartsType = param_node->TargetPartsType();
     const auto targetPartsName = param_node->TargetPartsName();
-    // cout << targetModel << ":" << targetPartsType << ":" << targetPartsName << endl;
 
     make_bringup_list(
       bringup_list_map, targetModel, targetPartsType, targetPartsName, is_single_mode);
@@ -105,44 +107,67 @@ int main(int argc, char ** argv)
 
   executor.add_node(param_node);
 
-  auto running_thread = true;
+  std::atomic<bool> running_thread{true};
 
-  auto thread = std::make_unique<std::thread>(
-    [&]() {
-      static const int maxRetryNum = 5;
-      static const auto waitingTime = 3s;
-      static const auto periodicCheckTime = 2s;
+  std::mutex mtx;
+  std::condition_variable cv;
 
-      auto retry_count = maxRetryNum;
-      while (retry_count-- > 0 && running_thread) {
-        bringup_process(param_node, executor, logger);
+  auto interruptible_sleep = [&](auto duration) {
+      std::unique_lock<std::mutex> lk(mtx);
+      cv.wait_for(lk, duration, [&] {return !running_thread.load();});
+    };
 
-        // INFO(logger, "bringup_process() size=" << g_node_map_list.size());
-        if (g_node_map_list.size() == 0) {
-          INFO(
-            logger, "Failed to connect to the CLOiSim. Wait "
-              << std::to_string(waitingTime.count()) << "sec and retry to connnect. "
-              << "Remained retrial=" << retry_count);
-          std::this_thread::sleep_for(waitingTime);
-        } else {
-          retry_count = maxRetryNum;
-          std::this_thread::sleep_for(periodicCheckTime);
+  rclcpp::on_shutdown([&] {
+      running_thread.store(false, std::memory_order_relaxed);
+      cv.notify_all();
+      executor.cancel();
+  });
+
+  auto thread = std::make_unique<std::thread>([&]() {
+        static const auto maxRetryNum = 5;
+        static const auto waitingTime = 3s;
+        static const auto periodicCheckTime = 5s;
+        static const auto emptyWaitTime = 500ms;
+
+        auto retry_count = maxRetryNum;
+
+        while (running_thread.load()) {
+          bringup_process(param_node, executor, logger);
+
+          if (!running_thread.load()) {break;}
+
+          if (g_node_map_list.size() == 0) {
+            interruptible_sleep(emptyWaitTime);
+
+            if (!running_thread.load()) {break;}
+
+            if (retry_count-- > 0) {
+              INFO(logger, "Failed to connect to the CLOiSim. Wait " << waitingTime.count() <<
+                      "sec and retry to connect. Remained retrial=" << retry_count);
+              interruptible_sleep(waitingTime);
+            } else {
+              ERR_ONCE(logger, "Finally, failed to connect CLOiSim.");
+              rclcpp::shutdown();
+              break;
+            }
+          } else {
+            retry_count = maxRetryNum;
+            interruptible_sleep(periodicCheckTime);
+          }
         }
-      }
+  });
 
-      ERR_ONCE(logger, "Finally, failed to connect CLOiSim.");
-      kill(getpid(), SIGINT);
-    });
+  WARN_ONCE(logger,
+    "Spinning MultiThreadedExecutor NumOfThread=" << executor.get_number_of_threads());
 
-  WARN_ONCE(
-    logger, "Spinning MultiThreadedExecutor NumOfThread=" << executor.get_number_of_threads());
   executor.spin();
+  running_thread.store(false);
+  cv.notify_all();
 
-  running_thread = false;
-
-  if (thread->joinable()) {thread->join();}
+  if (thread && thread->joinable()) {
+    thread->join();
+  }
 
   rclcpp::shutdown();
-
   return 0;
 }

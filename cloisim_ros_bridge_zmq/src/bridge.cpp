@@ -48,8 +48,14 @@ Bridge::Bridge()
 Bridge::~Bridge()
 {
   if (pCtx_) {
-    zmq_ctx_shutdown(pCtx_);
-    zmq_ctx_term(pCtx_);
+    if (!ctx_shutdown_called_.exchange(true)) {
+      zmq_ctx_shutdown(pCtx_);
+    }
+
+    if (!ctx_term_called_.exchange(true)) {
+      zmq_ctx_term(pCtx_);
+    }
+
     pCtx_ = nullptr;
   }
 }
@@ -83,13 +89,13 @@ bool Bridge::SetupCommon(void * const socket)
     return false;
   }
 
-  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min, sizeof(reconnect_ivl_min))) {
+  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min_ms, sizeof(reconnect_ivl_min_ms))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
   if (zmq_setsockopt(
-      socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
+      socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max_ms, sizeof(reconnect_ivl_max_ms)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -128,7 +134,7 @@ bool Bridge::SetupSubscriber()
     return false;
   }
 
-  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
+  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -204,7 +210,7 @@ bool Bridge::SetupClient()
 
   if (!SetupCommon(pReq_)) {return false;}
 
-  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
+  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -317,6 +323,11 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
 bool Bridge::Disconnect(const unsigned char mode)
 {
   // DBG_SIM_WRN("Bridge disconnect");
+
+  if (pCtx_ && !ctx_shutdown_called_.exchange(true)) {
+    zmq_ctx_shutdown(pCtx_);
+  }
+
   auto result = true;
 
   if ((mode == 0 || (mode & Mode::SUB)) && pSub_) {
