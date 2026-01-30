@@ -369,8 +369,10 @@ bool Bridge::Receive(void ** buffer, int & bufferLength, bool is_non_blocking_mo
     (bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_,
     (is_non_blocking_mode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
-    LOG_E(this,
-        "Failed to receive message len=" << bufferLength << " err=" << zmq_strerror(zmq_errno()));
+    if (zmq_errno() != ETERM) {
+      LOG_E(this,
+          "Failed to receive message len=" << bufferLength << " err=" << zmq_strerror(zmq_errno()));
+    }
     return false;
   }
 
