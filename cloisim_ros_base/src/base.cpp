@@ -56,7 +56,7 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
 
 Base::~Base()
 {
-  // DBG_SIM_INFO("Delete");
+  // LOG_I(this, "Delete");
   m_created_bridges.clear();
 }
 
@@ -72,7 +72,8 @@ void Base::Start(const bool enable_tf_publish)
 
   Initialize();
 
-  DBG_SIM_MSG("namespace(%s) node(%s) enable_tf(%d)", get_namespace(), get_name(), enable_tf_publish);
+  LOG_I(this, "namespace(" << get_namespace() << ") node(" << get_name()
+                           << ") enable_tf(" << enable_tf_publish << ")");
 
   auto callback_static_tf_pub = [this]() -> void {PublishStaticTF();};
 
@@ -86,7 +87,7 @@ void Base::Start(const bool enable_tf_publish)
 
 void Base::Stop()
 {
-  // DBG_SIM_INFO("%s", __FUNCTION__);
+  // LOG_I(this, "");
   auto expected = false;
   if (!m_stopping.compare_exchange_strong(expected, true)) {
     return;
@@ -102,7 +103,7 @@ void Base::Stop()
 
   for (auto & thread : m_threads) {
     if (thread.joinable()) {
-      thread.join();                        // Thread finished
+      thread.join(); // Thread finished
     }
   }
 
@@ -113,7 +114,7 @@ void Base::GenerateTF(const string & buffer)
 {
   cloisim::msgs::TransformStamped pb_transform_stamped;
   if (!pb_transform_stamped.ParseFromString(buffer)) {
-    DBG_SIM_ERR("[%s] Parsing error, size(%d)", get_name(), buffer.length());
+    LOG_E(this, "[" << get_name() << "] Parsing error, size=" << buffer.length());
     return;
   }
 
@@ -122,16 +123,15 @@ void Base::GenerateTF(const string & buffer)
     newTf.header.stamp = msg::Convert(pb_transform_stamped.header().stamp());
     newTf.header.frame_id = pb_transform_stamped.header().str_id();
     newTf.child_frame_id = pb_transform_stamped.transform().name();
-    // DBG_SIM_INFO("%ld %ld %s %s",
-    //              newTf.header.stamp.sec, newTf.header.stamp.nanosec,
-    //              newTf.header.frame_id.c_str(), newTf.child_frame_id.c_str());
+    // LOG_I(this, newTf.header.stamp.sec << " " << newTf.header.stamp.nanosec << " " <<
+    //              newTf.header.frame_id << " " << newTf.child_frame_id);
     SetTf2(
       newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(),
       pb_transform_stamped.header().str_id());
     PublishTF(newTf);
 #if 0
   } else {
-    DBG_SIM_WRN("empty child frame id or parent frame id");
+    LOG_W(this, "empty child frame id or parent frame id");
 #endif
   }
 }
@@ -188,14 +188,18 @@ void Base::AddBridgeReceiveWorker(
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
-            const auto now = this->get_clock()->now();
-            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), now.seconds(),
-              bufferLength, zmq_strerror(zmq_errno()));
+            if (backoff_ms == backoff_max) {
+              const auto now = this->get_clock()->now();
+              LOG_W(this, "[" << GetMainHashKey() << "] t=" << std::fixed << std::setprecision(3)
+                              << now.seconds() << " Timeout to get buffer(" << bufferLength
+                              << ") <= Sim, " << zmq_strerror(err));
+            }
           } else if (err == ETERM) {
             break;
           } else {
-            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), bufferLength,
-              zmq_strerror(zmq_errno()));
+            LOG_E(this,
+              "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
+              ") <= Sim, " << zmq_strerror(err));
             std::this_thread::sleep_for(1ms);
           }
           continue;
@@ -229,14 +233,18 @@ void Base::AddBridgeServiceWorker(
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
-            const auto now = this->get_clock()->now();
-            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), now.seconds(),
-              bufferLength, zmq_strerror(zmq_errno()));
+            if (backoff_ms == backoff_max) {
+              const auto now = this->get_clock()->now();
+              LOG_W(this, "[" << GetMainHashKey() << "] t=" << std::fixed << std::setprecision(3)
+                              << now.seconds() << " Timeout to get buffer(" << bufferLength
+                              << ") <= Sim, " << zmq_strerror(err));
+            }
           } else if (err == ETERM) {
             break;
           } else {
-            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), bufferLength,
-              zmq_strerror(zmq_errno()));
+            LOG_E(this,
+              "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
+              ") <= Sim, " << zmq_strerror(err));
             std::this_thread::sleep_for(1ms);
           }
           continue;
@@ -249,8 +257,9 @@ void Base::AddBridgeServiceWorker(
         const std::string request_buffer((const char *)buffer_ptr, bufferLength);
         auto response_buffer = service_process_func(request_buffer);
         if (SetBufferToSimulator(bridge_ptr, response_buffer) == false) {
-          DBG_ERR("[%s] Failed to Set buffer(%d) => Sim, %s", GetMainHashKey().c_str(), bufferLength,
-            zmq_strerror(zmq_errno()));
+          LOG_E(this,
+              "[" << GetMainHashKey() << "] Failed to set buffer(" << bufferLength <<
+              ") => Sim, " << zmq_strerror(zmq_errno()));
         }
       }
     });
@@ -305,7 +314,7 @@ void Base::SetStaticTransforms(zmq::Bridge * const bridge_ptr)
         }
 
         SetStaticTf2(pose, parent_frame_id);
-        DBG_SIM_MSG("static transform %s -> %s", pose.name().c_str(), parent_frame_id.c_str());
+        LOG_I(this, "static transform " << pose.name() << " -> " << parent_frame_id);
       }
     }
   }
@@ -324,7 +333,7 @@ cloisim::msgs::Pose Base::GetObjectTransform(
   if (reply.ByteSizeLong() > 0) {
     if (reply.IsInitialized() && reply.name() == "transform" && reply.has_value()) {
       transform.CopyFrom(reply.value().pose3d_value());
-      // DBG_SIM_INFO("transform received : %s", transform.name().c_str());
+      // LOG_I(this, "transform received=" << transform.name());
 
       if (reply.children_size() > 0) {
         const auto child_param = reply.children(0);
@@ -339,7 +348,7 @@ cloisim::msgs::Pose Base::GetObjectTransform(
       }
     }
   } else {
-    DBG_SIM_ERR("Failed to get object transform, length(%ld)", reply.ByteSizeLong());
+    LOG_E(this, "Failed to get object transform, length=" << reply.ByteSizeLong());
   }
 
   return transform;
@@ -351,22 +360,21 @@ void Base::GetRos2Parameter(zmq::Bridge * const bridge_ptr)
 
   const auto reply = RequestReplyMessage(bridge_ptr, "request_ros2");
   if (reply.ByteSizeLong() <= 0) {
-    DBG_SIM_ERR("Failed to get ROS2 common info, length(%ld)", reply.ByteSizeLong());
+    LOG_E(this, "Failed to get ROS2 common info, length=" << reply.ByteSizeLong());
   } else {
     if (reply.IsInitialized() && reply.name() == "ros2") {
       for (auto i = 0; i < reply.children_size(); i++) {
         const auto param = reply.children(i);
         const auto paramValue =
           (param.has_value() && param.value().type() == cloisim::msgs::Any_ValueType_STRING) ?
-          param.value().string_value() :
-          "";
+          param.value().string_value() : "";
 
         if (param.name().compare("topic_name") == 0) {
           topic_name_ = paramValue;
-          if (!paramValue.empty()) {DBG_SIM_INFO("topic_name: %s", topic_name_.c_str());}
+          if (!paramValue.empty()) {LOG_I(this, "topic_name=" << topic_name_);}
         } else if (param.name().compare("frame_id") == 0) {
           frame_id_list_.push_back(paramValue);
-          DBG_SIM_INFO("frame_id: %s", paramValue.c_str());
+          LOG_I(this, "frame_id=" << paramValue);
         }
       }
     }
@@ -378,13 +386,13 @@ bool Base::GetBufferFromSimulator(
   const bool is_non_blocking_mode)
 {
   if (bridge_ptr == nullptr) {
-    DBG_SIM_ERR("Sim Bridge is NULL!!");
+    LOG_E(nullptr, "Sim Bridge is NULL!!");
     return false;
   }
 
   const auto succeeded = bridge_ptr->Receive(ppBbuffer, bufferLength, is_non_blocking_mode);
   if (!succeeded || bufferLength < 0) {
-    // DBG_SIM_WRN("Wrong bufferLength(%d)", bufferLength);
+    // LOG_W(nullptr, "Wrong bufferLength=" << bufferLength);
     return false;
   }
 
@@ -418,7 +426,7 @@ cloisim::msgs::Param Base::RequestReplyMessage(
   cloisim::msgs::Param reply;
 
   if (bridge_ptr == nullptr) {
-    DBG_SIM_ERR("sim bridge is null!!");
+    LOG_E(nullptr, "sim bridge is null!!");
     return reply;
   }
 
@@ -438,12 +446,12 @@ cloisim::msgs::Param Base::RequestReplyMessage(
 
   if (serialized_reply_data.size() > 0) {
     if (reply.ParseFromString(serialized_reply_data) == false) {
-      DBG_SIM_ERR(
-        "Failed to parse serialized buffer, buffer_ptr(%p) length(%ld)",
-        serialized_reply_data.data(), serialized_reply_data.size());
+      LOG_E(nullptr,
+        "Failed to parse serialized buffer, buffer_ptr=" << serialized_reply_data.data() <<
+          " length=" << serialized_reply_data.size());
     }
   } else {
-    DBG_SIM_ERR("Failed to get reply data, length(%ld)", serialized_reply_data.size());
+    LOG_E(nullptr, "Failed to get reply data, length=" << serialized_reply_data.size());
   }
 
   return reply;
