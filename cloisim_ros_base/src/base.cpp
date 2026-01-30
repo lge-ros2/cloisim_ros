@@ -72,7 +72,7 @@ void Base::Start(const bool enable_tf_publish)
 
   Initialize();
 
-  DBG_SIM_MSG("node(%s) enable_tf(%d)", get_name(), enable_tf_publish);
+  DBG_SIM_MSG("namespace(%s) node(%s) enable_tf(%d)", get_namespace(), get_name(), enable_tf_publish);
 
   auto callback_static_tf_pub = [this]() -> void {PublishStaticTF();};
 
@@ -113,7 +113,7 @@ void Base::GenerateTF(const string & buffer)
 {
   cloisim::msgs::TransformStamped pb_transform_stamped;
   if (!pb_transform_stamped.ParseFromString(buffer)) {
-    DBG_SIM_ERR("%s: Parsing error, size(%d)", get_name(), buffer.length());
+    DBG_SIM_ERR("[%s] Parsing error, size(%d)", get_name(), buffer.length());
     return;
   }
 
@@ -129,13 +129,11 @@ void Base::GenerateTF(const string & buffer)
       newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(),
       pb_transform_stamped.header().str_id());
     PublishTF(newTf);
-#if 1
-  }
-#else
+#if 0
   } else {
     DBG_SIM_WRN("empty child frame id or parent frame id");
-  }
 #endif
+  }
 }
 
 void Base::PublishTF()
@@ -191,12 +189,12 @@ void Base::AddBridgeReceiveWorker(
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             const auto now = this->get_clock()->now();
-            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", get_name(), now.seconds(),
+            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), now.seconds(),
               bufferLength, zmq_strerror(zmq_errno()));
           } else if (err == ETERM) {
             break;
           } else {
-            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
+            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), bufferLength,
               zmq_strerror(zmq_errno()));
             std::this_thread::sleep_for(1ms);
           }
@@ -232,12 +230,12 @@ void Base::AddBridgeServiceWorker(
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             const auto now = this->get_clock()->now();
-            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", get_name(), now.seconds(),
+            DBG_WRN("[%s] t=%.3f Timeout to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), now.seconds(),
               bufferLength, zmq_strerror(zmq_errno()));
           } else if (err == ETERM) {
             break;
           } else {
-            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", get_name(), bufferLength,
+            DBG_ERR("[%s] Failed to get buffer(%d) <= Sim, %s", GetMainHashKey().c_str(), bufferLength,
               zmq_strerror(zmq_errno()));
             std::this_thread::sleep_for(1ms);
           }
@@ -251,7 +249,7 @@ void Base::AddBridgeServiceWorker(
         const std::string request_buffer((const char *)buffer_ptr, bufferLength);
         auto response_buffer = service_process_func(request_buffer);
         if (SetBufferToSimulator(bridge_ptr, response_buffer) == false) {
-          DBG_ERR("[%s] Failed to Set buffer(%d) => Sim, %s", get_name(), bufferLength,
+          DBG_ERR("[%s] Failed to Set buffer(%d) => Sim, %s", GetMainHashKey().c_str(), bufferLength,
             zmq_strerror(zmq_errno()));
         }
       }
