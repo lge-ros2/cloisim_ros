@@ -76,7 +76,7 @@ private:
   void * pSockTx_;  // for Send function
   void * pSockRx_;  // for Recieve function
 
-  std::string lastErrMsg;
+  std::string lastErrMsg_;
 
 private:
   bool Setup(const unsigned char mode);
