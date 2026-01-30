@@ -59,7 +59,7 @@ private:
   const int reconnect_ivl_min_ms = 1000;
   const int reconnect_ivl_max_ms = 5000;
   const int lingerPeriod = 0;
-  const int recv_timeout_ms = 500;
+  const int recv_timeout_ms = 100;
 
   std::string bridgeAddr_;
 
