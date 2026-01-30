@@ -111,7 +111,7 @@ protected:
 
   void GetRos2Parameter(zmq::Bridge * const bridge_ptr);
 
-  static bool GetBufferFromSimulator(
+  bool GetBufferFromSimulator(
     zmq::Bridge * const bridge_ptr, void ** ppBbuffer, int & bufferLength,
     const bool is_non_blocking_mode = false);
 
