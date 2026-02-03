@@ -47,6 +47,10 @@ public:
 
   std::string RequestReply(const std::string & request_data);
 
+  int GetLastError() const { return zmq_errno(); }
+  std::string GetLastErrorMessage() const { return zmq_strerror(GetLastError()); }
+  std::string GetErrorMessage(const int error_no) const { return zmq_strerror(error_no); }
+
 private:
   std::atomic<bool> ctx_shutdown_called_{false};
   std::atomic<bool> ctx_term_called_{false};

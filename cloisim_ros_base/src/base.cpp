@@ -181,10 +181,10 @@ void Base::AddBridgeReceiveWorker(
         int bufferLength = 0;
         const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength,
           is_non_block);
+        const auto err = bridge_ptr->GetLastError();
+
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
-
-          const auto err = zmq_errno();
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
@@ -192,14 +192,14 @@ void Base::AddBridgeReceiveWorker(
               const auto now = this->get_clock()->now();
               LOG_W(this, "[" << GetMainHashKey() << "] t=" << std::fixed << std::setprecision(3)
                               << now.seconds() << " Timeout to get buffer(" << bufferLength
-                              << ") <= Sim, " << zmq_strerror(err));
+                              << ") <= Sim, " << bridge_ptr->GetErrorMessage(err));
             }
           } else if (err == ETERM) {
             break;
           } else {
             LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
-              ") <= Sim, " << zmq_strerror(err));
+              ") <= Sim, " << bridge_ptr->GetErrorMessage(err));
             std::this_thread::sleep_for(1ms);
           }
           continue;
@@ -226,10 +226,9 @@ void Base::AddBridgeServiceWorker(
         void * buffer_ptr = nullptr;
         int bufferLength = 0;
         const bool succeeded = GetBufferFromSimulator(bridge_ptr, &buffer_ptr, bufferLength, false);
+        const auto err = bridge_ptr->GetLastError();
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
-
-          const auto err = zmq_errno();
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
@@ -237,14 +236,14 @@ void Base::AddBridgeServiceWorker(
               const auto now = this->get_clock()->now();
               LOG_W(this, "[" << GetMainHashKey() << "] t=" << std::fixed << std::setprecision(3)
                               << now.seconds() << " Timeout to get buffer(" << bufferLength
-                              << ") <= Sim, " << zmq_strerror(err));
+                              << ") <= Sim, " << bridge_ptr->GetErrorMessage(err));
             }
           } else if (err == ETERM) {
             break;
           } else {
             LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
-              ") <= Sim, " << zmq_strerror(err));
+              ") <= Sim, " << bridge_ptr->GetErrorMessage(err));
             std::this_thread::sleep_for(1ms);
           }
           continue;
@@ -259,7 +258,7 @@ void Base::AddBridgeServiceWorker(
         if (SetBufferToSimulator(bridge_ptr, response_buffer) == false) {
           LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to set buffer(" << bufferLength <<
-              ") => Sim, " << zmq_strerror(zmq_errno()));
+              ") => Sim, " << bridge_ptr->GetErrorMessage(err));
         }
       }
     });
@@ -392,9 +391,9 @@ bool Base::GetBufferFromSimulator(
 
   const auto succeeded = bridge_ptr->Receive(ppBbuffer, bufferLength, is_non_blocking_mode);
   if (!succeeded || bufferLength < 0) {
-    LOG_E(this,
-        "[" << GetMainHashKey() << "] Failed to receive buffer from Sim, len=" << bufferLength <<
-        ", " << zmq_strerror(zmq_errno()));
+    // LOG_E(this,
+    //     "[" << GetMainHashKey() << "] Failed to receive buffer from Sim, len=" << bufferLength <<
+    //     ", " << bridge_ptr->GetLastErrorMessage());
     return false;
   }
 
