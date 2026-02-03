@@ -47,6 +47,10 @@ public:
 
   std::string RequestReply(const std::string & request_data);
 
+  int GetLastError() const {return zmq_errno();}
+  std::string GetLastErrorMessage() const {return zmq_strerror(GetLastError());}
+  std::string GetErrorMessage(const int error_no) const {return zmq_strerror(error_no);}
+
 private:
   std::atomic<bool> ctx_shutdown_called_{false};
   std::atomic<bool> ctx_term_called_{false};
@@ -59,7 +63,7 @@ private:
   const int reconnect_ivl_min_ms = 1000;
   const int reconnect_ivl_max_ms = 5000;
   const int lingerPeriod = 0;
-  const int recv_timeout_ms = 500;
+  const int recv_timeout_ms = 100;
 
   std::string bridgeAddr_;
 
@@ -76,7 +80,7 @@ private:
   void * pSockTx_;  // for Send function
   void * pSockRx_;  // for Recieve function
 
-  std::string lastErrMsg;
+  std::string lastErrMsg_;
 
 private:
   bool Setup(const unsigned char mode);
