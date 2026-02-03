@@ -85,26 +85,26 @@ bool Bridge::Setup(const unsigned char mode)
 bool Bridge::SetupCommon(void * const socket)
 {
   if (zmq_setsockopt(socket, ZMQ_CONNECT_TIMEOUT, &connect_timeout, sizeof(connect_timeout))) {
-    lastErrMsg_ = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
     return false;
   }
 
   if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min_ms,
       sizeof(reconnect_ivl_min_ms)))
   {
-    lastErrMsg_ = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
     return false;
   }
 
   if (zmq_setsockopt(
       socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max_ms, sizeof(reconnect_ivl_max_ms)))
   {
-    lastErrMsg_ = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
     return false;
   }
 
   if (zmq_setsockopt(socket, ZMQ_LINGER, &lingerPeriod, sizeof(lingerPeriod))) {
-    lastErrMsg_ = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
     return false;
   }
 
@@ -132,17 +132,17 @@ bool Bridge::SetupSubscriber()
   if (!SetupCommon(pSub_)) {return false;}
 
   if (zmq_setsockopt(pSub_, ZMQ_CONFLATE, &keep_only_last_msg, sizeof(keep_only_last_msg))) {
-    lastErrMsg_ = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
     return false;
   }
 
   if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
-    lastErrMsg_ = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
     return false;
   }
 
   if (zmq_msg_init(&m_msgRx) < 0) {
-    lastErrMsg_ = "msg init failed:" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "msg init failed:" + GetLastErrorMessage();
     return false;
   }
 
@@ -187,7 +187,7 @@ bool Bridge::SetupService()
   if (!SetupCommon(pRep_)) {return false;}
 
   if (zmq_msg_init(&m_msgRx) < 0) {
-    lastErrMsg_ = "msg init failed, err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "msg init failed, err=" + GetLastErrorMessage();
     return false;
   }
 
@@ -213,12 +213,12 @@ bool Bridge::SetupClient()
   if (!SetupCommon(pReq_)) {return false;}
 
   if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
-    lastErrMsg_ = "SetSock err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock err=" + GetLastErrorMessage();
     return false;
   }
 
   if (zmq_msg_init(&m_msgRx) < 0) {
-    lastErrMsg_ = "msg init failed, err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "msg init failed, err=" + GetLastErrorMessage();
     return false;
   }
 
@@ -255,7 +255,7 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
 {
   const auto nHashTag = GetHashCode(hashKey);
   if (zmq_setsockopt(pSub_, ZMQ_SUBSCRIBE, &nHashTag, tagSize)) {
-    lastErrMsg_ = "SetSock err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "SetSock err=" + GetLastErrorMessage();
     return false;
   }
 
@@ -263,7 +263,7 @@ bool Bridge::ConnectSubscriber(const uint16_t port, const string hashKey)
   LOG_I(this, "addr=" << bridgeAddress << " hash=" << std::hex << nHashTag << std::dec);
 
   if (zmq_connect(pSub_, bridgeAddress.c_str()) < 0) {
-    lastErrMsg_ = "ConnectSubscriber err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "ConnectSubscriber err=" + GetLastErrorMessage();
     return false;
   }
 
@@ -278,7 +278,7 @@ bool Bridge::ConnectPublisher(const uint16_t port, const string hashKey)
   LOG_I(this, "addr=" << bridgeAddress << " hash=" << std::hex << m_nHashTagTx << std::dec);
 
   if (zmq_connect(pPub_, bridgeAddress.c_str()) < 0) {
-    lastErrMsg_ = "ConnectPublisher err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "ConnectPublisher err=" + GetLastErrorMessage();
     return false;
   }
 
@@ -293,7 +293,7 @@ bool Bridge::ConnectService(const uint16_t port, const string hashKey)
   LOG_I(this, "addr=" << bridgeAddress << " hash=" << std::hex << m_nHashTagTx << std::dec);
 
   if (zmq_connect(pRep_, bridgeAddress.c_str()) < 0) {
-    lastErrMsg_ = "ConnectService err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "ConnectService err=" + GetLastErrorMessage();
     return false;
   }
 
@@ -308,7 +308,7 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
   LOG_I(this, "addr=" << bridgeAddress << " hash=" << std::hex << m_nHashTagTx << std::dec);
 
   if (zmq_connect(pReq_, bridgeAddress.c_str()) < 0) {
-    lastErrMsg_ = "ConnectClient err=" + string(zmq_strerror(zmq_errno()));
+    lastErrMsg_ = "ConnectClient err=" + GetLastErrorMessage();
     return false;
   }
 
@@ -369,7 +369,7 @@ bool Bridge::Receive(void ** buffer, int & bufferLength, bool is_non_blocking_mo
     (is_non_blocking_mode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
     // LOG_E(this,
-    //     "Failed to receive message len=" << bufferLength << " err=" << zmq_strerror(zmq_errno()));
+    //     "Failed to receive message len=" << bufferLength << " err=" << GetLastErrorMessage();
     return false;
   }
 
