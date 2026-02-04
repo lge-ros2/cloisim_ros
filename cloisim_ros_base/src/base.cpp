@@ -190,7 +190,7 @@ void Base::AddBridgeReceiveWorker(
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();
-              LOG_W(Base::AddBridgeReceiveWorker,
+              LOG_W(this,
                 "[" << GetMainHashKey() <<
                 "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
                 " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
@@ -199,7 +199,7 @@ void Base::AddBridgeReceiveWorker(
           } else if (err == ETERM) {
             break;
           } else {
-            LOG_E(Base::AddBridgeReceiveWorker,
+            LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
               ") <= Sim, " << bridge_ptr->GetErrorMessage(err));
             std::this_thread::sleep_for(1ms);
@@ -236,7 +236,7 @@ void Base::AddBridgeServiceWorker(
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();
-              LOG_W(Base::AddBridgeServiceWorker,
+              LOG_W(this,
                 "[" << GetMainHashKey() <<
                 "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
                 " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
@@ -245,7 +245,7 @@ void Base::AddBridgeServiceWorker(
           } else if (err == ETERM) {
             break;
           } else {
-            LOG_E(Base::AddBridgeServiceWorker,
+            LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
               ") <= Sim, " << bridge_ptr->GetErrorMessage(err));
             std::this_thread::sleep_for(1ms);
@@ -260,7 +260,7 @@ void Base::AddBridgeServiceWorker(
         const std::string request_buffer((const char *)buffer_ptr, bufferLength);
         auto response_buffer = service_process_func(request_buffer);
         if (SetBufferToSimulator(bridge_ptr, response_buffer) == false) {
-          LOG_E(Base::AddBridgeServiceWorker,
+          LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to set buffer(" << bufferLength <<
               ") => Sim, " << bridge_ptr->GetErrorMessage(err));
         }
@@ -374,12 +374,16 @@ void Base::GetRos2Parameter(zmq::Bridge * const bridge_ptr)
 
         if (param.name().compare("topic_name") == 0) {
           topic_name_ = paramValue;
-          if (!paramValue.empty()) {LOG_I(this, "topic_name=" << topic_name_);}
         } else if (param.name().compare("frame_id") == 0) {
           frame_id_list_.push_back(paramValue);
-          LOG_I(this, "frame_id=" << paramValue);
         }
       }
+
+      std::string total_string;
+      for (const auto & s : frame_id_list_) {
+        total_string += (s + ", ");
+      }
+      LOG_I(this, "topic_name=" << topic_name_ << " frame_id=" << total_string);
     }
   }
 }
