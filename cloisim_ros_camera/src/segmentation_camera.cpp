@@ -53,7 +53,7 @@ void SegmentationCamera::InitializeCameraData()
   pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>(
     topic_base_name_ + "/label_info", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local());
 
-  DBG_SIM_INFO("%s hashKey: data(%s)", typeid(this).name(), hashKeyData.c_str());
+  LOG_I(this, typeid(this).name() << "hashKey: data(" << hashKeyData << ")");
 }
 
 void SegmentationCamera::PublishData(const string & buffer)

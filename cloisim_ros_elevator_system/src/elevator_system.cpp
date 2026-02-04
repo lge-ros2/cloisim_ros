@@ -46,7 +46,7 @@ void ElevatorSystem::Initialize()
 {
   const auto nodeName = GetPartsName();
   const auto hashKeySrv = GetModelName() + nodeName + "Control";
-  DBG_SIM_INFO("hashKey: srv(%s)", hashKeySrv.c_str());
+  LOG_I(this, "hashKey: srv(" << hashKeySrv << ")");
 
   uint16_t portControl;
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
