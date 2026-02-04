@@ -42,7 +42,7 @@ void Gps::Initialize()
 
   const auto hashKeyData = GetTargetHashKey("Data");
   const auto hashKeyInfo = GetTargetHashKey("Info");
-  DBG_SIM_INFO("hashKey: data(%s), info(%s)", hashKeyData.c_str(), hashKeyInfo.c_str());
+  LOG_I(this, "hashKey: data(" << hashKeyData << ") info(" << hashKeyInfo << ")");
 
   auto data_bridge_ptr = CreateBridge();
   auto info_bridge_ptr = CreateBridge();
