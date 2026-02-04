@@ -48,8 +48,14 @@ Bridge::Bridge()
 Bridge::~Bridge()
 {
   if (pCtx_) {
-    zmq_ctx_shutdown(pCtx_);
-    zmq_ctx_term(pCtx_);
+    if (!ctx_shutdown_called_.exchange(true)) {
+      zmq_ctx_shutdown(pCtx_);
+    }
+
+    if (!ctx_term_called_.exchange(true)) {
+      zmq_ctx_term(pCtx_);
+    }
+
     pCtx_ = nullptr;
   }
 }
@@ -83,13 +89,15 @@ bool Bridge::SetupCommon(void * const socket)
     return false;
   }
 
-  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min, sizeof(reconnect_ivl_min))) {
+  if (zmq_setsockopt(socket, ZMQ_RECONNECT_IVL, &reconnect_ivl_min_ms,
+      sizeof(reconnect_ivl_min_ms)))
+  {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
 
   if (zmq_setsockopt(
-      socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max, sizeof(reconnect_ivl_max)))
+      socket, ZMQ_RECONNECT_IVL_MAX, &reconnect_ivl_max_ms, sizeof(reconnect_ivl_max_ms)))
   {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -128,7 +136,7 @@ bool Bridge::SetupSubscriber()
     return false;
   }
 
-  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
+  if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -178,11 +186,6 @@ bool Bridge::SetupService()
 
   if (!SetupCommon(pRep_)) {return false;}
 
-  if (zmq_setsockopt(pRep_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
-    lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
-    return false;
-  }
-
   if (zmq_msg_init(&m_msgRx) < 0) {
     lastErrMsg = "msg init failed:" + string(zmq_strerror(zmq_errno()));
     return false;
@@ -209,7 +212,7 @@ bool Bridge::SetupClient()
 
   if (!SetupCommon(pReq_)) {return false;}
 
-  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
+  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
     lastErrMsg = "SetSock Err:" + string(zmq_strerror(zmq_errno()));
     return false;
   }
@@ -322,6 +325,11 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
 bool Bridge::Disconnect(const unsigned char mode)
 {
   // DBG_SIM_WRN("Bridge disconnect");
+
+  if (pCtx_ && !ctx_shutdown_called_.exchange(true)) {
+    zmq_ctx_shutdown(pCtx_);
+  }
+
   auto result = true;
 
   if ((mode == 0 || (mode & Mode::SUB)) && pSub_) {
@@ -357,7 +365,7 @@ bool Bridge::CloseSocket(void * & target)
   return true;
 }
 
-bool Bridge::Receive(void ** buffer, int & bufferLength, bool isNonBlockingMode)
+bool Bridge::Receive(void ** buffer, int & bufferLength, bool is_non_blocking_mode)
 {
   if (pSockRx_ == nullptr) {
     DBG_SIM_ERR("Cannot Receive data due to uninitialized pointer pSockRx_(%p)", pSockRx_);
@@ -365,11 +373,9 @@ bool Bridge::Receive(void ** buffer, int & bufferLength, bool isNonBlockingMode)
   }
 
   if (
-    (bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_,
-    (isNonBlockingMode) ? ZMQ_DONTWAIT : 0)) < 0)
+    (bufferLength = zmq_msg_recv(&m_msgRx, pSockRx_, (is_non_blocking_mode) ? ZMQ_DONTWAIT : 0)) < 0)
   {
-    // DBG_SIM_ERR("Failed to receive message len(%d): %s",
-    //             bufferLength, zmq_strerror(zmq_errno()));
+    // DBG_SIM_ERR("Failed to receive message len(%d): %s", bufferLength, zmq_strerror(zmq_errno()));
     return false;
   }
 
@@ -383,7 +389,7 @@ bool Bridge::Receive(void ** buffer, int & bufferLength, bool isNonBlockingMode)
   return true;
 }
 
-bool Bridge::Send(const void * buffer, const int bufferLength, bool isNonBlockingMode)
+bool Bridge::Send(const void * buffer, const int bufferLength, bool is_non_blocking_mode)
 {
   zmq_msg_t msg;
   if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0) {
@@ -400,7 +406,7 @@ bool Bridge::Send(const void * buffer, const int bufferLength, bool isNonBlockin
     bufferLength);
 
   /* Send the message to the socket */
-  if (zmq_msg_send(&msg, pSockTx_, (isNonBlockingMode) ? ZMQ_DONTWAIT : 0) < 0) {
+  if (zmq_msg_send(&msg, pSockTx_, (is_non_blocking_mode) ? ZMQ_DONTWAIT : 0) < 0) {
     return false;
   }
 
@@ -409,7 +415,7 @@ bool Bridge::Send(const void * buffer, const int bufferLength, bool isNonBlockin
   return true;
 }
 
-std::string Bridge::RequestReply(std::string request_data)
+std::string Bridge::RequestReply(const std::string & request_data)
 {
   string reply_data;
 

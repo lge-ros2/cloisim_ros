@@ -10,6 +10,7 @@ install/
 
 .vscode
 *.code-workspace
+.history
 
 tags
 

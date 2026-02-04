@@ -22,6 +22,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -81,7 +82,12 @@ protected:
   void CloseBridges();
 
   void AddBridgeReceiveWorker(
-    zmq::Bridge * const bridge_ptr, std::function<void(const std::string &)> thread_func);
+    zmq::Bridge * const bridge_ptr, std::function<void(const std::string &)> thread_func,
+    const bool is_non_block = false);
+
+  void AddBridgeServiceWorker(
+    zmq::Bridge * const bridge_ptr,
+    std::function<std::string(const std::string &)> service_process_func);
 
   std::string GetModelName();
   std::string GetRobotName();
@@ -107,7 +113,7 @@ protected:
 
   static bool GetBufferFromSimulator(
     zmq::Bridge * const bridge_ptr, void ** ppBbuffer, int & bufferLength,
-    const bool isNonBlockingMode = false);
+    const bool is_non_blocking_mode = false);
 
   static bool SetBufferToSimulator(zmq::Bridge * const bridge_ptr, const std::string & buffer);
 
@@ -131,8 +137,11 @@ private:
   void PublishStaticTF();
 
 private:
+  static const auto backoff_max = 3000;
+
   std::vector<std::unique_ptr<zmq::Bridge>> m_created_bridges;
 
+  std::atomic<bool> m_stopping{false};
   bool m_bRunThread;
   std::vector<std::thread> m_threads;
 
