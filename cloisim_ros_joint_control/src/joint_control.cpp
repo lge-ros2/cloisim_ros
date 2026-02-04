@@ -56,8 +56,8 @@ void JointControl::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  DBG_SIM_INFO(
-    "hashKey: pub(%s) sub(%s) tf(%s)", hashKeyPub.c_str(), hashKeySub.c_str(), hashKeyTf.c_str());
+  LOG_I(this,
+      "hashKey: pub(" << hashKeyPub << ") sub(" << hashKeySub << ") tf(" << hashKeyTf << ")");
 
   auto info_bridge_ptr = CreateBridge();
   auto data_bridge_ptr = CreateBridge();

@@ -137,7 +137,7 @@ inline void LogImpl(
       << color
       << LogLevelStr(level) << ts << " "
       << file << ":" << line << "] "
-      << ((func && std::strcmp(func, "operator()") == 0) ? (std::string(func) + "()] ") : "")
+      << ((func && std::strcmp(func, "operator()") != 0) ? (std::string(func) + "()] ") : "")
       // << type_name << "@"
       // << obj_addr << " | "
       << message
