@@ -52,9 +52,6 @@ void Micom::Initialize()
   const auto hashKeyPub = GetTargetHashKey("Rx");
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
-  DBG_SIM_INFO(
-    "hashKey: info(%s) pub(%s) sub(%s) tf(%s)", hashKeyInfo.c_str(), hashKeyPub.c_str(),
-    hashKeySub.c_str(), hashKeyTf.c_str());
 
   auto base_link_name = std::string("base_link");
   info_bridge_ptr_ = CreateBridge();
@@ -63,10 +60,12 @@ void Micom::Initialize()
     SetStaticTransforms(info_bridge_ptr_);
 
     GetRos2Parameter(info_bridge_ptr_);
-
     base_link_name = GetFrameId("base_link");
-    DBG_SIM_INFO("base_link_name(%s)", base_link_name.c_str());
   }
+
+  LOG_I(this,
+      "hashKey: info(" << hashKeyInfo << ") pub(" << hashKeyPub << ") sub(" << hashKeySub <<
+      ") tf(" << hashKeyTf << ") base_link_name=" << base_link_name);
 
   const auto parent_frame_id = "base_footprint";
   auto base_link_pose = IdentityPose();

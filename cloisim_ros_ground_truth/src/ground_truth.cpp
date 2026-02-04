@@ -36,8 +36,8 @@ void GroundTruth::Initialize()
   uint16_t portData;
   get_parameter_or("bridge.Data", portData, uint16_t(0));
 
-  const auto hashKey = GetModelName() + GetPartsName() + "Data";
-  DBG_SIM_INFO("hashKey: %s", hashKey.c_str());
+  const auto hashKeyData = GetModelName() + GetPartsName() + "Data";
+  LOG_I(this, "hashKey: data(" << hashKeyData << ")");
 
   pub_ = create_publisher<perception_msgs::msg::ObjectArray>(
     "/ground_truth", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local());

@@ -80,10 +80,9 @@ void RealSense::Initialize()
 
     const auto hashKeyData = GetTargetHashKey(module_name + "Data");
     const auto hashKeyInfo = GetTargetHashKey(module_name + "Info");
-
-    DBG_SIM_INFO(
-      "module: %s, hashKey: data(%s), info(%s)", module_name.c_str(), hashKeyData.c_str(),
-      hashKeyInfo.c_str());
+    LOG_I(this,
+        "module=" << module_name << "hashKey: data(" << hashKeyData << ") info(" << hashKeyInfo <<
+        ")");
 
     auto info_bridge_info = CreateBridge();
     if (info_bridge_info->Connect(zmq::Bridge::Mode::CLIENT, portInfo, hashKeyInfo)) {
@@ -95,7 +94,7 @@ void RealSense::Initialize()
       } else if (module_type.compare("imu") == 0) {
         InitializeImu(info_bridge_info, data_bridge_ptr);
       } else {
-        DBG_SIM_ERR("Unknown module type: %s name: %s", module_type.c_str(), module_name.c_str());
+        LOG_E(this, "Unknown module type=" << module_type << " name=" << module_name);
       }
     }
   }
