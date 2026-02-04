@@ -90,7 +90,7 @@ void CameraBase::InitializeCameraInfo()
     SetCameraInfoInManager(camera_info_manager_, camSensorMsg, frame_id_);
   }
 
-  DBG_SIM_INFO("hashKey: info(%s)", hashKeyInfo.c_str());
+  LOG_I(this, "hashKey: info(" << hashKeyInfo << ")");
 }
 
 void CameraBase::InitializeCameraPublish()
@@ -121,7 +121,7 @@ void CameraBase::InitializeCameraData()
         std::placeholders::_1));
   }
 
-  DBG_SIM_INFO("hashKey: data(%s)", hashKeyData.c_str());
+  LOG_I(this, "hashKey: data(" << hashKeyData << ")");
 }
 
 void CameraBase::Deinitialize() {pub_.shutdown();}
