@@ -153,6 +153,10 @@ inline const T * ToRawPtr(const T * p) {return p;}
 template < typename T >
 inline const T * ToRawPtr(const std::shared_ptr < T > &sp) {return sp.get();}
 
+#ifndef __FILE_NAME__
+#define __FILE_NAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif
+
 #define LOG_IMPL_(LEVEL, OBJ, STREAM_EXPR) \
   do { \
     const auto * obj_ptr = ToRawPtr(OBJ); \
