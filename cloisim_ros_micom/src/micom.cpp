@@ -108,7 +108,7 @@ void Micom::Initialize()
   {
     msg_imu_.header.frame_id = "imu_link";
 
-    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
+    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("micom/imu", rclcpp::SensorDataQoS());
   }
 
   auto data_bridge_ptr = CreateBridge();
@@ -286,7 +286,9 @@ void Micom::PublishData(const void* buffer, int bufferLength)
     pub_odom_->publish(msg_odom_);
   }
 
-  pub_imu_->publish(msg_imu_);
+  if (pb_micom_.has_imu()) {
+    pub_imu_->publish(msg_imu_);
+  }
   pub_battery_->publish(msg_battery_);
   pub_bumper_->publish(msg_bumper_);
   pub_bumper_states_->publish(msg_bumper_contacts_array_);
