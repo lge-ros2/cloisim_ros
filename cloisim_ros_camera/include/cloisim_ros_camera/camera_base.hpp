@@ -46,7 +46,7 @@ protected:
   virtual void InitializeCameraData();
 
 protected:
-  void PublishData(const std::string & buffer);
+  void PublishData(const void * buffer, int bufferLength);
   void PublishData(const cloisim::msgs::ImageStamped & pb_msg);
 
 protected:

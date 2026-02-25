@@ -40,7 +40,7 @@ private:
   void Deinitialize() override {}
 
 private:
-  void PublishData(const std::string & buffer);
+  void PublishData(const void * buffer, int bufferLength);
 
   void JointControlWrite(zmq::Bridge * const bridge_ptr, const std::string & buffer);
 

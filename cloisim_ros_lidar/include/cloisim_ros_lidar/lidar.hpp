@@ -19,6 +19,7 @@
 #include <cloisim_msgs/laserscan_stamped.pb.h>
 
 #include <string>
+#include <vector>
 
 #include <cloisim_ros_base/base.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
@@ -45,7 +46,7 @@ private:
 private:
   std::string GetOutputType(zmq::Bridge * const bridge_ptr);
 
-  void PublishData(const std::string & buffer);
+  void PublishData(const void * buffer, int bufferLength);
   void UpdatePointCloudData(const double min_intensity = 0.0);
   void UpdateLaserData(const double min_intensity = 0.0);
 
@@ -60,6 +61,15 @@ private:
   // Laser publisher
   LaserScanPub pub_laser_;
   PointCloud2Pub pub_pc2_;
+
+  // Pre-computed trig tables for PointCloud2 conversion
+  std::vector<float> cos_azimuth_;
+  std::vector<float> sin_azimuth_;
+  std::vector<float> cos_inclination_;
+  std::vector<float> sin_inclination_;
+  bool pc2_fields_initialized_ = false;
+  uint32_t cached_beam_count_ = 0;
+  uint32_t cached_vertical_count_ = 0;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_LIDAR__LIDAR_HPP_

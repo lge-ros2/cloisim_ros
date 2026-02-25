@@ -76,14 +76,14 @@ void Contact::Initialize()
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
     AddBridgeReceiveWorker(data_bridge_ptr,
-        bind(&Contact::PublishData, this, std::placeholders::_1));
+        bind(&Contact::PublishData, this, std::placeholders::_1, std::placeholders::_2));
   }
 }
 
-void Contact::PublishData(const string & buffer)
+void Contact::PublishData(const void * buffer, int bufferLength)
 {
-  if (!pb_buf_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 

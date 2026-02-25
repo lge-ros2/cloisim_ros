@@ -115,13 +115,15 @@ void Micom::Initialize()
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr,
+        bind(&Micom::PublishData, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   auto tf_bridge_ptr = CreateBridge();
   if (tf_bridge_ptr != nullptr) {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddBridgeReceiveWorker(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(tf_bridge_ptr,
+        bind(&Base::GenerateTF, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   auto callback_sub_cmdvel = [this,
@@ -261,10 +263,10 @@ string Micom::MakeMowingRevSpeedMessage(const std_msgs::msg::UInt16::SharedPtr m
   return message;
 }
 
-void Micom::PublishData(const string & buffer)
+void Micom::PublishData(const void * buffer, int bufferLength)
 {
-  if (!pb_micom_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_micom_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 

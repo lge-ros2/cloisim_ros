@@ -52,7 +52,7 @@ void World::Initialize()
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portClock, hashKey);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&World::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&World::PublishData, this, std::placeholders::_1, std::placeholders::_2));
   }
 }
 
@@ -62,10 +62,10 @@ void World::Deinitialize()
   pub_.reset();
 }
 
-void World::PublishData(const string & buffer)
+void World::PublishData(const void * buffer, int bufferLength)
 {
-  if (!pb_buf_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
