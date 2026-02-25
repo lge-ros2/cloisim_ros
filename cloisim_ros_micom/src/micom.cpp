@@ -105,12 +105,6 @@ void Micom::Initialize()
     pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SystemDefaultsQoS());
   }
 
-  {
-    msg_imu_.header.frame_id = "imu_link";
-
-    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
-  }
-
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
@@ -276,7 +270,6 @@ void Micom::PublishData(const void * buffer, int bufferLength)
   //             pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
 
   UpdateOdom();
-  UpdateImu();
   UpdateBattery();
   UpdateBumper();
   UpdateIR();
@@ -288,7 +281,6 @@ void Micom::PublishData(const void * buffer, int bufferLength)
     pub_odom_->publish(msg_odom_);
   }
 
-  pub_imu_->publish(msg_imu_);
   pub_battery_->publish(msg_battery_);
   pub_bumper_->publish(msg_bumper_);
   pub_bumper_states_->publish(msg_bumper_contacts_array_);
@@ -333,26 +325,6 @@ void Micom::UpdateOdom()
   odom_tf_.header.stamp = msg_odom_.header.stamp;
   geometry_msgs::msg::Convert(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
   odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
-}
-
-void Micom::UpdateImu()
-{
-  if (!pb_micom_.has_imu()) {
-    return;
-  }
-
-  msg_imu_.header.stamp = msg::Convert(pb_micom_.imu().stamp());
-
-  msg::Convert(pb_micom_.imu().orientation(), msg_imu_.orientation);
-  msg::Convert(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
-  msg::Convert(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
-
-  std::fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
-  std::fill(
-    begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
-  std::fill(
-    begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance),
-    0.0);
 }
 
 void Micom::UpdateBattery()
