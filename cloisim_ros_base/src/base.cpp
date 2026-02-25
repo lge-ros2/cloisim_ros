@@ -110,11 +110,11 @@ void Base::Stop()
   Deinitialize();
 }
 
-void Base::GenerateTF(const string & buffer)
+void Base::GenerateTF(const void* buffer, int bufferLength)
 {
   cloisim::msgs::TransformStamped pb_transform_stamped;
-  if (!pb_transform_stamped.ParseFromString(buffer)) {
-    LOG_E(this, "[" << get_name() << "] Parsing error, size=" << buffer.length());
+  if (!pb_transform_stamped.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "[" << get_name() << "] Parsing error, size=" << bufferLength);
     return;
   }
 
@@ -170,7 +170,7 @@ void Base::CloseBridges()
 }
 
 void Base::AddBridgeReceiveWorker(
-  zmq::Bridge * const bridge_ptr, std::function<void(const string &)> data_process_func,
+  zmq::Bridge * const bridge_ptr, std::function<void(const void *, int)> data_process_func,
   const bool is_non_block)
 {
   m_threads.emplace_back(
@@ -211,8 +211,8 @@ void Base::AddBridgeReceiveWorker(
 
         if (!IsRunThread()) {break;}
 
-        const string buffer((const char *)buffer_ptr, bufferLength);
-        data_process_func(buffer);
+        // Zero-copy: pass raw ZMQ buffer pointer directly to callback
+        data_process_func(buffer_ptr, bufferLength);
       }
     });
 }

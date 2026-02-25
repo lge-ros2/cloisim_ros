@@ -75,14 +75,14 @@ void Imu::Initialize()
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Imu::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Imu::PublishData, this, std::placeholders::_1, std::placeholders::_2));
   }
 }
 
-void Imu::PublishData(const string & buffer)
+void Imu::PublishData(const void* buffer, int bufferLength)
 {
-  if (!pb_buf_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
     return;
   }
 

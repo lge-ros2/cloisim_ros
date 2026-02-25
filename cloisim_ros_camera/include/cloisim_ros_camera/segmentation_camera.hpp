@@ -38,7 +38,7 @@ private:
   void InitializeCameraData() override;
 
 private:
-  void PublishData(const std::string & buffer);
+  void PublishData(const void* buffer, int bufferLength);
 
 private:
   cloisim::msgs::Segmentation pb_seg_;

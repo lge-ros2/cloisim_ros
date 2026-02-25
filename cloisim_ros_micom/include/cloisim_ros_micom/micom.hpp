@@ -50,7 +50,7 @@ private:
   void Deinitialize() override {}
 
 private:
-  void PublishData(const std::string & buffer);
+  void PublishData(const void* buffer, int bufferLength);
 
   void ResetOdometryCallback(
     const std::shared_ptr<rmw_request_id_t>/*request_header*/,

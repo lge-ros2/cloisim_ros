@@ -94,12 +94,12 @@ void JointControl::Initialize()
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
     AddBridgeReceiveWorker(
-      data_bridge_ptr, bind(&JointControl::PublishData, this, std::placeholders::_1));
+      data_bridge_ptr, bind(&JointControl::PublishData, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   if (tf_bridge_ptr != nullptr) {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddBridgeReceiveWorker(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   if (pub_robot_desc_ != nullptr) {pub_robot_desc_->publish(msg_description_);}
@@ -143,11 +143,11 @@ string JointControl::MakeCommandMessage(control_msgs::msg::JointJog::ConstShared
   return message;
 }
 
-void JointControl::PublishData(const string & buffer)
+void JointControl::PublishData(const void* buffer, int bufferLength)
 {
   cloisim::msgs::JointState_V pb_joint_states;
-  if (!pb_joint_states.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_joint_states.ParseFromArray(buffer, bufferLength)) {
+    DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
     return;
   }
 
