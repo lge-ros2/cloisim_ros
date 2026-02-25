@@ -145,6 +145,12 @@ string JointControl::MakeCommandMessage(control_msgs::msg::JointJog::ConstShared
 
 void JointControl::PublishData(const void* buffer, int bufferLength)
 {
+  const auto now = std::chrono::steady_clock::now();
+  if (now - last_publish_time_ < publish_period_) {
+    return;
+  }
+  last_publish_time_ = now;
+
   cloisim::msgs::JointState_V pb_joint_states;
   if (!pb_joint_states.ParseFromArray(buffer, bufferLength)) {
     DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);

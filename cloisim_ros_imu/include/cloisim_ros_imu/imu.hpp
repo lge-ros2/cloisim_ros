@@ -18,6 +18,7 @@
 
 #include <cloisim_msgs/imu.pb.h>
 
+#include <chrono>
 #include <string>
 
 #include <cloisim_ros_base/base.hpp>
@@ -50,6 +51,10 @@ private:
 
   // publisher
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
+
+  // rate limiting
+  std::chrono::steady_clock::time_point last_publish_time_{};
+  static constexpr std::chrono::microseconds publish_period_{10000};  // 100 Hz
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_IMU__IMU_HPP_
