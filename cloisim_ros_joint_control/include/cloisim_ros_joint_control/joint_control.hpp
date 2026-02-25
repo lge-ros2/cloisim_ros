@@ -15,7 +15,6 @@
 #ifndef CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_
 #define CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_
 
-#include <chrono>
 #include <map>
 #include <string>
 
@@ -63,10 +62,6 @@ private:
   rclcpp::Subscription<control_msgs::msg::JointJog>::SharedPtr sub_joint_job_;
 
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_robot_desc_;
-
-  // rate limiting
-  std::chrono::steady_clock::time_point last_publish_time_{};
-  static constexpr std::chrono::microseconds publish_period_{10000};  // 100 Hz
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_JOINT_CONTROL__JOINT_CONTROL_HPP_

@@ -81,12 +81,6 @@ void Imu::Initialize()
 
 void Imu::PublishData(const void* buffer, int bufferLength)
 {
-  const auto now = std::chrono::steady_clock::now();
-  if (now - last_publish_time_ < publish_period_) {
-    return;
-  }
-  last_publish_time_ = now;
-
   if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
     DBG_SIM_ERR("Parsing error, size(%d)", bufferLength);
     return;
