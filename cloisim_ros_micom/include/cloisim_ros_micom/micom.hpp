@@ -24,7 +24,6 @@
 #include <cloisim_ros_base/base.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
-#include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <std_msgs/msg/float32.hpp>
@@ -66,7 +65,6 @@ private:
   std::string MakeMowingRevSpeedMessage(const std_msgs::msg::UInt16::SharedPtr msg) const;
 
   void UpdateOdom();
-  void UpdateImu();
   void UpdateBattery();
   void UpdateBumper();
   void UpdateIR();
@@ -77,9 +75,6 @@ private:
 
   // Micom msgs
   cloisim::msgs::Micom pb_micom_;
-
-  // IMU msgs
-  sensor_msgs::msg::Imu msg_imu_;
 
   geometry_msgs::msg::TransformStamped odom_tf_;
 
@@ -102,7 +97,6 @@ private:
   geometry_msgs::msg::PoseArray msg_ir_pose_array_;
 
   // ROS2 micom publisher
-  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
   rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr pub_battery_;
   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr pub_bumper_;
