@@ -47,7 +47,7 @@ void SegmentationCamera::InitializeCameraData()
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, _1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&SegmentationCamera::PublishData, this, _1, _2));
   }
 
   pub_labelinfo_ = create_publisher<vision_msgs::msg::LabelInfo>(
@@ -56,10 +56,10 @@ void SegmentationCamera::InitializeCameraData()
   LOG_I(this, typeid(this).name() << "hashKey: data(" << hashKeyData << ")");
 }
 
-void SegmentationCamera::PublishData(const string & buffer)
+void SegmentationCamera::PublishData(const void * buffer, int bufferLength)
 {
-  if (!pb_seg_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_seg_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 

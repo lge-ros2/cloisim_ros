@@ -131,7 +131,7 @@ void RealSense::InitializeCam(
   msg_imgs_[data_ptr] = msg_img;
 
   if (data_ptr != nullptr) {
-    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1));
+    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImgData, this, data_ptr, _1, _2));
   }
 }
 
@@ -155,7 +155,7 @@ void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const 
     this->create_publisher<sensor_msgs::msg::Imu>(topic_base_name, rclcpp::SensorDataQoS());
 
   if (data_ptr != nullptr) {
-    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImuData, this, _1));
+    AddBridgeReceiveWorker(data_ptr, bind(&RealSense::PublishImuData, this, _1, _2));
   }
 }
 
@@ -206,11 +206,13 @@ void RealSense::GetActivatedModules(zmq::Bridge * const bridge_ptr)
   DBG_SIM_INFO("activated_modules: %s", moduleListStr.c_str());
 }
 
-void RealSense::PublishImgData(const zmq::Bridge * const bridge_ptr, const std::string & buffer)
+void RealSense::PublishImgData(
+  const zmq::Bridge * const bridge_ptr, const void * buffer,
+  int bufferLength)
 {
   cloisim::msgs::ImageStamped pb_buf_;
-  if (!pb_buf_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
@@ -236,11 +238,11 @@ void RealSense::PublishImgData(const zmq::Bridge * const bridge_ptr, const std::
   pubs_[bridge_ptr].publish(*msg_img, camera_info_msg);
 }
 
-void RealSense::PublishImuData(const string & buffer)
+void RealSense::PublishImuData(const void * buffer, int bufferLength)
 {
   cloisim::msgs::IMU pb_buf_;
-  if (!pb_buf_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
