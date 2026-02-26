@@ -48,6 +48,7 @@ private:
 
   void PublishData(const void* buffer, int bufferLength);
   void UpdatePointCloudData(const double min_intensity = 0.0);
+  void UpdateRawPointCloudData(const double min_intensity = 0.0);
   void UpdateLaserData(const double min_intensity = 0.0);
 
 private:
@@ -70,6 +71,7 @@ private:
   bool pc2_fields_initialized_ = false;
   uint32_t cached_beam_count_ = 0;
   uint32_t cached_vertical_count_ = 0;
+  bool raw_point_cloud_ = false;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_LIDAR__LIDAR_HPP_

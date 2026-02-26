@@ -76,6 +76,10 @@ void Lidar::Initialize()
   if (output_type.compare("LaserScan") == 0) {
     pub_laser_ =
       this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
+  } else if (output_type.compare("PointCloud2Raw") == 0) {
+    raw_point_cloud_ = true;
+    pub_pc2_ =
+      this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
   } else if (output_type.compare("PointCloud2") == 0) {
     pub_pc2_ =
       this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
@@ -119,7 +123,11 @@ void Lidar::PublishData(const void* buffer, int bufferLength)
     UpdateLaserData();
     pub_laser_->publish(msg_laser_);
   } else if (pub_pc2_ != nullptr) {
-    UpdatePointCloudData();
+    if (raw_point_cloud_) {
+      UpdateRawPointCloudData();
+    } else {
+      UpdatePointCloudData();
+    }
     pub_pc2_->publish(msg_pc2_);
   }
 }
@@ -209,9 +217,11 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
         continue;
       }
 
-      // Get intensity, clipping at min_intensity
+      // Get intensity, clipping at min_intensity; default NaN to 0
       auto intensity = *intensity_iter;
-      if (intensity < min_intensity) {
+      if (!std::isfinite(intensity)) {
+        intensity = 0.0;
+      } else if (intensity < min_intensity) {
         intensity = min_intensity;
       }
 
@@ -231,6 +241,81 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
 
   // Trim to actual size (single resize at end instead of initial + final)
   if (points_added != total_points) {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.resize(points_added);
+  }
+}
+
+void Lidar::UpdateRawPointCloudData(const double min_intensity)
+{
+  // PointCloud2Raw: ranges[] contains pre-computed xyz triples from the simulator.
+  // Layout: [x0, y0, z0, x1, y1, z1, ...], size = count * 3
+  // intensities[] contains one value per point, size = count.
+  msg_pc2_.height = 1;
+  msg_pc2_.is_dense = true;
+  msg_pc2_.header.stamp = GetTime();
+
+  const auto point_count = static_cast<uint32_t>(pb_buf_.scan().count());
+  const auto ranges_size = pb_buf_.scan().ranges_size();
+  const auto intensities_size = pb_buf_.scan().intensities_size();
+
+  // Initialize PC2 fields once
+  if (!pc2_fields_initialized_) {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.setPointCloud2Fields(
+      4, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "z", 1, sensor_msgs::msg::PointField::FLOAT32, "intensity", 1,
+      sensor_msgs::msg::PointField::FLOAT32);
+    pc2_fields_initialized_ = true;
+  }
+
+  // Resize to max capacity
+  {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.resize(point_count);
+  }
+
+  sensor_msgs::PointCloud2Iterator<float> iter_x(msg_pc2_, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(msg_pc2_, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(msg_pc2_, "z");
+  sensor_msgs::PointCloud2Iterator<float> iter_intensity(msg_pc2_, "intensity");
+
+  auto range_iter = pb_buf_.scan().ranges().begin();
+  auto intensity_iter = pb_buf_.scan().intensities().begin();
+
+  size_t points_added = 0;
+
+  for (uint32_t i = 0; i < point_count; ++i, ++intensity_iter) {
+    const auto x = static_cast<float>(*(range_iter++));
+    const auto y = static_cast<float>(*(range_iter++));
+    const auto z = static_cast<float>(*(range_iter++));
+
+    // Skip NaN points (rays that missed)
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
+      continue;
+    }
+
+    auto intensity = static_cast<float>(*intensity_iter);
+    if (!std::isfinite(intensity)) {
+      intensity = 0.0f;
+    } else if (intensity < min_intensity) {
+      intensity = static_cast<float>(min_intensity);
+    }
+
+    *iter_x = x;
+    *iter_y = y;
+    *iter_z = z;
+    *iter_intensity = intensity;
+
+    ++points_added;
+    ++iter_x;
+    ++iter_y;
+    ++iter_z;
+    ++iter_intensity;
+  }
+
+  // Trim to actual size
+  if (points_added != point_count) {
     sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
     pcd_modifier.resize(points_added);
   }
