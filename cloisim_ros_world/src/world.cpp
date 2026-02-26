@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <string>
 
 using string = std::string;
 
@@ -57,6 +58,8 @@ void World::Initialize()
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
   pub_ = create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::ClockQoS());
+  pub_perf_ = create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
+    "/cloisim/performance", rclcpp::QoS(1).transient_local());
 
   auto data_bridge_clock_ptr = CreateBridge();
   if (data_bridge_clock_ptr != nullptr) {
@@ -77,6 +80,7 @@ void World::Deinitialize()
 {
   // cout << "World::Deinitialize()" << endl;
   pub_.reset();
+  pub_perf_.reset();
 }
 
 void World::PublishData(const void* buffer, int bufferLength)
@@ -94,6 +98,34 @@ void World::PublishData(const void* buffer, int bufferLength)
 
   msg_clock_.clock = GetTime();
   pub_->publish(msg_clock_);
+
+  // Publish render FPS and physics Hz if present
+  if (pb_buf_.has_render_fps() || pb_buf_.has_physics_hz()) {
+    diagnostic_msgs::msg::DiagnosticArray diag_msg;
+    diag_msg.header.stamp = GetTime();
+
+    diagnostic_msgs::msg::DiagnosticStatus status;
+    status.name = "CLOiSim Performance";
+    status.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+    status.message = "Simulator performance metrics";
+
+    if (pb_buf_.has_render_fps()) {
+      diagnostic_msgs::msg::KeyValue kv;
+      kv.key = "render_fps";
+      kv.value = std::to_string(pb_buf_.render_fps());
+      status.values.push_back(kv);
+    }
+
+    if (pb_buf_.has_physics_hz()) {
+      diagnostic_msgs::msg::KeyValue kv;
+      kv.key = "physics_hz";
+      kv.value = std::to_string(pb_buf_.physics_hz());
+      status.values.push_back(kv);
+    }
+
+    diag_msg.status.push_back(status);
+    pub_perf_->publish(diag_msg);
+  }
 }
 
 std::string World::ServiceRequest(const std::string & buffer)

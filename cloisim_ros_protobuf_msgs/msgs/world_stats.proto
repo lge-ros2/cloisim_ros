@@ -17,4 +17,6 @@ message WorldStatistics
   required uint64 iterations                        = 6;
   optional int32 model_count                        = 7;
   optional LogPlaybackStatistics log_playback_stats = 8;
+  optional int32 render_fps                         = 9;
+  optional int32 physics_hz                         = 10;
 }

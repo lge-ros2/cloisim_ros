@@ -23,6 +23,7 @@
 
 #include <cloisim_ros_base/base.hpp>
 #include <rosgraph_msgs/msg/clock.hpp>
+#include <diagnostic_msgs/msg/diagnostic_array.hpp>
 #include <std_srvs/srv/empty.hpp>
 
 namespace cloisim_ros
@@ -52,6 +53,7 @@ private:
   rosgraph_msgs::msg::Clock msg_clock_;
 
   rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr pub_;
+  rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr pub_perf_;
 
   mutable std::mutex rviz_client_mtx_;
   std::unordered_map<std::string, rclcpp::Client<std_srvs::srv::Empty>::SharedPtr> rviz_clients_;
