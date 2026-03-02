@@ -19,6 +19,32 @@
 #include <cloisim_ros_base/camera_helper.hpp>
 #include <sensor_msgs/fill_image.hpp>
 
+#include <cstdint>
+#include <cstring>
+
+// Raw binary image transport constants (same as camera_base.hpp)
+namespace
+{
+static constexpr uint32_t MAGIC_RAW_MULTI_IMAGE = 0x5241574Du;  // "RAWM"
+
+#pragma pack(push, 1)
+struct RawMultiImageHeader
+{
+  uint32_t magic;
+  int32_t  sec;
+  int32_t  nsec;
+  uint32_t image_count;
+};
+struct RawImageSubHeader
+{
+  uint32_t width;
+  uint32_t height;
+  uint32_t pixel_format;
+  uint32_t step;
+};
+#pragma pack(pop)
+}  // anonymous namespace
+
 using namespace std::literals::chrono_literals;
 using string = std::string;
 
@@ -96,10 +122,78 @@ void MultiCamera::Deinitialize()
   pubs_.clear();
 }
 
+void MultiCamera::PublishRawData(const void * buffer, const int bufferLength)
+{
+  const auto * sharedHdr = reinterpret_cast<const RawMultiImageHeader *>(buffer);
+  const uint32_t image_count = sharedHdr->image_count;
+
+  if (static_cast<int>(camera_info_manager_.size()) != static_cast<int>(image_count)) {
+    DBG_SIM_ERR(
+      "camera_info_manager is not ready for multi-camera %zu != %u",
+      camera_info_manager_.size(), image_count);
+    return;
+  }
+
+  cloisim::msgs::Time time_msg;
+  time_msg.set_sec(sharedHdr->sec);
+  time_msg.set_nsec(sharedHdr->nsec);
+  SetTime(time_msg);
+
+  const auto * ptr = static_cast<const uint8_t *>(buffer) + sizeof(RawMultiImageHeader);
+  const auto * end = static_cast<const uint8_t *>(buffer) + bufferLength;
+
+  for (uint32_t i = 0; i < image_count; i++) {
+    if (ptr + sizeof(RawImageSubHeader) > end) {
+      DBG_SIM_ERR("RAWM: sub-header overflow at image %u", i);
+      return;
+    }
+
+    const auto * subHdr = reinterpret_cast<const RawImageSubHeader *>(ptr);
+    ptr += sizeof(RawImageSubHeader);
+
+    const auto pixelDataLen = static_cast<size_t>(subHdr->height) * subHdr->step;
+    if (ptr + pixelDataLen > end) {
+      DBG_SIM_ERR("RAWM: pixel data overflow at image %u", i);
+      return;
+    }
+
+    const auto encoding_arg = GetImageEncondingType(subHdr->pixel_format);
+    auto const msg_img = &msg_imgs_[i];
+    msg_img->header.stamp = GetTime();
+    msg_img->encoding = encoding_arg;
+    msg_img->width = subHdr->width;
+    msg_img->height = subHdr->height;
+    msg_img->step = subHdr->step;
+    msg_img->is_bigendian = false;
+
+    if (msg_img->data.size() != pixelDataLen) {
+      msg_img->data.resize(pixelDataLen);
+    }
+    std::memcpy(msg_img->data.data(), ptr, pixelDataLen);
+    ptr += pixelDataLen;
+
+    auto camera_info_msg = camera_info_manager_[i]->getCameraInfo();
+    camera_info_msg.header.stamp = GetTime();
+    pubs_.at(i).publish(*msg_img, camera_info_msg);
+  }
+}
+
 void MultiCamera::PublishData(const void * buffer, int bufferLength)
 {
   if (pubs_.size() == 0) {return;}
 
+  // Try raw binary format first (RAWM magic)
+  if (bufferLength >= static_cast<int>(sizeof(RawMultiImageHeader))) {
+    uint32_t magic;
+    std::memcpy(&magic, buffer, sizeof(uint32_t));
+
+    if (magic == MAGIC_RAW_MULTI_IMAGE) {
+      PublishRawData(buffer, bufferLength);
+      return;
+    }
+  }
+
+  // Fallback: protobuf deserialization
   if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
     LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
