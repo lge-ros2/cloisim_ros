@@ -39,6 +39,7 @@ private:
 
 private:
   void PublishData(const void * buffer, int bufferLength);
+  void PublishDataRaw(const void * buffer, int bufferLength);
 
 private:
   cloisim::msgs::Segmentation pb_seg_;

@@ -129,12 +129,74 @@ void CameraBase::Deinitialize() {pub_.shutdown();}
 
 void CameraBase::PublishData(const void * buffer, int bufferLength)
 {
+  // Fast path: try raw binary format first (magic-number detection)
+  if (TryPublishRawImage(buffer, bufferLength)) {
+    return;
+  }
+
+  // Fallback: protobuf deserialization (backward-compatible with old simulators)
   if (!pb_img_.ParseFromArray(buffer, bufferLength)) {
     LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
   PublishData(pb_img_);
+}
+
+bool CameraBase::TryPublishRawImage(const void * buffer, int bufferLength)
+{
+  if (bufferLength < static_cast<int>(sizeof(RawImageHeader))) {
+    return false;
+  }
+
+  uint32_t magic;
+  std::memcpy(&magic, buffer, sizeof(uint32_t));
+
+  if (magic != MAGIC_RAW_IMAGE && magic != MAGIC_RAW_SEGMENTATION) {
+    return false;
+  }
+
+  const auto * hdr = reinterpret_cast<const RawImageHeader *>(buffer);
+  const auto pixelDataLen = static_cast<size_t>(hdr->height) * hdr->step;
+  const auto expectedLen = sizeof(RawImageHeader) + pixelDataLen;
+
+  if (bufferLength < static_cast<int>(expectedLen)) {
+    DBG_SIM_ERR("Raw image buffer too short: %d < %zu", bufferLength, expectedLen);
+    return false;
+  }
+
+  const auto * pixelData = static_cast<const uint8_t *>(buffer) + sizeof(RawImageHeader);
+  PublishRawImage(*hdr, pixelData, pixelDataLen);
+  return true;
+}
+
+void CameraBase::PublishRawImage(
+  const RawImageHeader & hdr, const void * pixelData, size_t pixelDataLen)
+{
+  // Set timestamp from raw header
+  cloisim::msgs::Time time_msg;
+  time_msg.set_sec(hdr.sec);
+  time_msg.set_nsec(hdr.nsec);
+  SetTime(time_msg);
+
+  msg_img_.header.stamp = GetTime();
+  msg_img_.encoding = GetImageEncondingType(hdr.pixel_format);
+  msg_img_.width = hdr.width;
+  msg_img_.height = hdr.height;
+  msg_img_.step = hdr.step;
+  msg_img_.is_bigendian = false;
+
+  // Direct memcpy from ZMQ buffer — no protobuf intermediate copy
+  if (msg_img_.data.size() != pixelDataLen) {
+    msg_img_.data.resize(pixelDataLen);
+  }
+  std::memcpy(msg_img_.data.data(), pixelData, pixelDataLen);
+
+  // Publish camera info
+  auto camera_info_msg = camera_info_manager_->getCameraInfo();
+  camera_info_msg.header.stamp = msg_img_.header.stamp;
+
+  pub_.publish(msg_img_, camera_info_msg);
 }
 
 void CameraBase::PublishData(const cloisim::msgs::ImageStamped & pb_msg)
