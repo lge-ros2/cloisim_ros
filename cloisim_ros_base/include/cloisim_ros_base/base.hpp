@@ -82,7 +82,7 @@ protected:
   void CloseBridges();
 
   void AddBridgeReceiveWorker(
-    zmq::Bridge * const bridge_ptr, std::function<void(const std::string &)> thread_func,
+    zmq::Bridge * const bridge_ptr, std::function<void(const void *, int)> thread_func,
     const bool is_non_block = false);
 
   void AddBridgeServiceWorker(
@@ -131,7 +131,7 @@ protected:
   rclcpp::Time GetTime() {return m_sim_time;}
 
 public:
-  void GenerateTF(const std::string & buffer);
+  void GenerateTF(const void * buffer, int bufferLength);
 
 private:
   void PublishStaticTF();

@@ -105,23 +105,19 @@ void Micom::Initialize()
     pub_odom_ = create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::SystemDefaultsQoS());
   }
 
-  {
-    msg_imu_.header.frame_id = "imu_link";
-
-    pub_imu_ = create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS());
-  }
-
   auto data_bridge_ptr = CreateBridge();
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::PUB, portRx, hashKeyPub);
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTx, hashKeySub);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Micom::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr,
+        bind(&Micom::PublishData, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   auto tf_bridge_ptr = CreateBridge();
   if (tf_bridge_ptr != nullptr) {
     tf_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portTf, hashKeyTf);
-    AddBridgeReceiveWorker(tf_bridge_ptr, bind(&Base::GenerateTF, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(tf_bridge_ptr,
+        bind(&Base::GenerateTF, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   auto callback_sub_cmdvel = [this,
@@ -261,10 +257,10 @@ string Micom::MakeMowingRevSpeedMessage(const std_msgs::msg::UInt16::SharedPtr m
   return message;
 }
 
-void Micom::PublishData(const string & buffer)
+void Micom::PublishData(const void * buffer, int bufferLength)
 {
-  if (!pb_micom_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_micom_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
@@ -274,7 +270,6 @@ void Micom::PublishData(const string & buffer)
   //             pb_micom_.time().sec(), pb_micom_.time().nsec(), bufferLength);
 
   UpdateOdom();
-  UpdateImu();
   UpdateBattery();
   UpdateBumper();
   UpdateIR();
@@ -286,7 +281,6 @@ void Micom::PublishData(const string & buffer)
     pub_odom_->publish(msg_odom_);
   }
 
-  pub_imu_->publish(msg_imu_);
   pub_battery_->publish(msg_battery_);
   pub_bumper_->publish(msg_bumper_);
   pub_bumper_states_->publish(msg_bumper_contacts_array_);
@@ -331,26 +325,6 @@ void Micom::UpdateOdom()
   odom_tf_.header.stamp = msg_odom_.header.stamp;
   geometry_msgs::msg::Convert(msg_odom_.pose.pose.position, odom_tf_.transform.translation);
   odom_tf_.transform.rotation = msg_odom_.pose.pose.orientation;
-}
-
-void Micom::UpdateImu()
-{
-  if (!pb_micom_.has_imu()) {
-    return;
-  }
-
-  msg_imu_.header.stamp = msg::Convert(pb_micom_.imu().stamp());
-
-  msg::Convert(pb_micom_.imu().orientation(), msg_imu_.orientation);
-  msg::Convert(pb_micom_.imu().angular_velocity(), msg_imu_.angular_velocity);
-  msg::Convert(pb_micom_.imu().linear_acceleration(), msg_imu_.linear_acceleration);
-
-  std::fill(begin(msg_imu_.orientation_covariance), end(msg_imu_.orientation_covariance), 0.0);
-  std::fill(
-    begin(msg_imu_.angular_velocity_covariance), end(msg_imu_.angular_velocity_covariance), 0.0);
-  std::fill(
-    begin(msg_imu_.linear_acceleration_covariance), end(msg_imu_.linear_acceleration_covariance),
-    0.0);
 }
 
 void Micom::UpdateBattery()

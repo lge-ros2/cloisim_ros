@@ -16,7 +16,6 @@ package cloisim.msgs;
 /// \brief Message for Micom Board
 
 import "time.proto";
-import "imu.proto";
 import "battery.proto";
 import "pose.proto";
 import "vector3d.proto";
@@ -65,11 +64,10 @@ message Micom
 
   required Time time        = 1;
   optional Odometry odom    = 2;
-  optional IMU imu          = 3;
-  repeated USS uss          = 4;
-  repeated IR ir            = 5;
-  repeated Magnet magnet    = 6;
-  repeated Bumper bumper    = 7;
-  optional Battery battery  = 8;
-  optional Pose pose        = 9;
+  repeated USS uss          = 3;
+  repeated IR ir            = 4;
+  repeated Magnet magnet    = 5;
+  repeated Bumper bumper    = 6;
+  optional Battery battery  = 7;
+  optional Pose pose        = 8;
 }

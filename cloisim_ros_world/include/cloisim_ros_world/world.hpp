@@ -39,7 +39,7 @@ private:
   void Deinitialize() override;
 
 private:
-  void PublishData(const std::string & buffer);
+  void PublishData(const void * buffer, int bufferLength);
   std::string ServiceRequest(const std::string & buffer);
 
   std::vector<std::string> FindResetTimeServices() const;
