@@ -76,6 +76,10 @@ void Lidar::Initialize()
   if (output_type.compare("LaserScan") == 0) {
     pub_laser_ =
       this->create_publisher<sensor_msgs::msg::LaserScan>(topic_name_, rclcpp::SensorDataQoS());
+  } else if (output_type.compare("PointCloud2Raw") == 0) {
+    raw_point_cloud_ = true;
+    pub_pc2_ =
+      this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
   } else if (output_type.compare("PointCloud2") == 0) {
     pub_pc2_ =
       this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name_, rclcpp::SensorDataQoS());
@@ -85,7 +89,7 @@ void Lidar::Initialize()
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Lidar::PublishData, this, _1));
+    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Lidar::PublishData, this, _1, _2));
   }
 }
 
@@ -106,10 +110,10 @@ string Lidar::GetOutputType(zmq::Bridge * const bridge_ptr)
   return "";
 }
 
-void Lidar::PublishData(const string & buffer)
+void Lidar::PublishData(const void * buffer, int bufferLength)
 {
-  if (!pb_buf_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
@@ -119,7 +123,11 @@ void Lidar::PublishData(const string & buffer)
     UpdateLaserData();
     pub_laser_->publish(msg_laser_);
   } else if (pub_pc2_ != nullptr) {
-    UpdatePointCloudData();
+    if (raw_point_cloud_) {
+      UpdateRawPointCloudData();
+    } else {
+      UpdatePointCloudData();
+    }
     pub_pc2_->publish(msg_pc2_);
   }
 }
@@ -129,31 +137,60 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   // Pointcloud will be dense, unordered
   msg_pc2_.height = 1;
   msg_pc2_.is_dense = true;
-
-  // Fill header
   msg_pc2_.header.stamp = GetTime();
 
   // Cache values that are repeatedly used
-  const auto beam_count = pb_buf_.scan().count();
-  const auto vertical_beam_count = pb_buf_.scan().vertical_count();
+  const auto beam_count = static_cast<uint32_t>(pb_buf_.scan().count());
+  const auto vertical_beam_count = static_cast<uint32_t>(pb_buf_.scan().vertical_count());
   const auto angle_step = pb_buf_.scan().angle_step();
   const auto vertical_angle_step = pb_buf_.scan().vertical_angle_step();
 
   // Gazebo sends an infinite vertical step if the number of samples is 1
-  // Surprisingly, not setting the <vertical> tag results in nan instead of inf, which is ok
   if (std::isinf(vertical_angle_step)) {
     DBG_SIM_WRN("Infinite angle step results in wrong PointCloud2");
   }
 
-  // Create fields in pointcloud
-  sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+  // Initialize PC2 fields once (avoids re-creating every frame)
+  if (!pc2_fields_initialized_) {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.setPointCloud2Fields(
+      4,
+      "x", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "y", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "z", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "intensity", 1, sensor_msgs::msg::PointField::FLOAT32);
+    pc2_fields_initialized_ = true;
+  }
 
-  pcd_modifier.setPointCloud2Fields(
-    4, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1, sensor_msgs::msg::PointField::FLOAT32,
-    "z", 1, sensor_msgs::msg::PointField::FLOAT32, "intensity", 1,
-    sensor_msgs::msg::PointField::FLOAT32);
+  // Pre-compute trig tables when beam geometry changes
+  if (beam_count != cached_beam_count_ || vertical_beam_count != cached_vertical_count_) {
+    cached_beam_count_ = beam_count;
+    cached_vertical_count_ = vertical_beam_count;
 
-  pcd_modifier.resize(vertical_beam_count * beam_count);
+    cos_azimuth_.resize(beam_count);
+    sin_azimuth_.resize(beam_count);
+    auto azimuth = pb_buf_.scan().angle_min();
+    for (uint32_t i = 0; i < beam_count; ++i, azimuth += angle_step) {
+      cos_azimuth_[i] = static_cast<float>(cos(azimuth));
+      sin_azimuth_[i] = static_cast<float>(sin(azimuth));
+    }
+
+    cos_inclination_.resize(vertical_beam_count);
+    sin_inclination_.resize(vertical_beam_count);
+    double inclination = pb_buf_.scan().vertical_angle_min();
+    for (uint32_t j = 0; j < vertical_beam_count; ++j, inclination += vertical_angle_step) {
+      cos_inclination_[j] = static_cast<float>(cos(inclination));
+      sin_inclination_[j] = static_cast<float>(sin(inclination));
+    }
+  }
+
+  // Resize once to max capacity
+  const auto total_points = vertical_beam_count * beam_count;
+  {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.resize(total_points);
+  }
+
   sensor_msgs::PointCloud2Iterator<float> iter_x(msg_pc2_, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y(msg_pc2_, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z(msg_pc2_, "z");
@@ -166,45 +203,34 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
   // Number of points actually added
   size_t points_added = 0;
 
-  // Angles of ray currently processing, azimuth is horizontal, inclination is vertical
-  double azimuth, inclination;
+  // Fill pointcloud using precomputed trig tables
+  for (uint32_t j = 0; j < vertical_beam_count; ++j) {
+    const auto c_incl = cos_inclination_[j];
+    const auto s_incl = sin_inclination_[j];
 
-  // Index in vertical and horizontal loops
-  size_t i, j;
-
-  // Fill pointcloud with laser scan data, converting spherical to Cartesian
-  for (j = 0, inclination = pb_buf_.scan().vertical_angle_min(); j < vertical_beam_count;
-    ++j, inclination += vertical_angle_step)
-  {
-    auto c_inclination = cos(inclination);
-    auto s_inclination = sin(inclination);
-
-    for (i = 0, azimuth = pb_buf_.scan().angle_min(); i < beam_count;
-      ++i, azimuth += angle_step, ++range_iter, ++intensity_iter)
+    for (uint32_t i = 0; i < beam_count;
+      ++i, ++range_iter, ++intensity_iter)
     {
-      auto c_azimuth = cos(azimuth);
-      auto s_azimuth = sin(azimuth);
-
       auto r = *range_iter;
       // Skip NaN / inf points
       if (!std::isfinite(r)) {
         continue;
       }
 
-      // Get intensity, clipping at min_intensity
+      // Get intensity, clipping at min_intensity; default NaN to 0
       auto intensity = *intensity_iter;
-      if (intensity < min_intensity) {
+      if (!std::isfinite(intensity)) {
+        intensity = 0.0;
+      } else if (intensity < min_intensity) {
         intensity = min_intensity;
       }
 
-      // Convert spherical coordinates to Cartesian for pointcloud
-      // See https://en.wikipedia.org/wiki/Spherical_coordinate_system
-      *iter_x = r * c_inclination * c_azimuth;
-      *iter_y = r * c_inclination * s_azimuth;
-      *iter_z = r * s_inclination;
+      // Convert spherical coordinates to Cartesian using precomputed trig
+      *iter_x = r * c_incl * cos_azimuth_[i];
+      *iter_y = r * c_incl * sin_azimuth_[i];
+      *iter_z = r * s_incl;
       *iter_intensity = intensity;
 
-      // Increment ouput iterators
       ++points_added;
       ++iter_x;
       ++iter_y;
@@ -213,7 +239,88 @@ void Lidar::UpdatePointCloudData(const double min_intensity)
     }
   }
 
-  pcd_modifier.resize(points_added);
+  // Trim to actual size (single resize at end instead of initial + final)
+  if (points_added != total_points) {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.resize(points_added);
+  }
+}
+
+void Lidar::UpdateRawPointCloudData(const double min_intensity)
+{
+  // PointCloud2Raw: ranges[] contains pre-computed xyz triples from the simulator.
+  // Layout: [x0, y0, z0, x1, y1, z1, ...], size = count * 3
+  // intensities[] contains one value per point, size = count.
+  msg_pc2_.height = 1;
+  msg_pc2_.is_dense = true;
+  msg_pc2_.header.stamp = GetTime();
+
+  const auto point_count = static_cast<uint32_t>(pb_buf_.scan().count());
+  // const auto ranges_size = pb_buf_.scan().ranges_size();
+  // const auto intensities_size = pb_buf_.scan().intensities_size();
+
+  // Initialize PC2 fields once
+  if (!pc2_fields_initialized_) {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.setPointCloud2Fields(
+      4,
+      "x", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "y", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "z", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "intensity", 1, sensor_msgs::msg::PointField::FLOAT32);
+    pc2_fields_initialized_ = true;
+  }
+
+  // Resize to max capacity
+  {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.resize(point_count);
+  }
+
+  sensor_msgs::PointCloud2Iterator<float> iter_x(msg_pc2_, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(msg_pc2_, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(msg_pc2_, "z");
+  sensor_msgs::PointCloud2Iterator<float> iter_intensity(msg_pc2_, "intensity");
+
+  auto range_iter = pb_buf_.scan().ranges().begin();
+  auto intensity_iter = pb_buf_.scan().intensities().begin();
+
+  size_t points_added = 0;
+
+  for (uint32_t i = 0; i < point_count; ++i, ++intensity_iter) {
+    const auto x = static_cast<float>(*(range_iter++));
+    const auto y = static_cast<float>(*(range_iter++));
+    const auto z = static_cast<float>(*(range_iter++));
+
+    // Skip NaN points (rays that missed)
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
+      continue;
+    }
+
+    auto intensity = static_cast<float>(*intensity_iter);
+    if (!std::isfinite(intensity)) {
+      intensity = 0.0f;
+    } else if (intensity < min_intensity) {
+      intensity = static_cast<float>(min_intensity);
+    }
+
+    *iter_x = x;
+    *iter_y = y;
+    *iter_z = z;
+    *iter_intensity = intensity;
+
+    ++points_added;
+    ++iter_x;
+    ++iter_y;
+    ++iter_z;
+    ++iter_intensity;
+  }
+
+  // Trim to actual size
+  if (points_added != point_count) {
+    sensor_msgs::PointCloud2Modifier pcd_modifier(msg_pc2_);
+    pcd_modifier.resize(points_added);
+  }
 }
 
 void Lidar::UpdateLaserData(const double min_intensity)

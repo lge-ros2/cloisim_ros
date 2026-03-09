@@ -37,7 +37,7 @@ private:
   void Initialize() override;
   void Deinitialize() override {}
 
-  void PublishData(const std::string & buffer);
+  void PublishData(const void * buffer, int bufferLength);
   void UpdatePerceptionData();
 
 private:

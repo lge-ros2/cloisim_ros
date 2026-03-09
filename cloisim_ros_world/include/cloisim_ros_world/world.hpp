@@ -38,7 +38,7 @@ private:
   void Deinitialize() override;
 
 private:
-  void PublishData(const std::string & buffer);
+  void PublishData(const void * buffer, int bufferLength);
 
 private:
   cloisim::msgs::WorldStatistics pb_buf_;

@@ -43,7 +43,8 @@ private:
   void Deinitialize() override;
 
 private:
-  void PublishData(const std::string & buffer);
+  void PublishRawData(const void * buffer, const int bufferLength);
+  void PublishData(const void * buffer, int bufferLength);
 
 private:
   // buffer from simulation
