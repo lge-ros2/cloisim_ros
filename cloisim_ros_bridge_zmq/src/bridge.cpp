@@ -136,6 +136,11 @@ bool Bridge::SetupSubscriber()
     return false;
   }
 
+  if (zmq_setsockopt(pSub_, ZMQ_RCVHWM, &rcv_hwm, sizeof(rcv_hwm))) {
+    lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
+    return false;
+  }
+
   if (zmq_setsockopt(pSub_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
     lastErrMsg_ = "SetSock Err:" + GetLastErrorMessage();
     return false;

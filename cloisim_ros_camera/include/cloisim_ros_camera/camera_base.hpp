@@ -17,6 +17,8 @@
 #include <cloisim_msgs/image_stamped.pb.h>
 #include <cloisim_msgs/pose.pb.h>
 
+#include <cstdint>
+#include <cstring>
 #include <memory>
 #include <string>
 
@@ -27,6 +29,38 @@
 
 namespace cloisim_ros
 {
+
+// Magic numbers for raw binary image transport (little-endian on wire)
+static constexpr uint32_t MAGIC_RAW_IMAGE = 0x52415749u;         // "RAWI"
+static constexpr uint32_t MAGIC_RAW_SEGMENTATION = 0x52415753u;  // "RAWS"
+
+// 28-byte fixed header for RAWI / RAWS
+#pragma pack(push, 1)
+struct RawImageHeader
+{
+  uint32_t magic;
+  int32_t  sec;
+  int32_t  nsec;
+  uint32_t width;
+  uint32_t height;
+  uint32_t pixel_format;
+  uint32_t step;
+};
+#pragma pack(pop)
+static_assert(sizeof(RawImageHeader) == 28, "RawImageHeader must be 28 bytes");
+
+// 16-byte per-image sub-header inside RAWM
+#pragma pack(push, 1)
+struct RawImageSubHeader
+{
+  uint32_t width;
+  uint32_t height;
+  uint32_t pixel_format;
+  uint32_t step;
+};
+#pragma pack(pop)
+static_assert(sizeof(RawImageSubHeader) == 16, "RawImageSubHeader must be 16 bytes");
+
 class CameraBase : public Base
 {
 public:
@@ -46,8 +80,14 @@ protected:
   virtual void InitializeCameraData();
 
 protected:
-  void PublishData(const std::string & buffer);
+  void PublishData(const void * buffer, int bufferLength);
   void PublishData(const cloisim::msgs::ImageStamped & pb_msg);
+
+  /// Publish from a raw RAWI buffer — no protobuf parse. Returns false if not a raw buffer.
+  bool TryPublishRawImage(const void * buffer, int bufferLength);
+
+  /// Fill msg_img_ and publish from a RawImageHeader + raw pixel pointer.
+  void PublishRawImage(const RawImageHeader & hdr, const void * pixelData, size_t pixelDataLen);
 
 protected:
   std::string frame_id_;

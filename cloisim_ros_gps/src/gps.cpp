@@ -95,14 +95,15 @@ void Gps::Initialize()
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
-    AddBridgeReceiveWorker(data_bridge_ptr, bind(&Gps::PublishData, this, std::placeholders::_1));
+    AddBridgeReceiveWorker(data_bridge_ptr,
+        bind(&Gps::PublishData, this, std::placeholders::_1, std::placeholders::_2));
   }
 }
 
-void Gps::PublishData(const string & buffer)
+void Gps::PublishData(const void * buffer, int bufferLength)
 {
-  if (!pb_buf_gps_.ParseFromString(buffer)) {
-    DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
+  if (!pb_buf_gps_.ParseFromArray(buffer, bufferLength)) {
+    LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
