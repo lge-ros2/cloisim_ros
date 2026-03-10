@@ -14,19 +14,29 @@
 
 #include "cloisim_ros_camera/depth_camera.hpp"
 
-using string = std::string;
-
 namespace cloisim_ros
 {
 
 DepthCamera::DepthCamera(
-  const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
+  const rclcpp::NodeOptions & options_, const std::string node_name, const std::string namespace_)
 : CameraBase(options_, node_name, namespace_)
 {
+  // Pre-declare enable_pub_plugins to exclude the "compressed" transport,
+  // which does not support depth encodings (16UC1, 32FC1) and spams errors.
+  const auto param_name =
+    std::string(get_name()) + ".depth.image_raw.enable_pub_plugins";
+  this->declare_parameter(
+    param_name,
+    std::vector<std::string>{
+      "image_transport/raw",
+      "image_transport/compressedDepth",
+      "image_transport/theora",
+      "image_transport/zstd"});
+
   Start();
 }
 
-DepthCamera::DepthCamera(const string node_name, const string namespace_)
+DepthCamera::DepthCamera(const std::string node_name, const std::string namespace_)
 : DepthCamera(rclcpp::NodeOptions(), node_name, namespace_)
 {
 }

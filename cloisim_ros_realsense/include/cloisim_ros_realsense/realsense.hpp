@@ -47,6 +47,8 @@ private:
     const std::string module_name, zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr);
   void InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const data_ptr);
   void PublishImgData(const zmq::Bridge * const bridge_ptr, const void * buffer, int bufferLength);
+  bool PublishRawImgData(
+    const zmq::Bridge * const bridge_ptr, const void * buffer, int bufferLength);
   void PublishImuData(const void * buffer, int bufferLength);
   void GetActivatedModules(zmq::Bridge * const bridge_ptr);
 
