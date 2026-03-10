@@ -14,6 +14,7 @@
  */
 
 #include "cloisim_ros_bridge_zmq/bridge.hpp"
+#include <chrono>
 #include <cstring>
 #include <thread>
 
@@ -217,7 +218,24 @@ bool Bridge::SetupClient()
 
   if (!SetupCommon(pReq_)) {return false;}
 
-  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &recv_timeout_ms, sizeof(recv_timeout_ms))) {
+  // Allow sending a new request even if the previous reply was not received.
+  // This is needed to handle the case where the connection is not yet established
+  // and the first request-reply exchange fails due to ZMQ async connect.
+  constexpr int enabled = 1;
+  if (zmq_setsockopt(pReq_, ZMQ_REQ_RELAXED, &enabled, sizeof(enabled))) {
+    lastErrMsg_ = "SetSock err=" + GetLastErrorMessage();
+    return false;
+  }
+
+  if (zmq_setsockopt(pReq_, ZMQ_REQ_CORRELATE, &enabled, sizeof(enabled))) {
+    lastErrMsg_ = "SetSock err=" + GetLastErrorMessage();
+    return false;
+  }
+
+  // Use a longer timeout for REQ socket since initial request-reply
+  // may need to wait for the simulator's service thread to start.
+  constexpr int req_recv_timeout_ms = 500;
+  if (zmq_setsockopt(pReq_, ZMQ_RCVTIMEO, &req_recv_timeout_ms, sizeof(req_recv_timeout_ms))) {
     lastErrMsg_ = "SetSock err=" + GetLastErrorMessage();
     return false;
   }
@@ -419,16 +437,36 @@ std::string Bridge::RequestReply(const std::string & request_data)
   string reply_data;
 
   if (request_data.size() > 0) {
-    Send(request_data.data(), request_data.size());
+    constexpr int max_retries = 5;
+    constexpr int retry_delay_ms = 300;
 
-    void * buffer_ptr = nullptr;
-    int bufferLength = 0;
-    const auto succeeded = Receive(&buffer_ptr, bufferLength);
+    for (int attempt = 0; attempt < max_retries; ++attempt) {
+      if (!Send(request_data.data(), request_data.size())) {
+        LOG_W(this, "RequestReply attempt " << (attempt + 1)
+              << "/" << max_retries << " Send failed, retrying in "
+              << retry_delay_ms << "ms...");
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_delay_ms));
+        continue;
+      }
 
-    if (succeeded) {
-      reply_data.assign(static_cast<char *>(buffer_ptr), bufferLength);
-    } else {
-      LOG_E(this, "Failed to get reply buffer, length=" << bufferLength);
+      void * buffer_ptr = nullptr;
+      int bufferLength = 0;
+      const auto succeeded = Receive(&buffer_ptr, bufferLength);
+
+      if (succeeded) {
+        reply_data.assign(static_cast<char *>(buffer_ptr), bufferLength);
+        break;
+      }
+
+      if (attempt < max_retries - 1) {
+        LOG_W(this, "RequestReply attempt " << (attempt + 1)
+              << "/" << max_retries << " Receive failed, retrying in "
+              << retry_delay_ms << "ms...");
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_delay_ms));
+      } else {
+        LOG_E(this, "Failed to get reply buffer after "
+              << max_retries << " attempts, length=" << bufferLength);
+      }
     }
   }
 
