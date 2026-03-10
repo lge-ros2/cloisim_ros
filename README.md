@@ -58,12 +58,19 @@ export CLOISIM_CONNECTION_MAX_RETRY=10
 
 ### Run cloisim_ros (robot + world)
 
-#### DDS
+#### DDS with cyclone dds
 
-recommended to use cylcone DDS
+Recommended to use cyclone DDS and config file
+Place the config XML file in your desired location and set the environment variable as shown below:
 
 ```shell
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export CYCLONEDDS_URI=file:///$PWD/cloisim_ros/cyclonedds_config.xml
+
+sudo sysctl -w net.core.rmem_max=16777216 \
+            -w net.core.rmem_default=16777216 \
+            -w net.core.wmem_max=16777216 \
+            -w net.core.wmem_default=16777216
 ```
 
 #### Shared Memory DDS with FastRTPS

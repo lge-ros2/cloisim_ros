@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CycloneDDS xmlns="https://cdds.io/config">
+	<Domain>
+    <Internal>
+      <SocketReceiveBufferSize min="4MB" max="16MB" />
+    </Internal>
+  </Domain>
+</CycloneDDS>
