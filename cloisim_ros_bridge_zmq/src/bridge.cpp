@@ -443,8 +443,8 @@ std::string Bridge::RequestReply(const std::string & request_data)
     for (int attempt = 0; attempt < max_retries; ++attempt) {
       if (!Send(request_data.data(), request_data.size())) {
         LOG_W(this, "RequestReply attempt " << (attempt + 1)
-              << "/" << max_retries << " Send failed, retrying in "
-              << retry_delay_ms << "ms...");
+                                            << "/" << max_retries << " Send failed, retrying in "
+                                            << retry_delay_ms << "ms...");
         std::this_thread::sleep_for(std::chrono::milliseconds(retry_delay_ms));
         continue;
       }
@@ -460,8 +460,8 @@ std::string Bridge::RequestReply(const std::string & request_data)
 
       if (attempt < max_retries - 1) {
         LOG_W(this, "RequestReply attempt " << (attempt + 1)
-              << "/" << max_retries << " Receive failed, retrying in "
-              << retry_delay_ms << "ms...");
+                                            << "/" << max_retries << " Receive failed, retrying in "
+                                            << retry_delay_ms << "ms...");
         std::this_thread::sleep_for(std::chrono::milliseconds(retry_delay_ms));
       } else {
         LOG_E(this, "Failed to get reply buffer after "
