@@ -22,29 +22,6 @@
 #include <cstdint>
 #include <cstring>
 
-// Raw binary image transport constants (same as camera_base.hpp)
-namespace
-{
-static constexpr uint32_t MAGIC_RAW_MULTI_IMAGE = 0x5241574Du;  // "RAWM"
-
-#pragma pack(push, 1)
-struct RawMultiImageHeader
-{
-  uint32_t magic;
-  int32_t  sec;
-  int32_t  nsec;
-  uint32_t image_count;
-};
-struct RawImageSubHeader
-{
-  uint32_t width;
-  uint32_t height;
-  uint32_t pixel_format;
-  uint32_t step;
-};
-#pragma pack(pop)
-}  // anonymous namespace
-
 using namespace std::literals::chrono_literals;
 using string = std::string;
 

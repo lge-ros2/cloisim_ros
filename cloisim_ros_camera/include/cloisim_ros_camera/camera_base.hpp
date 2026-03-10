@@ -24,42 +24,12 @@
 
 #include <camera_info_manager/camera_info_manager.hpp>
 #include <cloisim_ros_base/base.hpp>
+#include <cloisim_ros_base/camera_helper.hpp>
 #include <image_transport/image_transport.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 
 namespace cloisim_ros
 {
-
-// Magic numbers for raw binary image transport (little-endian on wire)
-static constexpr uint32_t MAGIC_RAW_IMAGE = 0x52415749u;         // "RAWI"
-static constexpr uint32_t MAGIC_RAW_SEGMENTATION = 0x52415753u;  // "RAWS"
-
-// 28-byte fixed header for RAWI / RAWS
-#pragma pack(push, 1)
-struct RawImageHeader
-{
-  uint32_t magic;
-  int32_t  sec;
-  int32_t  nsec;
-  uint32_t width;
-  uint32_t height;
-  uint32_t pixel_format;
-  uint32_t step;
-};
-#pragma pack(pop)
-static_assert(sizeof(RawImageHeader) == 28, "RawImageHeader must be 28 bytes");
-
-// 16-byte per-image sub-header inside RAWM
-#pragma pack(push, 1)
-struct RawImageSubHeader
-{
-  uint32_t width;
-  uint32_t height;
-  uint32_t pixel_format;
-  uint32_t step;
-};
-#pragma pack(pop)
-static_assert(sizeof(RawImageSubHeader) == 16, "RawImageSubHeader must be 16 bytes");
 
 class CameraBase : public Base
 {
