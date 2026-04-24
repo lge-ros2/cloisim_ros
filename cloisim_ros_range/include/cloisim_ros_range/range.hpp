@@ -16,7 +16,7 @@
 #ifndef CLOISIM_ROS_RANGE__RANGE_HPP_
 #define CLOISIM_ROS_RANGE__RANGE_HPP_
 
-#include <cloisim_msgs/sonar_stamped.pb.h>
+#include <cloisim_msgs/sonar.pb.h>
 
 #include <string>
 
@@ -48,7 +48,7 @@ private:
   uint8_t radiation_type_;
 
   // buffer from simulation
-  cloisim::msgs::SonarStamped pb_buf_;
+  cloisim::msgs::Sonar pb_buf_;
 
   sensor_msgs::msg::Range msg_range_;
   geometry_msgs::msg::PoseStamped msg_pose_;

@@ -14,7 +14,7 @@
 #define CLOISIM_ROS_CAMERA__CAMERA_BASE_HPP_
 
 #include <cloisim_msgs/camerasensor.pb.h>
-#include <cloisim_msgs/image_stamped.pb.h>
+#include <cloisim_msgs/image.pb.h>
 #include <cloisim_msgs/pose.pb.h>
 
 #include <cstdint>
@@ -51,7 +51,7 @@ protected:
 
 protected:
   void PublishData(const void * buffer, int bufferLength);
-  void PublishData(const cloisim::msgs::ImageStamped & pb_msg);
+  void PublishData(const cloisim::msgs::Image & pb_msg);
 
   /// Publish from a raw RAWI buffer — no protobuf parse. Returns false if not a raw buffer.
   bool TryPublishRawImage(const void * buffer, int bufferLength);
@@ -65,7 +65,7 @@ protected:
   std::string topic_base_name_;
 
   // image buffer from simulator
-  cloisim::msgs::ImageStamped pb_img_;
+  cloisim::msgs::Image pb_img_;
 
   // message for ROS2 communictaion
   sensor_msgs::msg::Image msg_img_;

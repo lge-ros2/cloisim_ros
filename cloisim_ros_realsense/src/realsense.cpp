@@ -13,12 +13,13 @@
  */
 
 #include <cloisim_msgs/camerasensor.pb.h>
-#include <cloisim_msgs/image_stamped.pb.h>
+#include <cloisim_msgs/image.pb.h>
 #include <cloisim_msgs/imu.pb.h>
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_realsense/realsense.hpp"
 #include <cloisim_ros_base/camera_helper.hpp>
+#include <cloisim_ros_base/param_helper.hpp>
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
@@ -199,20 +200,26 @@ void RealSense::GetActivatedModules(zmq::Bridge * const bridge_ptr)
   if (reply_size <= 0) {
     DBG_SIM_ERR("Failed to get activated module info, length(%ld)", reply_size);
   } else {
-    if (reply.IsInitialized() && reply.name() == "activated_modules") {
+    if (reply.IsInitialized() && param::HasKey(reply, "activated_modules")) {
       for (auto i = 0; i < reply.children_size(); i++) {
-        const auto param = reply.children(i);
-        if (param.name() == "module" && param.children_size() == 2) {
-          const auto type = param.children(0);
-          const auto name = param.children(1);
+        const auto & child = reply.children(i);
+        const auto child_name = param::GetName(child);
+        if (child_name == "module" && child.children_size() == 2) {
+          const auto & type = child.children(0);
+          const auto & name = child.children(1);
+          const auto type_name = param::GetName(type);
+          const auto & type_value = param::GetValue(type);
+          const auto name_name = param::GetName(name);
+          const auto & name_value = param::GetValue(name);
           if (
-            type.has_value() && type.value().type() == cloisim::msgs::Any_ValueType_STRING &&
-            !type.value().string_value().empty() && name.has_value() &&
-            name.value().type() == cloisim::msgs::Any_ValueType_STRING &&
-            !name.value().string_value().empty())
+            param::HasValue(type) &&
+            type_value.type() == cloisim::msgs::Any_ValueType_STRING &&
+            !type_value.string_value().empty() && param::HasValue(name) &&
+            name_value.type() == cloisim::msgs::Any_ValueType_STRING &&
+            !name_value.string_value().empty())
           {
             const auto tuple_module =
-              std::make_tuple(type.value().string_value(), name.value().string_value());
+              std::make_tuple(type_value.string_value(), name_value.string_value());
             activated_modules_.push_back(tuple_module);
             moduleListStr.append(
               std::get<1>(tuple_module) + "(" + std::get<0>(tuple_module) + "), ");
@@ -286,26 +293,26 @@ void RealSense::PublishImgData(
   }
 
   // Fallback: protobuf deserialization (backward-compatible)
-  cloisim::msgs::ImageStamped pb_buf_;
+  cloisim::msgs::Image pb_buf_;
   if (!pb_buf_.ParseFromArray(buffer, bufferLength)) {
     LOG_E(this, "##Parsing error, size=" << bufferLength);
     return;
   }
 
-  SetTime(pb_buf_.time());
+  SetTime(pb_buf_.header().stamp());
 
   auto const msg_img = &msg_imgs_[bridge_ptr];
   msg_img->header.stamp = GetTime();
 
-  const auto encoding_arg = GetImageEncondingType(pb_buf_.image().pixel_format());
-  const uint32_t cols_arg = pb_buf_.image().width();
-  const uint32_t rows_arg = pb_buf_.image().height();
-  const uint32_t step_arg = pb_buf_.image().step();
+  const auto encoding_arg = GetImageEncondingType(pb_buf_.pixel_format_type());
+  const uint32_t cols_arg = pb_buf_.width();
+  const uint32_t rows_arg = pb_buf_.height();
+  const uint32_t step_arg = pb_buf_.step();
 
   // Copy from src to image_msg
   sensor_msgs::fillImage(
     *msg_img, encoding_arg, rows_arg, cols_arg, step_arg,
-    reinterpret_cast<const void *>(pb_buf_.image().data().data()));
+    reinterpret_cast<const void *>(pb_buf_.data().data()));
 
   // Publish camera info
   auto camera_info_msg = camera_info_managers_[bridge_ptr]->getCameraInfo();
@@ -322,7 +329,7 @@ void RealSense::PublishImuData(const void * buffer, int bufferLength)
     return;
   }
 
-  SetTime(pb_buf_.stamp());
+  SetTime(pb_buf_.header().stamp());
 
   // Fill message with latest sensor data
   msg_imu_.header.stamp = GetTime();

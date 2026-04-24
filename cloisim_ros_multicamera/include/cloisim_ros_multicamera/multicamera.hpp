@@ -15,7 +15,7 @@
 #define CLOISIM_ROS_MULTICAMERA__MULTICAMERA_HPP_
 
 #include <cloisim_msgs/camerasensor.pb.h>
-#include <cloisim_msgs/images_stamped.pb.h>
+#include <cloisim_msgs/images.pb.h>
 
 #include <map>
 #include <memory>
@@ -48,7 +48,7 @@ private:
 
 private:
   // buffer from simulation
-  cloisim::msgs::ImagesStamped pb_buf_;
+  cloisim::msgs::Images pb_buf_;
 
   // message for ROS2 communictaion
   std::map<int, sensor_msgs::msg::Image> msg_imgs_;

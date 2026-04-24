@@ -23,6 +23,7 @@
 #include <string>
 
 #include <camera_info_manager/camera_info_manager.hpp>
+#include <cloisim_ros_base/param_helper.hpp>
 #include <cloisim_ros_bridge_zmq/bridge.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
@@ -193,11 +194,10 @@ static cloisim::msgs::CameraSensor GetCameraSensorMessage(
   cloisim_ros::zmq::Bridge * const bridge_ptr, const std::string camera_name = "")
 {
   cloisim::msgs::Param request_msg;
-  request_msg.set_name("request_camera_info");
-
-  auto pVal = request_msg.mutable_value();
-  pVal->set_type(cloisim::msgs::Any::STRING);
-  pVal->set_string_value(camera_name);
+  cloisim::msgs::Any val;
+  val.set_type(cloisim::msgs::Any::STRING);
+  val.set_string_value(camera_name);
+  cloisim_ros::param::Set(request_msg, "request_camera_info", val);
 
   std::string serializedBuffer;
   request_msg.SerializeToString(&serializedBuffer);
