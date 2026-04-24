@@ -1,15 +1,17 @@
 /**
  *  @file   perception.proto
- *  @date   2020-10-27
- *  @author hyunseok Yang
+ *  @date   2026-04-24
+ *  @author Hyunseok Yang
  *  @copyright
  *    LGE Advanced Robotics Laboratory
- *    Copyright(C) 2019 LG Electronics Co., LTD., Seoul, Korea
+ *    Copyright(C) 2026 LG Electronics Co., LTD., Seoul, Korea
  *    All Rights are Reserved.
  */
 
-syntax = "proto2";
+syntax = "proto3";
 package cloisim.msgs;
+option java_package = "com.cloisim.msgs";
+option java_outer_classname = "PerceptionProtos";
 
 /// \ingroup cloisim_msgs
 /// \interface Perception
@@ -20,11 +22,11 @@ import "vector3d.proto";
 
 message Perception
 {
-  required Header header = 1;
-  required int32 tracking_id = 2;
-  required int32 class_id = 3;
-  required Vector3d position = 4;
-  required Vector3d velocity = 5;
-  required Vector3d size = 6;
+  Header header = 1;
+  int32 tracking_id = 2;
+  int32 class_id = 3;
+  Vector3d position = 4;
+  Vector3d velocity = 5;
+  Vector3d size = 6;
   repeated Vector3d footprint = 7;
 }
