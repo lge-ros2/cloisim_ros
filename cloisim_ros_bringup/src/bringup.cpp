@@ -29,6 +29,7 @@
 #include <cloisim_ros_realsense/realsense.hpp>
 #include <cloisim_ros_range/range.hpp>
 #include <cloisim_ros_contact/contact.hpp>
+#include <cloisim_ros_logical_camera/logical_camera.hpp>
 #include <cloisim_ros_world/world.hpp>
 
 using namespace std::literals::chrono_literals;
@@ -134,6 +135,12 @@ static std::shared_ptr<cloisim_ros::Base> make_device_node(
       node = std::make_shared<cloisim_ros::Contact>(node_options, node_name);
     } else {
       node = std::make_shared<cloisim_ros::Contact>(node_options, node_name, model_name);
+    }
+  } else if (!node_type.compare("LOGICALCAMERA")) {
+    if (g_enable_single_mode) {
+      node = std::make_shared<cloisim_ros::LogicalCamera>(node_options, node_name);
+    } else {
+      node = std::make_shared<cloisim_ros::LogicalCamera>(node_options, node_name, model_name);
     }
   } else {}
 

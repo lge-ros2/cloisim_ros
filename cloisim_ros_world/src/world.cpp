@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <sstream>
 
+#include <cloisim_ros_base/param_helper.hpp>
+
 using string = std::string;
 
 namespace cloisim_ros
@@ -99,20 +101,26 @@ void World::PublishData(const void * buffer, int bufferLength)
 std::string World::ServiceRequest(const std::string & buffer)
 {
   cloisim::msgs::Param res_param;
-  res_param.set_name("result");
-  auto pVal = res_param.mutable_value();
-  pVal->set_type(cloisim::msgs::Any::STRING);
-  pVal->set_string_value("");
+  auto setResult = [&res_param](const std::string & value) {
+      res_param.clear_params();
+      cloisim::msgs::Any val;
+      val.set_type(cloisim::msgs::Any::STRING);
+      val.set_string_value(value);
+      param::Set(res_param, "result", val);
+    };
+  setResult("");
 
   cloisim::msgs::Param req_param;
   if (req_param.ParseFromString(buffer)) {
-    if (req_param.name() == "reset_simulation" &&
-      req_param.has_value() && req_param.value().bool_value() == true)
+    const auto req_name = param::GetName(req_param);
+    const auto & req_value = param::GetValue(req_param);
+    if (req_name == "reset_simulation" &&
+      param::HasValue(req_param) && req_value.bool_value() == true)
     {
       const auto services = FindResetTimeServices();
       if (services.empty()) {
         DBG_SIM_ERR("No RViz reset_time service found");
-        pVal->set_string_value("SERVICE_UNAVAILABLE");
+        setResult("SERVICE_UNAVAILABLE");
       } else {
         int ok_count = 0;
         int timeout_count = 0;
@@ -148,17 +156,17 @@ std::string World::ServiceRequest(const std::string & buffer)
           std::ostringstream oss;
           oss << "OK(" << ok_count << "/" << services.size() << ") timeout=" << timeout_count
               << " unavailable=" << unavailable_count;
-          pVal->set_string_value(oss.str());
+          setResult(oss.str());
         } else if (timeout_count > 0) {
-          pVal->set_string_value("TIMEOUT");
+          setResult("TIMEOUT");
         } else {
-          pVal->set_string_value("SERVICE_UNAVAILABLE");
+          setResult("SERVICE_UNAVAILABLE");
         }
       }
     }
   } else {
     DBG_SIM_ERR("Parsing error, size(%d)", buffer.length());
-    pVal->set_string_value("SERVICE_DATA_ERROR");
+    setResult("SERVICE_DATA_ERROR");
   }
 
   std::string response_message;

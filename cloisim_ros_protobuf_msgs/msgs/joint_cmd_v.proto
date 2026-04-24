@@ -1,5 +1,17 @@
-syntax = "proto2";
+/**
+ *  @file   joint_cmd_v.proto
+ *  @date   2026-04-24
+ *  @author Hyunseok Yang
+ *  @copyright
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2026 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+ 
+syntax = "proto3";
 package cloisim.msgs;
+option java_package = "com.cloisim.msgs";
+option java_outer_classname = "JointCmdVProtos";
 
 /// \ingroup cloisim_msgs
 /// \interface JointCmd_V
@@ -10,6 +22,6 @@ import "joint_cmd.proto";
 
 message JointCmd_V
 {
-  required Time time          = 1;
-  repeated JointCmd JointCmd  = 2;
+  Time time          = 1;
+  repeated JointCmd joint_cmd  = 2;
 }

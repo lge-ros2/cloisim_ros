@@ -199,21 +199,20 @@ void CameraBase::PublishRawImage(
   pub_.publish(msg_img_, camera_info_msg);
 }
 
-void CameraBase::PublishData(const cloisim::msgs::ImageStamped & pb_msg)
+void CameraBase::PublishData(const cloisim::msgs::Image & pb_msg)
 {
-  SetTime(pb_msg.time());
+  SetTime(pb_msg.header().stamp());
 
   msg_img_.header.stamp = GetTime();
 
-  const auto & image = pb_msg.image();
-  msg_img_.encoding = GetImageEncondingType(image.pixel_format());
-  msg_img_.width = image.width();
-  msg_img_.height = image.height();
-  msg_img_.step = image.step();
+  msg_img_.encoding = GetImageEncondingType(pb_msg.pixel_format_type());
+  msg_img_.width = pb_msg.width();
+  msg_img_.height = pb_msg.height();
+  msg_img_.step = pb_msg.step();
   msg_img_.is_bigendian = false;
 
   // Direct copy: resize only if needed, then memcpy (avoids fillImage overhead)
-  const auto & src_data = image.data();
+  const auto & src_data = pb_msg.data();
   const auto data_size = src_data.size();
   if (msg_img_.data.size() != data_size) {
     msg_img_.data.resize(data_size);
