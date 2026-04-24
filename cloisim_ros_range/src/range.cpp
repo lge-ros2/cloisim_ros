@@ -89,22 +89,22 @@ void Range::PublishData(const void * buffer, int bufferLength)
     return;
   }
 
-  SetTime(pb_buf_.time());
+  SetTime(pb_buf_.header().stamp());
 
   // Fill message with latest sensor data
   msg_range_.header.stamp = GetTime();
-  msg_range_.header.frame_id = pb_buf_.sonar().frame();
+  msg_range_.header.frame_id = pb_buf_.frame();
 
   msg_pose_.header.stamp = GetTime();
-  msg_pose_.header.frame_id = pb_buf_.sonar().frame();
+  msg_pose_.header.frame_id = pb_buf_.frame();
 
-  msg::Convert(pb_buf_.sonar().world_pose(), msg_pose_.pose);
+  msg::Convert(pb_buf_.world_pose(), msg_pose_.pose);
 
   msg_range_.radiation_type = radiation_type_;
-  if (pb_buf_.sonar().has_radius()) {msg_range_.field_of_view = pb_buf_.sonar().radius();}
-  if (pb_buf_.sonar().has_range_min()) {msg_range_.min_range = pb_buf_.sonar().range_min();}
-  if (pb_buf_.sonar().has_range_max()) {msg_range_.max_range = pb_buf_.sonar().range_max();}
-  if (pb_buf_.sonar().has_range()) {msg_range_.range = static_cast<float>(pb_buf_.sonar().range());}
+  msg_range_.field_of_view = pb_buf_.radius();
+  msg_range_.min_range = pb_buf_.range_min();
+  msg_range_.max_range = pb_buf_.range_max();
+  msg_range_.range = static_cast<float>(pb_buf_.range());
 
   pub_->publish(msg_range_);
   pub_pose_->publish(msg_pose_);

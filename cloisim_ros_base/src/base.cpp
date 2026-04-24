@@ -13,9 +13,10 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#include <cloisim_msgs/transform_stamped.pb.h>
+#include <cloisim_msgs/pose.pb.h>
 
 #include "cloisim_ros_base/base.hpp"
+#include "cloisim_ros_base/param_helper.hpp"
 
 using namespace std::literals::chrono_literals;
 using string = std::string;
@@ -112,22 +113,21 @@ void Base::Stop()
 
 void Base::GenerateTF(const void * buffer, int bufferLength)
 {
-  cloisim::msgs::TransformStamped pb_transform_stamped;
-  if (!pb_transform_stamped.ParseFromArray(buffer, bufferLength)) {
+  cloisim::msgs::Pose pb_pose;
+  if (!pb_pose.ParseFromArray(buffer, bufferLength)) {
     LOG_E(this, "[" << get_name() << "] Parsing error, size=" << bufferLength);
     return;
   }
 
-  if (pb_transform_stamped.header().has_str_id() && pb_transform_stamped.transform().has_name()) {
+  const auto parent_frame_id = param::GetHeaderDataValue(pb_pose.header(), "frame_id");
+  if (!parent_frame_id.empty() && !pb_pose.name().empty()) {
     geometry_msgs::msg::TransformStamped newTf;
-    newTf.header.stamp = msg::Convert(pb_transform_stamped.header().stamp());
-    newTf.header.frame_id = pb_transform_stamped.header().str_id();
-    newTf.child_frame_id = pb_transform_stamped.transform().name();
+    newTf.header.stamp = msg::Convert(pb_pose.header().stamp());
+    newTf.header.frame_id = parent_frame_id;
+    newTf.child_frame_id = pb_pose.name();
     // LOG_I(this, newTf.header.stamp.sec << " " << newTf.header.stamp.nanosec << " " <<
     //              newTf.header.frame_id << " " << newTf.child_frame_id);
-    SetTf2(
-      newTf, pb_transform_stamped.transform(), pb_transform_stamped.transform().name(),
-      pb_transform_stamped.header().str_id());
+    SetTf2(newTf, pb_pose, pb_pose.name(), parent_frame_id);
     PublishTF(newTf);
 #if 0
   } else {
@@ -294,24 +294,29 @@ void Base::SetStaticTransforms(zmq::Bridge * const bridge_ptr)
 
   const auto reply = RequestReplyMessage(bridge_ptr, "request_static_transforms");
 
-  if (reply.IsInitialized() && (reply.name().compare("static_transforms") == 0)) {
+  if (reply.IsInitialized() && param::HasKey(reply, "static_transforms")) {
     auto pose = cloisim::msgs::Pose();
-    for (auto link : reply.children()) {
-      if (link.IsInitialized() && link.has_name() && link.has_value()) {
-        const auto parent_frame_id = (link.value().type() == cloisim::msgs::Any_ValueType_STRING &&
-          link.name().compare("parent_frame_id") == 0) ?
-          link.value().string_value() :
+    for (const auto & link : reply.children()) {
+      if (link.IsInitialized() && param::HasValue(link)) {
+        const auto link_name = param::GetName(link);
+        const auto & link_value = param::GetValue(link);
+        const auto parent_frame_id =
+          (link_value.type() == cloisim::msgs::Any_ValueType_STRING &&
+          link_name == "parent_frame_id") ?
+          link_value.string_value() :
           "base_link";
 
         if (link.children_size() == 1) {
-          const auto child = link.children(0);
+          const auto & child = link.children(0);
+          const auto child_name = param::GetName(child);
+          const auto & child_value = param::GetValue(child);
 
-          if (child.has_name() && child.has_value()) {
+          if (param::HasValue(child)) {
             if (
-              (child.name().compare("pose") == 0) &&
-              child.value().type() == cloisim::msgs::Any_ValueType_POSE3D)
+              (child_name == "pose") &&
+              child_value.type() == cloisim::msgs::Any_ValueType_POSE3D)
             {
-              pose = child.value().pose3d_value();
+              pose = child_value.pose3d_value();
             }
           }
         }
@@ -334,19 +339,22 @@ cloisim::msgs::Pose Base::GetObjectTransform(
   const auto reply = RequestReplyMessage(bridge_ptr, "request_transform", target_name);
 
   if (reply.ByteSizeLong() > 0) {
-    if (reply.IsInitialized() && reply.name() == "transform" && reply.has_value()) {
-      transform.CopyFrom(reply.value().pose3d_value());
+    if (reply.IsInitialized() && param::HasKey(reply, "transform")) {
+      const auto & transform_value = param::GetValue(reply, "transform");
+      transform.CopyFrom(transform_value.pose3d_value());
       // LOG_I(this, "transform received=" << transform.name());
 
       if (reply.children_size() > 0) {
-        const auto child_param = reply.children(0);
+        const auto & child_param = reply.children(0);
+        const auto child_name = param::GetName(child_param);
+        const auto & child_value = param::GetValue(child_param);
         if (
-          child_param.name() == "parent_frame_id" && child_param.has_value() &&
-          child_param.value().type() == cloisim::msgs::Any_ValueType_STRING &&
-          !child_param.value().string_value().empty())
+          child_name == "parent_frame_id" && param::HasValue(child_param) &&
+          child_value.type() == cloisim::msgs::Any_ValueType_STRING &&
+          !child_value.string_value().empty())
         {
           // set parent_frame_id into name if exists.
-          parent_frame_id = child_param.value().string_value();
+          parent_frame_id = child_value.string_value();
         }
       }
     }
@@ -365,16 +373,19 @@ void Base::GetRos2Parameter(zmq::Bridge * const bridge_ptr)
   if (reply.ByteSizeLong() <= 0) {
     LOG_E(this, "Failed to get ROS2 common info, length=" << reply.ByteSizeLong());
   } else {
-    if (reply.IsInitialized() && reply.name() == "ros2") {
+    if (reply.IsInitialized() && param::HasKey(reply, "ros2")) {
       for (auto i = 0; i < reply.children_size(); i++) {
-        const auto param = reply.children(i);
+        const auto & child = reply.children(i);
+        const auto child_name = param::GetName(child);
+        const auto & child_value = param::GetValue(child);
         const auto paramValue =
-          (param.has_value() && param.value().type() == cloisim::msgs::Any_ValueType_STRING) ?
-          param.value().string_value() : "";
+          (param::HasValue(child) &&
+           child_value.type() == cloisim::msgs::Any_ValueType_STRING) ?
+          child_value.string_value() : "";
 
-        if (param.name().compare("topic_name") == 0) {
+        if (child_name == "topic_name") {
           topic_name_ = paramValue;
-        } else if (param.name().compare("frame_id") == 0) {
+        } else if (child_name == "frame_id") {
           frame_id_list_.push_back(paramValue);
         }
       }
@@ -441,12 +452,13 @@ cloisim::msgs::Param Base::RequestReplyMessage(
 
   string serialized_request_data;
   cloisim::msgs::Param request;
-  request.set_name(request_message);
-
   if (!request_value.empty()) {
-    auto pVal = request.mutable_value();
-    pVal->set_type(cloisim::msgs::Any::STRING);
-    pVal->set_string_value(request_value);
+    cloisim::msgs::Any val;
+    val.set_type(cloisim::msgs::Any::STRING);
+    val.set_string_value(request_value);
+    param::Set(request, request_message, val);
+  } else {
+    param::SetName(request, request_message);
   }
 
   request.SerializeToString(&serialized_request_data);

@@ -16,7 +16,7 @@
 #ifndef CLOISIM_ROS_LIDAR__LIDAR_HPP_
 #define CLOISIM_ROS_LIDAR__LIDAR_HPP_
 
-#include <cloisim_msgs/laserscan_stamped.pb.h>
+#include <cloisim_msgs/laserscan.pb.h>
 
 #include <string>
 #include <vector>
@@ -53,7 +53,7 @@ private:
 
 private:
   // buffer from simulation
-  cloisim::msgs::LaserScanStamped pb_buf_;
+  cloisim::msgs::LaserScan pb_buf_;
 
   // message for ROS2 communictaion
   sensor_msgs::msg::LaserScan msg_laser_;

@@ -20,6 +20,8 @@
 
 #include "cloisim_ros_joint_control/joint_control.hpp"
 
+#include <cloisim_ros_base/param_helper.hpp>
+
 using namespace std::literals::chrono_literals;
 using namespace std::placeholders;
 using string = std::string;
@@ -116,7 +118,7 @@ string JointControl::MakeCommandMessage(control_msgs::msg::JointJog::ConstShared
   const auto use_velocity = (msg->joint_names.size() == msg->velocities.size());
 
   for (size_t i = 0; i < msg->joint_names.size(); i++) {
-    auto joint_cmd = pb_joint_cmds.add_jointcmd();
+    auto joint_cmd = pb_joint_cmds.add_joint_cmd();
     const auto joint_name = msg->joint_names[i];
     const auto joint_displacement = (use_displacement) ? msg->displacements[i] : 0;
     const auto joint_velocity = (use_velocity) ? msg->velocities[i] : 0;
@@ -127,12 +129,12 @@ string JointControl::MakeCommandMessage(control_msgs::msg::JointJog::ConstShared
 
     if (use_displacement) {
       auto position = joint_cmd->mutable_position();
-      position->set_target(joint_displacement);
+      position->mutable_target_optional()->set_data(joint_displacement);
     }
 
     if (use_velocity) {
       auto velocity = joint_cmd->mutable_velocity();
-      velocity->set_target(joint_velocity);
+      velocity->mutable_target_optional()->set_data(joint_velocity);
     }
   }
 
@@ -162,8 +164,8 @@ void JointControl::PublishData(const void * buffer, int bufferLength)
   msg_jointstate.position.clear();
   msg_jointstate.velocity.clear();
 
-  for (auto i = 0; i < pb_joint_states.jointstate_size(); i++) {
-    const auto joint_state = pb_joint_states.jointstate(i);
+  for (auto i = 0; i < pb_joint_states.joint_state_size(); i++) {
+    const auto joint_state = pb_joint_states.joint_state(i);
 
     msg_jointstate.name.push_back(joint_state.name());
     msg_jointstate.effort.push_back(joint_state.effort());
@@ -183,9 +185,9 @@ void JointControl::GetRobotDescription(zmq::Bridge * const bridge_ptr)
 
   const auto reply = RequestReplyMessage(bridge_ptr, "robot_description");
 
-  if (reply.IsInitialized() && (reply.name().compare("description") == 0)) {
-    if (reply.value().type() == cloisim::msgs::Any_ValueType_STRING) {
-      const auto description = reply.value().string_value();
+  if (reply.IsInitialized() && param::HasKey(reply, "description")) {
+    if (param::GetValue(reply, "description").type() == cloisim::msgs::Any_ValueType_STRING) {
+      const auto description = param::GetValue(reply, "description").string_value();
       msg_description_.data = description;
     }
   }

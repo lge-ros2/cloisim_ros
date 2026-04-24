@@ -20,6 +20,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "cloisim_ros_micom/micom.hpp"
+#include <cloisim_ros_base/param_helper.hpp>
 
 using namespace std::literals::chrono_literals;
 using namespace std::placeholders;
@@ -233,10 +234,10 @@ string Micom::MakeMowingBladeHeightMessage(const std_msgs::msg::Float32::SharedP
 {
   cloisim::msgs::Param paramBuf;
 
-  paramBuf.set_name("mowing_blade_height");
-  auto pVal = paramBuf.mutable_value();
-  pVal->set_type(cloisim::msgs::Any::DOUBLE);
-  pVal->set_double_value(msg->data);
+  cloisim::msgs::Any val;
+  val.set_type(cloisim::msgs::Any::DOUBLE);
+  val.set_double_value(msg->data);
+  param::Set(paramBuf, "mowing_blade_height", val);
 
   string message;
   paramBuf.SerializeToString(&message);
@@ -247,10 +248,10 @@ string Micom::MakeMowingRevSpeedMessage(const std_msgs::msg::UInt16::SharedPtr m
 {
   cloisim::msgs::Param paramBuf;
 
-  paramBuf.set_name("mowing_blade_rev_speed");
-  auto pVal = paramBuf.mutable_value();
-  pVal->set_type(cloisim::msgs::Any::INT32);
-  pVal->set_int_value(msg->data);
+  cloisim::msgs::Any val;
+  val.set_type(cloisim::msgs::Any::INT32);
+  val.set_int_value(msg->data);
+  param::Set(paramBuf, "mowing_blade_rev_speed", val);
 
   string message;
   paramBuf.SerializeToString(&message);

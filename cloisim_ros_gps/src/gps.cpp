@@ -22,7 +22,7 @@ namespace cloisim_ros
 {
 
 Gps::Gps(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
-: Base(node_name, namespace_, options_), topic_name_heading_("navsatfix/heading")
+: Base(node_name, namespace_, options_)
 {
   topic_name_ = "navsatfix";
 
@@ -73,25 +73,9 @@ void Gps::Initialize()
   msg_gps_.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
   msg_gps_.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
 
-  std::fill(
-    begin(msg_heading_.orientation_covariance), end(msg_heading_.orientation_covariance), 0.0);
-  std::fill(
-    begin(msg_heading_.angular_velocity_covariance), end(msg_heading_.angular_velocity_covariance),
-    0.0);
-  std::fill(
-    begin(msg_heading_.linear_acceleration_covariance),
-    end(msg_heading_.linear_acceleration_covariance), 0.0);
-
-  msg_heading_.orientation_covariance[0] = 0.0001f;
-  msg_heading_.orientation_covariance[4] = 0.0001f;
-  msg_heading_.orientation_covariance[8] = 0.0001f;
-
   // ROS2 Publisher
   pub_gps_ =
     this->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name_, rclcpp::SensorDataQoS());
-
-  pub_heading_ =
-    this->create_publisher<sensor_msgs::msg::Imu>(topic_name_heading_, rclcpp::SensorDataQoS());
 
   if (data_bridge_ptr != nullptr) {
     data_bridge_ptr->Connect(zmq::Bridge::Mode::SUB, portData, hashKeyData);
@@ -107,7 +91,7 @@ void Gps::PublishData(const void * buffer, int bufferLength)
     return;
   }
 
-  SetTime(pb_buf_gps_.time());
+  SetTime(pb_buf_gps_.header().stamp());
 
   // Fill message with latest sensor data
   msg_gps_.header.stamp = GetTime();
@@ -116,16 +100,6 @@ void Gps::PublishData(const void * buffer, int bufferLength)
   msg_gps_.altitude = pb_buf_gps_.altitude();
 
   pub_gps_->publish(msg_gps_);
-
-  msg_heading_.header.stamp = GetTime();
-
-  if (pb_buf_gps_.has_heading()) {
-    msg::Convert(pb_buf_gps_.heading().orientation(), msg_heading_.orientation);
-    msg::Convert(pb_buf_gps_.heading().angular_velocity(), msg_heading_.angular_velocity);
-    msg::Convert(pb_buf_gps_.heading().linear_acceleration(), msg_heading_.linear_acceleration);
-  }
-
-  pub_heading_->publish(msg_heading_);
 }
 
 }  // namespace cloisim_ros
