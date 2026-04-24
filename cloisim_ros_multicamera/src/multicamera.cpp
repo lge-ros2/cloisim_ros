@@ -187,7 +187,7 @@ void MultiCamera::PublishData(const void * buffer, int bufferLength)
 
   for (auto i = 0; i < pb_buf_.image_size(); i++) {
     auto img = &pb_buf_.image(i);
-    const auto encoding_arg = GetImageEncondingType(img->pixel_format());
+    const auto encoding_arg = GetImageEncondingType(img->pixel_format_type());
     const uint32_t cols_arg = img->width();
     const uint32_t rows_arg = img->height();
     const uint32_t step_arg = img->step();

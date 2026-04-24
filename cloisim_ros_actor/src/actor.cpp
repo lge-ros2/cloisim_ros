@@ -15,6 +15,8 @@
 
 #include "cloisim_ros_actor/actor.hpp"
 
+#include <cloisim_ros_base/param_helper.hpp>
+
 using namespace std::placeholders;
 using Param = cloisim::msgs::Param;
 using Any = cloisim::msgs::Any;
@@ -66,24 +68,25 @@ void Actor::CallMoveActor(
 
 bool Actor::GetResultFromResponse(const Param & response_msg)
 {
-  if (!response_msg.IsInitialized() || response_msg.name().compare("result") != 0) {
+  if (!response_msg.IsInitialized() || !param::HasKey(response_msg, "result")) {
     return false;
   }
-  return response_msg.value().bool_value();
+  return param::GetValue(response_msg, "result").bool_value();
 }
 
 Param Actor::CreateMoveRequest(const string target_name, const geometry_msgs::msg::Vector3 point)
 {
   Param request_msg;
-  request_msg.set_name(target_name);
 
-  auto value_ptr = request_msg.mutable_value();
-  value_ptr->set_type(Any::VECTOR3D);
+  Any value;
+  value.set_type(Any::VECTOR3D);
 
-  auto vector3d_value_ptr = value_ptr->mutable_vector3d_value();
+  auto vector3d_value_ptr = value.mutable_vector3d_value();
   vector3d_value_ptr->set_x(point.x);
   vector3d_value_ptr->set_y(point.y);
   vector3d_value_ptr->set_z(point.z);
+
+  param::Set(request_msg, target_name, value);
 
   return request_msg;
 }

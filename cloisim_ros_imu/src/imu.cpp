@@ -87,7 +87,7 @@ void Imu::PublishData(const void * buffer, int bufferLength)
     return;
   }
 
-  SetTime(pb_buf_.stamp());
+  SetTime(pb_buf_.header().stamp());
 
   // Fill message with latest sensor data
   msg_imu_.header.stamp = GetTime();

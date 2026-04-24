@@ -1,5 +1,17 @@
-syntax = "proto2";
+/**
+ *  @file   joint_state.proto
+ *  @date   2026-04-24
+ *  @author Hyunseok Yang
+ *  @copyright
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2026 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+
+syntax = "proto3";
 package cloisim.msgs;
+option java_package = "com.cloisim.msgs";
+option java_outer_classname = "JointStateProtos";
 
 /// \ingroup cloisim_msgs
 /// \interface JointState
@@ -7,8 +19,8 @@ package cloisim.msgs;
 
 message JointState
 {
-  required string name = 1;
-  required double position = 2;
-  required double velocity = 3;
-  required double effort = 4;
+  string name = 1;
+  double position = 2;
+  double velocity = 3;
+  double effort = 4;
 }

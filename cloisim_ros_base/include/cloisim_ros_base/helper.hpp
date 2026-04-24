@@ -122,7 +122,7 @@ static void Convert(const cloisim::msgs::Pose & src, geometry_msgs::msg::Pose & 
 
 static void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::ContactsState & dst)
 {
-  dst.header.stamp = Convert(src.time());
+  dst.header.stamp = Convert(src.header().stamp());
   dst.states.clear();
 
   Quaternion identityQuat{1, 0, 0, 0};
@@ -132,16 +132,8 @@ static void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::Conta
 
     // For each collision contact
     gazebo_msgs::msg::ContactState state;
-    state.collision1_name = contact.collision1();
-    state.collision2_name = contact.collision2();
-
-    std::ostringstream stream;
-    stream << "Debug:  i:(" << i << "/" << contactSize << ")"
-           << "  my geom:" << state.collision1_name
-           << "  other geom:" << state.collision2_name
-           << "  time:" << dst.header.stamp.sec
-           << "." << dst.header.stamp.nanosec;
-    state.info = stream.str();
+    state.collision1_name = contact.collision1().name();
+    state.collision2_name = contact.collision2().name();
 
     state.wrenches.clear();
     state.contact_positions.clear();

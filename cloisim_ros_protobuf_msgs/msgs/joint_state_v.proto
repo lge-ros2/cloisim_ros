@@ -1,5 +1,17 @@
-syntax = "proto2";
+/**
+ *  @file   joint_state_v.proto
+ *  @date   2026-04-24
+ *  @author Hyunseok Yang
+ *  @copyright
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2026 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+
+syntax = "proto3";
 package cloisim.msgs;
+option java_package = "com.cloisim.msgs";
+option java_outer_classname = "JointStateVProtos";
 
 /// \ingroup cloisim_msgs
 /// \interface JointState_V
@@ -11,8 +23,8 @@ import "header.proto";
 message JointState_V
 {
   /// \brief header data.
-  required Header header          = 1;
+  Header header          = 1;
 
   /// \brief joint states header data.
-  repeated JointState JointState  = 2;
+  repeated JointState joint_state  = 2;
 }

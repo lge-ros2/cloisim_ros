@@ -116,4 +116,24 @@ install(
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${dependencies})
 
+################################################################################
+# Test
+################################################################################
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(test_camera_node
+    test/test_camera_node.cpp
+  )
+
+  target_include_directories(test_camera_node PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../cloisim_ros_base/test
+  )
+
+  target_link_libraries(test_camera_node
+    ${PROJECT_NAME}_core
+    zmq
+  )
+endif()
+
 ament_package()
