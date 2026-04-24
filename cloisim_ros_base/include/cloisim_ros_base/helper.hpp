@@ -123,7 +123,7 @@ static void Convert(const cloisim::msgs::Pose & src, geometry_msgs::msg::Pose & 
 
 static void Convert(const cloisim::msgs::Contacts & src, ros_gz_interfaces::msg::Contacts & dst)
 {
-  dst.header.stamp = Convert(src.time());
+  dst.header.stamp = Convert(src.header().stamp());
   dst.contacts.clear();
 
   Quaternion identityQuat{1, 0, 0, 0};
@@ -133,8 +133,8 @@ static void Convert(const cloisim::msgs::Contacts & src, ros_gz_interfaces::msg:
 
     // For each collision contact
     ros_gz_interfaces::msg::Contact state;
-    state.collision1.name = contact.collision1();
-    state.collision2.name = contact.collision2();
+    state.collision1.name = contact.collision1().name();
+    state.collision2.name = contact.collision2().name();
 
     state.wrenches.clear();
     state.positions.clear();

@@ -1,0 +1,28 @@
+/**
+ *  @file   images.proto
+ *  @date   2026-04-24
+ *  @author Hyunseok Yang
+ *  @copyright
+ *    LGE Advanced Robotics Laboratory
+ *    Copyright(C) 2026 LG Electronics Co., LTD., Seoul, Korea
+ *    All Rights are Reserved.
+ */
+
+syntax = "proto3";
+package cloisim.msgs;
+option java_package = "com.cloisim.msgs";
+option java_outer_classname = "ImagesProtos";
+
+/// \ingroup cloisim_msgs
+/// \interface Images
+/// \brief Message for a multiple image with a time
+
+import "time.proto";
+import "image.proto";
+
+message Images
+{
+  // Time when all the images were captured
+  Time time          = 1;
+  repeated Image image        = 2;
+}

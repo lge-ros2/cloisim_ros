@@ -38,6 +38,25 @@ cd ~/cloisim_ws
 colcon build --symlink-install --packages-up-to cloisim_ros_bringup
 ```
 
+## Test
+
+Build with testing enabled and run tests:
+
+```shell
+cd ~/cloisim_ws
+colcon build --cmake-args -DBUILD_TESTING=ON
+colcon test --event-handlers console_direct+
+colcon test-result --all
+```
+
+To test specific packages only:
+
+```shell
+colcon build --packages-select cloisim_ros_lidar cloisim_ros_camera --cmake-args -DBUILD_TESTING=ON
+colcon test --packages-select cloisim_ros_lidar cloisim_ros_camera --event-handlers console_direct+
+colcon test-result --all
+```
+
 ## Usage
 
 Set environment variable, if the server is not localhost

@@ -15,7 +15,7 @@
 #define CLOISIM_ROS_CAMERA__CAMERA_HPP_
 
 #include <cloisim_msgs/camerasensor.pb.h>
-#include <cloisim_msgs/image_stamped.pb.h>
+#include <cloisim_msgs/image.pb.h>
 #include <cloisim_msgs/pose.pb.h>
 
 #include <memory>

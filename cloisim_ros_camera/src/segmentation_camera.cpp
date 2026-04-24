@@ -77,7 +77,7 @@ void SegmentationCamera::PublishData(const void * buffer, int bufferLength)
     return;
   }
 
-  SetTime(pb_seg_.image_stamped().time());
+  SetTime(pb_seg_.image().header().stamp());
 
   vision_msgs::msg::LabelInfo msg_label_info;
   vision_msgs::msg::VisionClass msg_vision_class;
@@ -96,7 +96,7 @@ void SegmentationCamera::PublishData(const void * buffer, int bufferLength)
   pub_labelinfo_->publish(msg_label_info);
 
   // send camera image
-  CameraBase::PublishData(pb_seg_.image_stamped());
+  CameraBase::PublishData(pb_seg_.image());
 }
 
 void SegmentationCamera::PublishDataRaw(const void * buffer, int bufferLength)
