@@ -26,6 +26,7 @@
   <depend>cloisim_ros_imu</depend>
   <depend>cloisim_ros_range</depend>
   <depend>cloisim_ros_contact</depend>
+  <depend>cloisim_ros_logical_camera</depend>
   <depend>cloisim_ros_elevator_system</depend>
   <depend>cloisim_ros_ground_truth</depend>
   <depend>cloisim_ros_world</depend>

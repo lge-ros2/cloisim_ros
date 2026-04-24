@@ -30,7 +30,8 @@ bool BringUpParam::IsRobotSpecificType(const string node_type)
     !node_type.compare("MULTICAMERA") || !node_type.compare("REALSENSE") ||
     !node_type.compare("GPS") || !node_type.compare("IMU") ||
     !node_type.compare("IR") || !node_type.compare("SONAR") ||
-    !node_type.compare("CONTACT");
+    !node_type.compare("CONTACT") ||
+    !node_type.compare("LOGICALCAMERA");
 }
 
 bool BringUpParam::IsWorldSpecificType(const string node_type)
