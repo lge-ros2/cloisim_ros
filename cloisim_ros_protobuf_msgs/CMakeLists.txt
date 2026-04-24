@@ -26,6 +26,7 @@ list(APPEND PROTOBUF_DEFINITION_FILES "navsat_sensor;navsat_with_covariance")
 list(APPEND PROTOBUF_DEFINITION_FILES "micom;battery")
 list(APPEND PROTOBUF_DEFINITION_FILES "world_stats;log_playback_stats")
 list(APPEND PROTOBUF_DEFINITION_FILES "perception;perception_v")
+list(APPEND PROTOBUF_DEFINITION_FILES "logical_camera_image;logical_camera_sensor")
 list(APPEND PROTOBUF_DEFINITION_FILES "request;response;joystick")
 list(APPEND PROTOBUF_DEFINITION_FILES "joint_state;joint_state_v;joint_cmd;joint_cmd_v;wrench;joint_wrench;pid")
 
