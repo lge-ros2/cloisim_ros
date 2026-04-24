@@ -61,7 +61,8 @@ void ElevatorSystem::Initialize()
     if (reply.IsInitialized()) {
       if (
         param::HasKey(reply, "request_system_name") &&
-        param::GetValue(reply, "request_system_name").type() == cloisim::msgs::Any_ValueType_STRING &&
+        param::GetValue(reply,
+          "request_system_name").type() == cloisim::msgs::Any_ValueType_STRING &&
         !param::GetValue(reply, "request_system_name").string_value().empty())
       {
         const auto system_name = param::GetValue(reply, "request_system_name").string_value();
@@ -161,7 +162,8 @@ void ElevatorSystem::GetElevatorInfo(
     result_param = reply.children(4);
     if (result_param.IsInitialized()) {
       const auto height = static_cast<float>(
-        (!param::HasKey(result_param, "height")) ? 0.0 : param::GetValue(result_param, "height").double_value());
+        (!param::HasKey(result_param, "height")) ? 0.0 : param::GetValue(result_param,
+          "height").double_value());
       response->height = height;
     }
   }

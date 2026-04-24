@@ -380,7 +380,7 @@ void Base::GetRos2Parameter(zmq::Bridge * const bridge_ptr)
         const auto & child_value = param::GetValue(child);
         const auto paramValue =
           (param::HasValue(child) &&
-           child_value.type() == cloisim::msgs::Any_ValueType_STRING) ?
+          child_value.type() == cloisim::msgs::Any_ValueType_STRING) ?
           child_value.string_value() : "";
 
         if (child_name == "topic_name") {
