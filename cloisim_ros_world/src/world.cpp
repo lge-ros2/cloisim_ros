@@ -102,12 +102,12 @@ std::string World::ServiceRequest(const std::string & buffer)
 {
   cloisim::msgs::Param res_param;
   auto setResult = [&res_param](const std::string & value) {
-    res_param.clear_params();
-    cloisim::msgs::Any val;
-    val.set_type(cloisim::msgs::Any::STRING);
-    val.set_string_value(value);
-    param::Set(res_param, "result", val);
-  };
+      res_param.clear_params();
+      cloisim::msgs::Any val;
+      val.set_type(cloisim::msgs::Any::STRING);
+      val.set_string_value(value);
+      param::Set(res_param, "result", val);
+    };
   setResult("");
 
   cloisim::msgs::Param req_param;

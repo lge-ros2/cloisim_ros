@@ -16,7 +16,7 @@
 #ifndef CLOISIM_ROS_GPS__GPS_HPP_
 #define CLOISIM_ROS_GPS__GPS_HPP_
 
-#include <cloisim_msgs/gps.pb.h>
+#include <cloisim_msgs/navsat_with_covariance.pb.h>
 
 #include <string>
 
@@ -43,7 +43,7 @@ private:
 
 private:
   // buffer from simulation
-  cloisim::msgs::GPS pb_buf_gps_;
+  cloisim::msgs::NavSatWithCovariance pb_buf_gps_;
 
   // message for ROS2 communictaion
   sensor_msgs::msg::NavSatFix msg_gps_;
