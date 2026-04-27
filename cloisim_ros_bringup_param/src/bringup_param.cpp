@@ -26,12 +26,11 @@ bool BringUpParam::IsRobotSpecificType(const string node_type)
     !node_type.compare("MICOM") || !node_type.compare("JOINTCONTROL") ||
     !node_type.compare("LIDAR") || !node_type.compare("LASER") ||
     !node_type.compare("CAMERA") || !node_type.compare("DEPTHCAMERA") ||
-    !node_type.compare("SEGMENTCAMERA") ||
+    !node_type.compare("SEGMENTCAMERA") || !node_type.compare("LOGICALCAMERA") ||
     !node_type.compare("MULTICAMERA") || !node_type.compare("REALSENSE") ||
     !node_type.compare("GPS") || !node_type.compare("IMU") ||
     !node_type.compare("IR") || !node_type.compare("SONAR") ||
-    !node_type.compare("CONTACT") ||
-    !node_type.compare("LOGICALCAMERA");
+    !node_type.compare("CONTACT");
 }
 
 bool BringUpParam::IsWorldSpecificType(const string node_type)
@@ -113,6 +112,9 @@ Json::Value BringUpParam::RequestBringUpList()
     } else {
       Json::Value root;
       reader.parse(payload, root, false);
+
+      // Version compatibility check
+      CheckSimulatorVersion(root);
 
       if (root["result"].size() > 0) {
         result = root["result"];
@@ -245,6 +247,46 @@ void BringUpParam::StoreFilteredInfoAsParameters(
   node_options.append_parameter_override("model", TargetModel());
 
   cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(bridge_infos, node_options);
+}
+
+void BringUpParam::CheckSimulatorVersion(const Json::Value & root)
+{
+  const auto sim_version = root.get("sim_version", "").asString();
+
+  if (sim_version.empty()) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Connected to CLOiSim (version unknown). "
+      "Minimum required CLOiSim version is %s. "
+      "Please download: https://github.com/lge-ros2/cloisim/releases",
+      MIN_CLOISIM_VERSION);
+    rclcpp::shutdown();
+    std::exit(1);
+  }
+
+  RCLCPP_INFO_ONCE(this->get_logger(), "Connected to CLOiSim v%s", sim_version.c_str());
+
+  if (CompareVersions(sim_version, MIN_CLOISIM_VERSION) < 0) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "CLOiSim version (%s) is older than the minimum required (%s). "
+      "Please upgrade: https://github.com/lge-ros2/cloisim/releases/tag/%s",
+      sim_version.c_str(), MIN_CLOISIM_VERSION, MIN_CLOISIM_VERSION);
+    rclcpp::shutdown();
+    std::exit(1);
+  }
+}
+
+int BringUpParam::CompareVersions(const string & a, const string & b)
+{
+  int ma = 0, mi = 0, pa = 0;
+  int mb = 0, mib = 0, pb = 0;
+  std::sscanf(a.c_str(), "%d.%d.%d", &ma, &mi, &pa);
+  std::sscanf(b.c_str(), "%d.%d.%d", &mb, &mib, &pb);
+
+  if (ma != mb) {return ma - mb;}
+  if (mi != mib) {return mi - mib;}
+  return pa - pb;
 }
 
 }  // namespace cloisim_ros
