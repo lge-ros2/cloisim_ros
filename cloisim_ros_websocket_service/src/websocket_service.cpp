@@ -107,7 +107,7 @@ void WebSocketService::on_open(websocketpp::connection_hdl hdl)
 {
   (void)hdl;
   // cout << __FUNCTION__ << endl;
-  cout << "Connected to CLOiSim" << endl;
+  // cout << "Connected to CLOiSim" << endl;
   conn_hdl_ = hdl;
   is_connected_ = true;
 }
