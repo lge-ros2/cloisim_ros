@@ -20,6 +20,7 @@
 
 #include <jsoncpp/json/json.h>
 
+#include <cstdio>
 #include <string>
 #include <cloisim_ros_websocket_service/websocket_service.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -59,7 +60,11 @@ public:
   bool EnableTFforMicom() {return enable_tf_micom_;}
 
 private:
+  static constexpr const char * MIN_CLOISIM_VERSION = "5.1.2";
+
   void SetIndividualParameters(Json::Value & result);
+  void CheckSimulatorVersion(const Json::Value & root);
+  static int CompareVersions(const string & a, const string & b);
 
 private:
   bool is_single_mode;
