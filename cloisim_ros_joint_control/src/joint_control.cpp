@@ -71,17 +71,24 @@ void JointControl::Initialize()
       SetBufferToSimulator(data_bridge_ptr, msgBuf);
     };
 
+  // When node name differs from namespace (e.g. nested sub-model like left_hand
+  // inside CLOiD_hmc_v2), prefix topics with node name to avoid collisions.
+  const auto ns = string(get_namespace()).substr(1);
+  const auto name = string(get_name());
+  const auto topic_prefix = (!ns.empty() && ns != name) ? (name + "/") : string("");
+
   {
     // ROS2 Publisher
     pub_joint_state_ =
-      create_publisher<sensor_msgs::msg::JointState>("joint_states", rclcpp::SensorDataQoS());
+      create_publisher<sensor_msgs::msg::JointState>(
+        topic_prefix + "joint_states", rclcpp::SensorDataQoS());
 
     // ROS2 Subscriber
     sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>(
-      "joint_command", rclcpp::SensorDataQoS(), callback_sub);
+      topic_prefix + "joint_command", rclcpp::SensorDataQoS(), callback_sub);
 
     pub_robot_desc_ = create_publisher<std_msgs::msg::String>(
-      "robot_description", rclcpp::QoS(1).transient_local());
+      topic_prefix + "robot_description", rclcpp::QoS(1).transient_local());
   }
 
   if (info_bridge_ptr != nullptr) {
