@@ -80,10 +80,6 @@ void Base::Start(const bool enable_tf_publish)
 
   // ROS2 timer for static tf
   m_timer = this->create_wall_timer(wallTimerPeriod, callback_static_tf_pub);
-
-  rclcpp::on_shutdown([&] {
-      this->Stop();
-  });
 }
 
 void Base::Stop()
