@@ -119,7 +119,11 @@ void Base::GenerateTF(const void * buffer, int bufferLength)
     return;
   }
 
-  const auto parent_frame_id = param::GetHeaderDataValue(pb_pose.header(), "frame_id");
+  auto parent_frame_id = param::GetHeaderDataValue(pb_pose.header(), "parent_frame_id");
+  if (parent_frame_id.empty()) {
+    parent_frame_id = param::GetHeaderDataValue(pb_pose.header(), "frame_id");
+  }
+
   if (!parent_frame_id.empty() && !pb_pose.name().empty()) {
     geometry_msgs::msg::TransformStamped newTf;
     newTf.header.stamp = msg::Convert(pb_pose.header().stamp());

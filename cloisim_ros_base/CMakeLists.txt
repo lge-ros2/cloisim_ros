@@ -20,7 +20,7 @@ find_package(ros_gz_interfaces REQUIRED)
 
 # if(BUILD_TESTING)
   find_package(ament_cmake_cppcheck REQUIRED)
-  ament_cppcheck()
+  ament_cppcheck(EXCLUDE test/base_generate_tf_test.cpp)
 # endif()
 
 set(dependencies
@@ -69,5 +69,31 @@ install(
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${dependencies})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(tf2_msgs REQUIRED)
+
+  ament_add_gtest(
+    test_base_generate_tf
+    test/base_generate_tf_test.cpp
+  )
+
+  if(TARGET test_base_generate_tf)
+    target_include_directories(
+      test_base_generate_tf PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+    target_link_libraries(test_base_generate_tf ${PROJECT_NAME})
+    ament_target_dependencies(
+      test_base_generate_tf
+      rclcpp
+      tf2_msgs
+      tf2_ros
+      geometry_msgs
+      cloisim_ros_protobuf_msgs
+    )
+  endif()
+endif()
 
 ament_package()
