@@ -27,10 +27,13 @@ class LidarNodeTest : public ::testing::Test
 protected:
   void SetUp() override
   {
+    const auto * test_info = ::testing::UnitTest::GetInstance()->current_test_info();
+    topic_name_ = "scan_" + std::string(test_info->name());
+
     server_ = std::make_unique<cloisim_ros::test::MockBridgeServer>();
 
     info_port_ = server_->StartInfoServer(
-      cloisim_ros::test::MakeDefaultInfoHandler("scan", "base_scan", "LaserScan"));
+      cloisim_ros::test::MakeDefaultInfoHandler(topic_name_, "base_scan", "LaserScan"));
     data_port_ = server_->StartDataServer();
 
     ASSERT_GT(info_port_, 0);
@@ -85,6 +88,7 @@ protected:
 
   std::unique_ptr<cloisim_ros::test::MockBridgeServer> server_;
   std::shared_ptr<cloisim_ros::Lidar> node_;
+  std::string topic_name_;
   uint16_t info_port_{0};
   uint16_t data_port_{0};
 };
@@ -103,7 +107,7 @@ TEST_F(LidarNodeTest, PublishesScanTopic)
   auto topic_map = node_->get_topic_names_and_types();
   bool found = false;
   for (const auto & [name, types] : topic_map) {
-    if (name.find("scan") != std::string::npos) {
+    if (name == "/" + topic_name_) {
       found = true;
       // Verify it's a LaserScan type
       for (const auto & t : types) {
@@ -126,7 +130,7 @@ TEST_F(LidarNodeTest, ReceivesAndPublishesLaserScan)
 
   auto sub_node = rclcpp::Node::make_shared("test_subscriber");
   auto sub = sub_node->create_subscription<sensor_msgs::msg::LaserScan>(
-    "scan", rclcpp::SensorDataQoS(),
+    topic_name_, rclcpp::SensorDataQoS(),
     [&](const sensor_msgs::msg::LaserScan::SharedPtr msg) {
       received_msg = *msg;
       msg_received = true;
@@ -171,7 +175,7 @@ TEST_F(LidarNodeTest, PointCloud2OutputType)
   server_->Stop();
   server_ = std::make_unique<cloisim_ros::test::MockBridgeServer>();
   info_port_ = server_->StartInfoServer(
-    cloisim_ros::test::MakeDefaultInfoHandler("scan", "base_scan", "PointCloud2"));
+    cloisim_ros::test::MakeDefaultInfoHandler(topic_name_, "base_scan", "PointCloud2"));
   data_port_ = server_->StartDataServer();
   std::this_thread::sleep_for(50ms);
 
@@ -180,7 +184,7 @@ TEST_F(LidarNodeTest, PointCloud2OutputType)
   auto topic_map = node_->get_topic_names_and_types();
   bool found = false;
   for (const auto & [name, types] : topic_map) {
-    if (name.find("scan") != std::string::npos) {
+    if (name == "/" + topic_name_) {
       found = true;
       for (const auto & t : types) {
         EXPECT_TRUE(t.find("PointCloud2") != std::string::npos)
