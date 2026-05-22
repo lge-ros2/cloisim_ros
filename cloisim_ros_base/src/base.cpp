@@ -292,7 +292,40 @@ void Base::SetStaticTransforms(zmq::Bridge * const bridge_ptr)
     return;
   }
 
-  const auto reply = RequestReplyMessage(bridge_ptr, "request_static_transforms");
+  cloisim::msgs::Param reply;
+  constexpr auto retry_delay = 50ms;
+  constexpr auto retry_timeout = 1s;
+  const auto request_start_time = std::chrono::steady_clock::now();
+  const auto request_deadline = request_start_time + retry_timeout;
+  auto retried = false;
+
+  while (true) {
+    reply = RequestReplyMessage(bridge_ptr, "request_static_transforms");
+    if (reply.IsInitialized() && param::HasKey(reply, "static_transforms")) {
+      break;
+    }
+
+    if (std::chrono::steady_clock::now() >= request_deadline) {
+      LOG_W(this,
+        "[" << get_namespace() << "/" << get_name() << "] " <<
+        "Static transform response unavailable after " <<
+          std::chrono::duration_cast<std::chrono::milliseconds>(retry_timeout).count() <<
+          " ms");
+      return;
+    }
+
+    retried = true;
+    std::this_thread::sleep_for(retry_delay);
+  }
+
+  if (retried) {
+    LOG_I(this,
+      "[" << get_namespace() << "/" << get_name() << "] " <<
+      "Static transform response ready after " <<
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - request_start_time).count() <<
+        " ms");
+  }
 
   if (reply.IsInitialized() && param::HasKey(reply, "static_transforms")) {
     auto pose = cloisim::msgs::Pose();

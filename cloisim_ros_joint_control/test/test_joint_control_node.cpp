@@ -59,6 +59,16 @@ protected:
     node_ = std::make_shared<cloisim_ros::JointControl>(options, node_name);
   }
 
+  void CreateNodeWithNamespace(const std::string & node_name, const std::string & namespace_)
+  {
+    rclcpp::NodeOptions options;
+    options.append_parameter_override("bridge.Info", info_port_);
+    options.append_parameter_override("bridge.Tx", tx_port_);
+    options.append_parameter_override("bridge.Rx", uint16_t(0));
+    options.append_parameter_override("bridge.Tf", uint16_t(0));
+    node_ = std::make_shared<cloisim_ros::JointControl>(options, node_name, namespace_);
+  }
+
   static cloisim::msgs::JointState_V MakeSampleJointStates()
   {
     cloisim::msgs::JointState_V jsv;
@@ -167,6 +177,46 @@ TEST_F(JointControlNodeTest, ReceivesAndPublishesJointStates)
   EXPECT_NEAR(received_msg.position[1], -0.3, 0.001);
   EXPECT_NEAR(received_msg.velocity[0], 0.1, 0.001);
   EXPECT_NEAR(received_msg.effort[0], 1.0, 0.001);
+}
+
+TEST_F(JointControlNodeTest, NestedModelTopicPrefix)
+{
+  // Test both cases in a single fixture iteration to avoid ZMQ socket churn.
+
+  // Case 1: node_name == namespace → no topic prefix (existing behavior)
+  CreateNodeWithNamespace("my_robot", "my_robot");
+  {
+    auto topic_map = node_->get_topic_names_and_types();
+    bool found_plain = false;
+    bool found_prefixed = false;
+    for (const auto & [name, types] : topic_map) {
+      if (name == "/my_robot/joint_states") {found_plain = true;}
+      if (name == "/my_robot/my_robot/joint_states") {found_prefixed = true;}
+    }
+    EXPECT_TRUE(found_plain) << "Expected '/my_robot/joint_states' (no prefix)";
+    EXPECT_FALSE(found_prefixed) << "Should NOT have double-prefixed topic";
+  }
+  node_.reset();
+
+  // Case 2: node_name != namespace (nested sub-model) → prefix with node name
+  CreateNodeWithNamespace("left_hand", "CLOiD_hmc_v2");
+  {
+    auto topic_map = node_->get_topic_names_and_types();
+    bool found_joint_states = false;
+    bool found_joint_command = false;
+    bool found_robot_desc = false;
+    for (const auto & [name, types] : topic_map) {
+      if (name == "/CLOiD_hmc_v2/left_hand/joint_states") {found_joint_states = true;}
+      if (name == "/CLOiD_hmc_v2/left_hand/joint_command") {found_joint_command = true;}
+      if (name == "/CLOiD_hmc_v2/left_hand/robot_description") {found_robot_desc = true;}
+    }
+    EXPECT_TRUE(found_joint_states)
+      << "Expected '/CLOiD_hmc_v2/left_hand/joint_states'";
+    EXPECT_TRUE(found_joint_command)
+      << "Expected '/CLOiD_hmc_v2/left_hand/joint_command'";
+    EXPECT_TRUE(found_robot_desc)
+      << "Expected '/CLOiD_hmc_v2/left_hand/robot_description'";
+  }
 }
 
 int main(int argc, char ** argv)
