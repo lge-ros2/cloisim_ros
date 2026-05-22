@@ -26,10 +26,14 @@ class ContactNodeTest : public ::testing::Test
 protected:
   void SetUp() override
   {
+    const auto * test_info = ::testing::UnitTest::GetInstance()->current_test_info();
+    test_name_ = test_info->name();
+    topic_name_ = "contacts_" + test_name_;
+
     server_ = std::make_unique<cloisim_ros::test::MockBridgeServer>();
 
     info_port_ = server_->StartInfoServer(
-      cloisim_ros::test::MakeDefaultInfoHandler("contacts", "contact_link"));
+      cloisim_ros::test::MakeDefaultInfoHandler(topic_name_, "contact_link"));
     data_port_ = server_->StartDataServer();
 
     ASSERT_GT(info_port_, 0);
@@ -44,10 +48,11 @@ protected:
     server_.reset();
   }
 
-  void CreateNode(const std::string & node_name = "test_contact")
+  void CreateNode(const std::string & node_name = "")
   {
     auto options = cloisim_ros::test::MakeNodeOptions(info_port_, data_port_);
-    node_ = std::make_shared<cloisim_ros::Contact>(options, node_name);
+    const auto resolved_node_name = node_name.empty() ? "test_contact_" + test_name_ : node_name;
+    node_ = std::make_shared<cloisim_ros::Contact>(options, resolved_node_name);
   }
 
   static cloisim::msgs::Contacts MakeSampleContacts()
@@ -89,8 +94,30 @@ protected:
     return contacts;
   }
 
+  std::string WaitForTopic(const std::string & expected_topic)
+  {
+    const auto deadline = std::chrono::steady_clock::now() + 1s;
+
+    while (std::chrono::steady_clock::now() < deadline) {
+      auto topic_map = node_->get_topic_names_and_types();
+      for (const auto & [name, types] : topic_map) {
+        (void)types;
+        if (name == expected_topic) {
+          return name;
+        }
+      }
+
+      rclcpp::spin_some(node_);
+      std::this_thread::sleep_for(10ms);
+    }
+
+    return "";
+  }
+
   std::unique_ptr<cloisim_ros::test::MockBridgeServer> server_;
   std::shared_ptr<cloisim_ros::Contact> node_;
+  std::string test_name_;
+  std::string topic_name_;
   uint16_t info_port_{0};
   uint16_t data_port_{0};
 };
@@ -105,14 +132,9 @@ TEST_F(ContactNodeTest, PublishesContactsTopic)
 {
   CreateNode();
 
-  auto topic_map = node_->get_topic_names_and_types();
-  bool found = false;
-  for (const auto & [name, types] : topic_map) {
-    if (name.find("contacts") != std::string::npos) {
-      found = true;
-      break;
-    }
-  }
+  const auto expected_topic = std::string("/") + node_->get_name() + "/" + topic_name_;
+  const auto found_topic = WaitForTopic(expected_topic);
+  const bool found = !found_topic.empty();
   EXPECT_TRUE(found) << "Expected contacts topic to be advertised";
 }
 
@@ -126,14 +148,8 @@ TEST_F(ContactNodeTest, ReceivesAndPublishesContactData)
   auto sub_node = rclcpp::Node::make_shared("test_contact_subscriber");
 
   // Find the actual topic name
-  std::string actual_topic;
-  auto topic_map = node_->get_topic_names_and_types();
-  for (const auto & [name, types] : topic_map) {
-    if (name.find("contacts") != std::string::npos) {
-      actual_topic = name;
-      break;
-    }
-  }
+  const auto expected_topic = std::string("/") + node_->get_name() + "/" + topic_name_;
+  auto actual_topic = WaitForTopic(expected_topic);
   ASSERT_FALSE(actual_topic.empty()) << "Could not find contacts topic";
 
   auto sub = sub_node->create_subscription<ros_gz_interfaces::msg::Contacts>(
