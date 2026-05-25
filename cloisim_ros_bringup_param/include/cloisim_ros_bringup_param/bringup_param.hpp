@@ -60,7 +60,7 @@ public:
   bool EnableTFforMicom() {return enable_tf_micom_;}
 
 private:
-  static constexpr const char * MIN_CLOISIM_VERSION = "5.1.2";
+  static constexpr const char * MIN_CLOISIM_VERSION = "5.3.1";
 
   void SetIndividualParameters(Json::Value & result);
   void CheckSimulatorVersion(const Json::Value & root);
