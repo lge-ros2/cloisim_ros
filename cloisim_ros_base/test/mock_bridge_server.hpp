@@ -145,6 +145,7 @@ public:
   {
     Stop();
     if (ctx_) {
+      zmq_ctx_shutdown(ctx_);
       zmq_ctx_term(ctx_);
       ctx_ = nullptr;
     }
@@ -300,6 +301,10 @@ public:
 
     if (rep_thread_.joinable()) {
       rep_thread_.join();
+    }
+
+    if (ctx_) {
+      zmq_ctx_shutdown(ctx_);
     }
 
     if (rep_socket_) {
