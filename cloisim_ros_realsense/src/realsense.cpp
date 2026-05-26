@@ -163,10 +163,10 @@ void RealSense::InitializeImu(zmq::Bridge * const info_ptr, zmq::Bridge * const 
   msg_imu_.header.frame_id = frame_id;
 
   if (info_ptr != nullptr) {
-    auto parent_frame_id = std::string("base_link");
+    auto parent_frame_id = std::string("nowhere_used_ignored");
     auto transform_pose = GetObjectTransform(info_ptr, parent_frame_id);
     transform_pose.set_name(frame_id);
-    SetStaticTf2(transform_pose, parent_frame_id);
+    SetStaticTf2(transform_pose, header_frame_id_);
   }
 
   // ROS2 Publisher
