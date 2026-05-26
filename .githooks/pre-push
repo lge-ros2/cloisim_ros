@@ -1,0 +1,209 @@
+#!/bin/bash
+
+set -euo pipefail
+
+ZERO_SHA="0000000000000000000000000000000000000000"
+REMOTE_NAME="${1:-origin}"
+
+if [[ "${SKIP_CLOISIM_ROS_PRE_PUSH:-0}" == "1" ]]; then
+  echo "[pre-push] Skipping package tests"
+  exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+DEFAULT_SCOPE="auto"
+DEFAULT_PACKAGE_NAME="cloisim_ros_base"
+
+HOOK_SCOPE="${CLOISIM_ROS_PRE_PUSH_SCOPE:-$(git config --get hooks.cloisimRosPrePushScope || true)}"
+PACKAGE_NAME="${CLOISIM_ROS_PRE_PUSH_PACKAGE:-$(git config --get hooks.cloisimRosPrePushPackage || true)}"
+
+if [[ -z "${HOOK_SCOPE}" ]]; then
+  HOOK_SCOPE="${DEFAULT_SCOPE}"
+fi
+
+if [[ -z "${PACKAGE_NAME}" ]]; then
+  PACKAGE_NAME="${DEFAULT_PACKAGE_NAME}"
+fi
+
+if [[ -f "/opt/ros/jazzy/setup.bash" ]]; then
+  # Load the workspace toolchain when the shell has not sourced ROS yet.
+  set +u
+  source "/opt/ros/jazzy/setup.bash"
+  set -u
+fi
+
+if ! command -v colcon >/dev/null 2>&1; then
+  echo "[pre-push] colcon is not available; aborting push"
+  echo "[pre-push] Set SKIP_CLOISIM_ROS_PRE_PUSH=1 to bypass temporarily"
+  exit 1
+fi
+
+ResolveFallbackBase()
+{
+  local local_sha="${1:-HEAD}"
+  local upstream_ref=""
+  local remote_head_ref=""
+
+  if upstream_ref="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)"; then
+    git merge-base "${local_sha}" "${upstream_ref}"
+    return
+  fi
+
+  remote_head_ref="$(git symbolic-ref --quiet --short "refs/remotes/${REMOTE_NAME}/HEAD" 2>/dev/null || true)"
+  if [[ -n "${remote_head_ref}" ]]; then
+    git merge-base "${local_sha}" "${remote_head_ref}"
+    return
+  fi
+
+  git rev-list --max-parents=0 "${local_sha}" | tail -n 1
+}
+
+CollectChangedFiles()
+{
+  local had_ref_input=0
+  local local_ref=""
+  local local_sha=""
+  local remote_ref=""
+  local remote_sha=""
+  local base_sha=""
+  local changed_file=""
+  local -a changed_files=()
+
+  if [[ ! -t 0 ]]; then
+    had_ref_input=1
+    while read -r local_ref local_sha remote_ref remote_sha; do
+      [[ -z "${local_ref}${local_sha}${remote_ref}${remote_sha}" ]] && continue
+      [[ "${local_sha}" == "${ZERO_SHA}" ]] && continue
+
+      if [[ "${remote_sha}" == "${ZERO_SHA}" ]]; then
+        base_sha="$(ResolveFallbackBase "${local_sha}")"
+      else
+        base_sha="${remote_sha}"
+      fi
+
+      while IFS= read -r changed_file; do
+        [[ -n "${changed_file}" ]] && changed_files+=("${changed_file}")
+      done < <(git diff --name-only "${base_sha}" "${local_sha}")
+    done
+  fi
+
+  if [[ "${had_ref_input}" == "0" ]]; then
+    base_sha="$(ResolveFallbackBase HEAD)"
+    while IFS= read -r changed_file; do
+      [[ -n "${changed_file}" ]] && changed_files+=("${changed_file}")
+    done < <(git diff --name-only "${base_sha}" HEAD)
+  fi
+
+  if [[ "${#changed_files[@]}" -eq 0 ]]; then
+    return 0
+  fi
+
+  printf '%s\n' "${changed_files[@]}" | awk 'NF && !seen[$0]++'
+}
+
+CollectChangedPackages()
+{
+  local changed_file=""
+  local package_name=""
+  local package_path=""
+  local matched_package=""
+  local matched_path=""
+  local package_entry=""
+  local -a package_entries=()
+  local -a changed_packages=()
+
+  while IFS= read -r package_entry; do
+    [[ -n "${package_entry}" ]] && package_entries+=("${package_entry}")
+  done < <(colcon list | awk '{print $1 "\t" $2}')
+
+  for changed_file in "$@"; do
+    matched_package=""
+    matched_path=""
+
+    for package_entry in "${package_entries[@]}"; do
+      IFS=$'\t' read -r package_name package_path <<< "${package_entry}"
+      if [[ "${changed_file}" == "${package_path}" || "${changed_file}" == "${package_path}/"* ]]; then
+        if [[ -z "${matched_path}" || "${#package_path}" -gt "${#matched_path}" ]]; then
+          matched_package="${package_name}"
+          matched_path="${package_path}"
+        fi
+      fi
+    done
+
+    [[ -n "${matched_package}" ]] && changed_packages+=("${matched_package}")
+  done
+
+  if [[ "${#changed_packages[@]}" -eq 0 ]]; then
+    return 0
+  fi
+
+  printf '%s\n' "${changed_packages[@]}" | awk '!seen[$0]++'
+}
+
+RunAutoScope()
+{
+  local package=""
+  local -a changed_files=()
+  local -a changed_packages=()
+
+  mapfile -t changed_files < <(CollectChangedFiles)
+  if [[ "${#changed_files[@]}" -eq 0 ]]; then
+    echo "[pre-push] No package-scoped changes detected in the pushed refs"
+    return 0
+  fi
+
+  mapfile -t changed_packages < <(CollectChangedPackages "${changed_files[@]}")
+  if [[ "${#changed_packages[@]}" -eq 0 ]]; then
+    echo "[pre-push] No package-scoped changes detected in the pushed refs"
+    return 0
+  fi
+
+  echo "[pre-push] Scope=auto packages=${changed_packages[*]}"
+  echo "[pre-push] Building changed packages and dependents with testing enabled"
+  colcon build --packages-above-and-dependencies "${changed_packages[@]}" --cmake-args -DBUILD_TESTING=ON
+
+  echo "[pre-push] Running tests for changed packages"
+  colcon test --packages-select "${changed_packages[@]}" --event-handlers console_direct+
+
+  echo "[pre-push] Verifying test results for changed packages"
+  for package in "${changed_packages[@]}"; do
+    colcon test-result --verbose --test-result-base "build/${package}"
+  done
+}
+
+pushd "${REPO_ROOT}" >/dev/null
+
+case "${HOOK_SCOPE}" in
+  auto)
+    RunAutoScope
+    ;;
+  package)
+    echo "[pre-push] Scope=package target=${PACKAGE_NAME}"
+    echo "[pre-push] Building ${PACKAGE_NAME} with testing enabled"
+    colcon build --packages-up-to "${PACKAGE_NAME}" --cmake-args -DBUILD_TESTING=ON
+
+    echo "[pre-push] Running tests for ${PACKAGE_NAME}"
+    colcon test --packages-select "${PACKAGE_NAME}" --event-handlers console_direct+
+
+    echo "[pre-push] Verifying test results for ${PACKAGE_NAME}"
+    colcon test-result --verbose --test-result-base "build/${PACKAGE_NAME}"
+    ;;
+  workspace)
+    echo "[pre-push] Scope=workspace"
+    echo "[pre-push] Building workspace with testing enabled"
+    colcon build --cmake-args -DBUILD_TESTING=ON
+
+    echo "[pre-push] Running workspace tests"
+    colcon test --event-handlers console_direct+
+
+    echo "[pre-push] Verifying workspace test results"
+    colcon test-result --all --verbose
+    ;;
+  *)
+    echo "[pre-push] Unknown scope '${HOOK_SCOPE}'"
+    echo "[pre-push] Supported scopes: auto, package, workspace"
+    exit 1
+    ;;
+esac
+
+popd >/dev/null

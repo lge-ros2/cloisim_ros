@@ -57,6 +57,64 @@ colcon test --packages-select cloisim_ros_lidar cloisim_ros_camera --event-handl
 colcon test-result --all
 ```
 
+## Pre-push hook
+
+To block pushes when tests fail, enable the repo-local git hook:
+
+```shell
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-push
+```
+
+By default the hook runs in `auto` mode. It inspects the refs being pushed, maps changed files back to colcon packages, builds the changed packages plus their dependents, and runs tests only for the directly changed packages.
+
+```shell
+git config hooks.cloisimRosPrePushScope auto
+```
+
+To force a single package instead:
+
+```shell
+git config hooks.cloisimRosPrePushScope package
+git config hooks.cloisimRosPrePushPackage cloisim_ros_base
+```
+
+That mode runs:
+
+```shell
+colcon build --packages-up-to cloisim_ros_base --cmake-args -DBUILD_TESTING=ON
+colcon test --packages-select cloisim_ros_base --event-handlers console_direct+
+colcon test-result --verbose --test-result-base build/cloisim_ros_base
+```
+
+To force full workspace validation:
+
+```shell
+git config hooks.cloisimRosPrePushScope workspace
+```
+
+That mode runs:
+
+```shell
+colcon build --cmake-args -DBUILD_TESTING=ON
+colcon test --event-handlers console_direct+
+colcon test-result --all --verbose
+```
+
+Use `workspace` only when you intentionally want to pay for every package and accept unrelated package failures blocking the push.
+
+To switch back to auto detection:
+
+```shell
+git config hooks.cloisimRosPrePushScope auto
+```
+
+To bypass it temporarily:
+
+```shell
+SKIP_CLOISIM_ROS_PRE_PUSH=1 git push
+```
+
 ## Usage
 
 Set environment variable, if the server is not localhost
