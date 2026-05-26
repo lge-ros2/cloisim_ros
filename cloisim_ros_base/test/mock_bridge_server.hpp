@@ -299,12 +299,12 @@ public:
   {
     running_ = false;
 
-    if (ctx_) {
-      zmq_ctx_shutdown(ctx_);
-    }
-
     if (rep_thread_.joinable()) {
       rep_thread_.join();
+    }
+
+    if (ctx_) {
+      zmq_ctx_shutdown(ctx_);
     }
 
     if (rep_socket_) {
