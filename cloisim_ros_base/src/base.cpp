@@ -96,13 +96,13 @@ void Base::Stop()
     m_timer->cancel(); // m_timer.reset();
   }
 
-  CloseBridges();
-
   for (auto & thread : m_threads) {
     if (thread.joinable()) {
       thread.join(); // Thread finished
     }
   }
+
+  CloseBridges();
 
   Deinitialize();
 }
