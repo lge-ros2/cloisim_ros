@@ -48,6 +48,7 @@ Bridge::Bridge()
 
 Bridge::~Bridge()
 {
+  disconnect_started_.store(true);
   if (pCtx_) {
     if (!ctx_shutdown_called_.exchange(true)) {
       zmq_ctx_shutdown(pCtx_);
@@ -59,6 +60,12 @@ Bridge::~Bridge()
 
     pCtx_ = nullptr;
   }
+}
+
+bool Bridge::IsUsable() const
+{
+  return !disconnect_started_.load() && !ctx_shutdown_called_.load() && !ctx_term_called_.load() &&
+    pCtx_ != nullptr;
 }
 
 /**
@@ -340,6 +347,11 @@ bool Bridge::ConnectClient(const uint16_t port, const string hashKey)
 
 bool Bridge::Disconnect(const unsigned char mode)
 {
+  auto expected = false;
+  if (!disconnect_started_.compare_exchange_strong(expected, true)) {
+    return true;
+  }
+
   // LOG_W(this, "Bridge disconnect");
 
   if (pCtx_ && !ctx_shutdown_called_.exchange(true)) {
@@ -370,6 +382,11 @@ bool Bridge::Disconnect(const unsigned char mode)
 
 bool Bridge::CloseSocket(void * & target)
 {
+  if (disconnect_started_.load() == false && !IsUsable()) {
+    target = nullptr;
+    return false;
+  }
+
   if (target == nullptr) {
     LOG_E(this, "null target");
     return false;
@@ -383,6 +400,15 @@ bool Bridge::CloseSocket(void * & target)
 
 bool Bridge::Receive(void ** buffer, int & bufferLength, bool is_non_blocking_mode)
 {
+  bufferLength = -1;
+  if (buffer != nullptr) {
+    *buffer = nullptr;
+  }
+
+  if (!IsUsable()) {
+    return false;
+  }
+
   if (pSockRx_ == nullptr) {
     LOG_E(this, "Cannot Receive data due to uninitialized pointer pSockRx=" << pSockRx_);
     return false;
@@ -408,6 +434,10 @@ bool Bridge::Receive(void ** buffer, int & bufferLength, bool is_non_blocking_mo
 
 bool Bridge::Send(const void * buffer, const int bufferLength, bool is_non_blocking_mode)
 {
+  if (!IsUsable()) {
+    return false;
+  }
+
   zmq_msg_t msg;
   if (pSockTx_ == nullptr || zmq_msg_init_size(&msg, tagSize + bufferLength) < 0) {
     LOG_E(this,
@@ -435,6 +465,9 @@ bool Bridge::Send(const void * buffer, const int bufferLength, bool is_non_block
 std::string Bridge::RequestReply(const std::string & request_data)
 {
   string reply_data;
+  if (!IsUsable()) {
+    return reply_data;
+  }
 
   if (request_data.size() > 0) {
     constexpr int max_retries = 5;
