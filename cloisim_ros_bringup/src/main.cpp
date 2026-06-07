@@ -76,14 +76,30 @@ void bringup_process(
   std::shared_ptr<cloisim_ros::BringUpParam> param_node, rclcpp::Executor & executor,
   const rclcpp::Logger & logger)
 {
+  static constexpr auto transientFailureThreshold = 3;
+  static auto consecutive_empty_payload_count = 0;
+
   const auto bringup_list_map = param_node->GetBringUpList();
   if (bringup_list_map.empty()) {
+    ++consecutive_empty_payload_count;
+
+    WARN(
+      logger,
+      "Empty bringup payload received (" << consecutive_empty_payload_count << "/" <<
+        transientFailureThreshold << ")");
+
+    if (consecutive_empty_payload_count < transientFailureThreshold) {
+      return;
+    }
+
     INFO(logger, ">> Check if CLOiSim is launched first!!!");
 
     if (g_node_map_list.size() > 0) {
       remove_all_bringup_nodes(executor, logger);
     }
   } else {
+    consecutive_empty_payload_count = 0;
+
     const auto is_single_mode = param_node->IsSingleMode();
     const auto targetModel = param_node->TargetModel();
     const auto targetPartsType = param_node->TargetPartsType();
