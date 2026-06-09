@@ -54,7 +54,7 @@ void World::Initialize()
   get_parameter_or("bridge.Control", portControl, uint16_t(0));
   const auto hashKeyControl = GetModelName() + GetPartsName() + "Control";
 
-  DBG_SIM_INFO("hashKey Clock(%s) Control(%s)", hashKeyClock.c_str(), hashKeyControl.c_str());
+  LOG_I(this, "hashKey Clock(" << hashKeyClock << ") Control(" << hashKeyControl << ")");
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
@@ -119,7 +119,7 @@ std::string World::ServiceRequest(const std::string & buffer)
     {
       const auto services = FindResetTimeServices();
       if (services.empty()) {
-        DBG_SIM_ERR("No RViz reset_time service found");
+        DBG_SIM_ERR("No reset_time service found");
         setResult("SERVICE_UNAVAILABLE");
       } else {
         int ok_count = 0;
@@ -145,7 +145,7 @@ std::string World::ServiceRequest(const std::string & buffer)
           if (future.wait_for(std::chrono::seconds(1)) == std::future_status::ready) {
             (void)future.get();
             ok_count++;
-            DBG_SIM_INFO("Reset RViz via service: %s", srv_name.c_str());
+            DBG_SIM_INFO("Reset time via service: %s", srv_name.c_str());
           } else {
             timeout_count++;
             DBG_SIM_WRN("Service call timed out: %s", srv_name.c_str());
@@ -182,14 +182,14 @@ std::vector<std::string> cloisim_ros::World::FindResetTimeServices() const
     };
 
   std::vector<std::string> found;
-  static const std::string suffix = "/rviz/reset_time";
+  static const std::string suffix = "/reset_time";
 
   const auto services = this->get_service_names_and_types();
   for (const auto & kv : services) {
     const auto & name = kv.first;
     const auto & types = kv.second;
 
-    if (!ends_with(name, suffix)) {
+    if (!(name == suffix || ends_with(name, suffix))) {
       continue;
     }
 

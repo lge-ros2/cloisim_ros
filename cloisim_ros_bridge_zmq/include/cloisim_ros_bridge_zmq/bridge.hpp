@@ -54,6 +54,7 @@ public:
 private:
   std::atomic<bool> ctx_shutdown_called_{false};
   std::atomic<bool> ctx_term_called_{false};
+  std::atomic<bool> disconnect_started_{false};
 
   const bool useTCP = true;
   const uint8_t tagSize = 8;  // The size of zmq packet header tag
@@ -105,6 +106,7 @@ private:
   // bool ConnectClient() { return false; };
 
   bool CloseSocket(void * & target);
+  bool IsUsable() const;
 
 private:
   std::string GetAddress(const uint16_t port)
