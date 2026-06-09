@@ -185,6 +185,9 @@ void Base::AddBridgeReceiveWorker(
 
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
+          if (err == ETERM || err == ENOTSOCK || err == EFSM) {
+          break;
+          }
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
@@ -231,6 +234,9 @@ void Base::AddBridgeServiceWorker(
         const auto err = bridge_ptr->GetLastError();
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
+          if (err == ETERM || err == ENOTSOCK || err == EFSM) {
+          break;
+          }
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
