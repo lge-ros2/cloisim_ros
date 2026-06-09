@@ -43,7 +43,7 @@ void World::Initialize()
   uint16_t portClock;
   get_parameter_or("bridge.Clock", portClock, uint16_t(0));
   const auto hashKey = GetModelName() + GetPartsName() + "Clock";
-  DBG_SIM_INFO("hashKey: %s", hashKey.c_str());
+  LOG_I(this, "hashKey Clock(" << hashKey << ")");
 
   // Offer transient local durability on the clock topic so that if publishing is infrequent,
   // late subscribers can receive the previously published message(s).
