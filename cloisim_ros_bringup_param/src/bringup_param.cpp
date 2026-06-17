@@ -85,6 +85,8 @@ Json::Value BringUpParam::RequestBringUpList()
 
   if (ws_service_ptr_ == nullptr) {ws_service_ptr_ = new WebSocketService();}
 
+  try {
+
   // cout << "ws Run" << endl;
   ws_service_ptr_->Run();
 
@@ -127,6 +129,16 @@ Json::Value BringUpParam::RequestBringUpList()
         // cout << "There is no node map list" << endl;
       }
     }
+  }
+
+  } catch (const std::runtime_error & e) {
+    RCLCPP_FATAL(this->get_logger(), "Fatal simulator version error: %s", e.what());
+    if (ws_service_ptr_ != nullptr) {
+      ws_service_ptr_->Close();
+      delete ws_service_ptr_;
+      ws_service_ptr_ = nullptr;
+    }
+    rclcpp::shutdown();
   }
 
   return result;
@@ -260,8 +272,8 @@ void BringUpParam::CheckSimulatorVersion(const Json::Value & root)
       "Minimum required CLOiSim version is %s. "
       "Please download: https://github.com/lge-ros2/cloisim/releases",
       MIN_CLOISIM_VERSION);
-    rclcpp::shutdown();
-    std::exit(1);
+    throw std::runtime_error("CLOiSim version unknown; minimum required: " +
+      std::string(MIN_CLOISIM_VERSION));
   }
 
   RCLCPP_INFO_ONCE(this->get_logger(), "Connected to CLOiSim v%s", sim_version.c_str());
@@ -272,8 +284,9 @@ void BringUpParam::CheckSimulatorVersion(const Json::Value & root)
       "CLOiSim version (%s) is older than the minimum required (%s). "
       "Please upgrade: https://github.com/lge-ros2/cloisim/releases/tag/%s",
       sim_version.c_str(), MIN_CLOISIM_VERSION, MIN_CLOISIM_VERSION);
-    rclcpp::shutdown();
-    std::exit(1);
+    throw std::runtime_error(
+      std::string("CLOiSim version ") + sim_version +
+      " is older than minimum required " + MIN_CLOISIM_VERSION);
   }
 }
 
