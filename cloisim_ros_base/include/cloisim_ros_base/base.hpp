@@ -142,7 +142,7 @@ private:
   std::vector<std::unique_ptr<zmq::Bridge>> m_created_bridges;
 
   std::atomic<bool> m_stopping{false};
-  bool m_bRunThread;
+  std::atomic<bool> m_bRunThread{false};
   std::vector<std::thread> m_threads;
 
   rclcpp::TimerBase::SharedPtr m_timer;
