@@ -27,7 +27,7 @@ namespace param
 {
 
 /// Get the first key from a Param's params map (replaces old name())
-inlinestd::string GetName(const cloisim::msgs::Param & param)
+inline std::string GetName(const cloisim::msgs::Param & param)
 {
   if (param.params_size() > 0) {
     return param.params().begin()->first;
@@ -36,7 +36,7 @@ inlinestd::string GetName(const cloisim::msgs::Param & param)
 }
 
 /// Get the value for a specific key from a Param's params map
-inlineconst cloisim::msgs::Any & GetValue(
+inline const cloisim::msgs::Any & GetValue(
   const cloisim::msgs::Param & param, const std::string & key)
 {
   static const cloisim::msgs::Any empty;
@@ -48,7 +48,7 @@ inlineconst cloisim::msgs::Any & GetValue(
 }
 
 /// Get the first value from a Param's params map (replaces old value())
-inlineconst cloisim::msgs::Any & GetValue(const cloisim::msgs::Param & param)
+inline const cloisim::msgs::Any & GetValue(const cloisim::msgs::Param & param)
 {
   static const cloisim::msgs::Any empty;
   if (param.params_size() > 0) {
@@ -58,32 +58,32 @@ inlineconst cloisim::msgs::Any & GetValue(const cloisim::msgs::Param & param)
 }
 
 /// Check if a Param has a specific key
-inlinebool HasKey(const cloisim::msgs::Param & param, const std::string & key)
+inline bool HasKey(const cloisim::msgs::Param & param, const std::string & key)
 {
   return param.params().count(key) > 0;
 }
 
 /// Check if a Param has any params (replaces old has_value() / has_name())
-inlinebool HasValue(const cloisim::msgs::Param & param)
+inline bool HasValue(const cloisim::msgs::Param & param)
 {
   return param.params_size() > 0;
 }
 
 /// Set a name-value pair on a Param (replaces old set_name() + mutable_value())
-inlinevoid Set(
+inline void Set(
   cloisim::msgs::Param & param, const std::string & name, const cloisim::msgs::Any & value)
 {
   (*param.mutable_params())[name] = value;
 }
 
 /// Set a name with empty value on a Param (replaces old set_name())
-inlinevoid SetName(cloisim::msgs::Param & param, const std::string & name)
+inline void SetName(cloisim::msgs::Param & param, const std::string & name)
 {
   (*param.mutable_params())[name] = cloisim::msgs::Any();
 }
 
 /// Get a string from the header data map (replaces old header().str_id())
-inlinestd::string GetHeaderDataValue(
+inline std::string GetHeaderDataValue(
   const cloisim::msgs::Header & header, const std::string & key)
 {
   for (const auto & data : header.data()) {
