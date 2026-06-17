@@ -146,8 +146,9 @@ string JointControl::MakeCommandMessage(control_msgs::msg::JointJog::ConstShared
   }
 
   auto time = pb_joint_cmds.mutable_time();
-  time->set_sec(GetTime().seconds());
-  time->set_nsec(GetTime().nanoseconds());
+  const auto now = GetTime();
+  time->set_sec(now.seconds());
+  time->set_nsec(now.nanoseconds());
 
   string message;
   pb_joint_cmds.SerializeToString(&message);
