@@ -207,7 +207,7 @@ string Micom::MakeControlMessage(const sensor_msgs::msg::Joy::SharedPtr msg) con
   // std::cout << std::endl;
   if (msg->axes.size() < 6) {
     LOG_W(this, "Joy message has " << msg->axes.size() << " axes, expected >= 6; skipping");
-    return message;
+    return {};
   }
   const auto roll = msg->axes[0];
   const auto linear_x = msg->axes[1];
