@@ -25,7 +25,6 @@
 #include <stdexcept>
 #include <string>
 #include <cloisim_ros_websocket_service/websocket_service.hpp>
-#include <cloisim_ros_base/base.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 using string = std::string;
@@ -103,11 +102,11 @@ int RunNode(int argc, char ** argv, const char * pkg_name, const char * parts_ty
 
   const auto filtered = param_node->GetBringUpList(true);
 
-  std::shared_ptr<cloisim_ros::Base> node;
   if (!filtered.empty()) {
     rclcpp::NodeOptions opts;
     param_node->StoreFilteredInfoAsParameters(filtered, opts);
     const auto node_name = param_node->TargetPartsName();
+    std::shared_ptr<NodeT> node;
     if (param_node->IsSingleMode()) {
       node = std::make_shared<NodeT>(opts, node_name);
     } else {
@@ -135,11 +134,10 @@ int RunNodeSingleMode(int argc, char ** argv, const char * pkg_name, const char 
 
   const auto filtered = param_node->GetBringUpList(true);
 
-  std::shared_ptr<cloisim_ros::Base> node;
   if (!filtered.empty()) {
     rclcpp::NodeOptions opts;
     param_node->StoreFilteredInfoAsParameters(filtered, opts);
-    node = std::make_shared<NodeT>(opts, param_node->TargetPartsName());
+    auto node = std::make_shared<NodeT>(opts, param_node->TargetPartsName());
     executor.add_node(node);
   }
 
