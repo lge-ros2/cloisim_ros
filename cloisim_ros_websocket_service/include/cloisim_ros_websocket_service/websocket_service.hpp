@@ -17,6 +17,8 @@
 
 #define ASIO_STANDALONE
 
+#include <atomic>
+#include <mutex>
 #include <string>
 
 #include <websocketpp/client.hpp>
@@ -41,10 +43,12 @@ private:
   websocketpp::lib::shared_ptr<websocketpp::lib::thread> thread_;
 
   std::string target_filter;
+
+  std::mutex payload_mtx_;
   std::string payload_;
 
-  bool is_reply_received_;
-  bool is_connected_;
+  std::atomic<bool> is_reply_received_{false};
+  std::atomic<bool> is_connected_{false};
 
 private:
   void on_message(websocketpp::connection_hdl hdl, client::message_ptr msg);
