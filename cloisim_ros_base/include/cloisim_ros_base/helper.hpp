@@ -80,33 +80,33 @@ struct Quaternion
 
 namespace msg
 {
-static rclcpp::Time Convert(const cloisim::msgs::Time & time)
+inline rclcpp::Time Convert(const cloisim::msgs::Time & time)
 {
   return rclcpp::Time(time.sec(), time.nsec());
 }
 
-static void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Vector3 & dst)
+inline void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Vector3 & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Point32 & dst)
+inline void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Point32 & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Point & dst)
+inline void Convert(const cloisim::msgs::Vector3d & src, geometry_msgs::msg::Point & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
   dst.z = src.z();
 }
 
-static void Convert(const cloisim::msgs::Quaternion & src, geometry_msgs::msg::Quaternion & dst)
+inline void Convert(const cloisim::msgs::Quaternion & src, geometry_msgs::msg::Quaternion & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
@@ -114,13 +114,13 @@ static void Convert(const cloisim::msgs::Quaternion & src, geometry_msgs::msg::Q
   dst.w = src.w();
 }
 
-static void Convert(const cloisim::msgs::Pose & src, geometry_msgs::msg::Pose & dst)
+inline void Convert(const cloisim::msgs::Pose & src, geometry_msgs::msg::Pose & dst)
 {
   Convert(src.position(), dst.position);
   Convert(src.orientation(), dst.orientation);
 }
 
-static void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::ContactsState & dst)
+inline void Convert(const cloisim::msgs::Contacts & src, gazebo_msgs::msg::ContactsState & dst)
 {
   dst.header.stamp = Convert(src.header().stamp());
   dst.states.clear();
@@ -215,7 +215,7 @@ namespace geometry_msgs
 {
 namespace msg
 {
-static void Convert(const tf2::Quaternion & src, Quaternion & dst)
+inline void Convert(const tf2::Quaternion & src, Quaternion & dst)
 {
   dst.x = src.x();
   dst.y = src.y();
@@ -223,7 +223,7 @@ static void Convert(const tf2::Quaternion & src, Quaternion & dst)
   dst.w = src.w();
 }
 
-static void Convert(const Point & src, Vector3 & dst)
+inline void Convert(const Point & src, Vector3 & dst)
 {
   dst.x = src.x;
   dst.y = src.y;
