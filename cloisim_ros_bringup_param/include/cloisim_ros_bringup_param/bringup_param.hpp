@@ -21,6 +21,7 @@
 #include <jsoncpp/json/json.h>
 
 #include <cstdio>
+#include <stdexcept>
 #include <string>
 #include <cloisim_ros_websocket_service/websocket_service.hpp>
 #include <rclcpp/rclcpp.hpp>
