@@ -46,7 +46,6 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
     .arguments(std::vector<string> {
     "--ros-args", "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"
   }))
-  , m_bRunThread(false)
   , m_node_handle(std::shared_ptr<rclcpp::Node>(this, [](auto) {}))
   , m_static_tf_broadcaster(nullptr)
   , m_tf_broadcaster(nullptr)
