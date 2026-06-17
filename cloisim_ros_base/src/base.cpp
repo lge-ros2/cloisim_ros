@@ -185,7 +185,7 @@ void Base::AddBridgeReceiveWorker(
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
           if (err == ETERM || err == ENOTSOCK || err == EFSM) {
-          break;
+            break;
           }
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
@@ -198,8 +198,6 @@ void Base::AddBridgeReceiveWorker(
                 " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
                 bridge_ptr->GetErrorMessage(err));
             }
-          } else if (err == ETERM) {
-            break;
           } else {
             LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
@@ -234,7 +232,7 @@ void Base::AddBridgeServiceWorker(
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
           if (err == ETERM || err == ENOTSOCK || err == EFSM) {
-          break;
+            break;
           }
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
@@ -247,8 +245,6 @@ void Base::AddBridgeServiceWorker(
                 " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
                 bridge_ptr->GetErrorMessage(err));
             }
-          } else if (err == ETERM) {
-            break;
           } else {
             LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
@@ -260,7 +256,7 @@ void Base::AddBridgeServiceWorker(
 
         backoff_ms = 1;
 
-        if (IsRunThread() == false) {break;}
+        if (!IsRunThread()) {break;}
 
         const std::string request_buffer((const char *)buffer_ptr, bufferLength);
         auto response_buffer = service_process_func(request_buffer);
