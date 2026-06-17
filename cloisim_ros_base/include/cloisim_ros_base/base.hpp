@@ -198,7 +198,7 @@ inline cloisim::msgs::Pose Base::GetObjectTransform(
 
 inline bool Base::SetBufferToSimulator(zmq::Bridge * const bridge_ptr, const std::string & buffer)
 {
-  if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr) {
+  if (!buffer.empty() && bridge_ptr != nullptr) {
     return bridge_ptr->Send(buffer.data(), buffer.size());
   } else {
     return false;
