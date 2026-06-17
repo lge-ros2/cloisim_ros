@@ -70,11 +70,8 @@ BringUpParam::BringUpParam(const string basename)
 
 BringUpParam::~BringUpParam()
 {
-  // cout << __FUNCTION__ << " destructor called" << endl;
   if (ws_service_ptr_ != nullptr) {
     ws_service_ptr_->Close();
-    delete ws_service_ptr_;
-    ws_service_ptr_ = nullptr;
   }
 }
 
@@ -83,7 +80,7 @@ Json::Value BringUpParam::RequestBringUpList()
   Json::Reader reader;
   Json::Value result = Json::nullValue;
 
-  if (ws_service_ptr_ == nullptr) {ws_service_ptr_ = new WebSocketService();}
+  if (ws_service_ptr_ == nullptr) {ws_service_ptr_ = std::make_unique<WebSocketService>();}
 
   try {
 
@@ -101,10 +98,7 @@ Json::Value BringUpParam::RequestBringUpList()
       if (ws_service_ptr_->IsConnected() == false) {
         // cout << "Not connected yet" << endl;
         result = Json::nullValue;
-
-        delete ws_service_ptr_;
-        ws_service_ptr_ = nullptr;
-
+        ws_service_ptr_.reset();
         break;
       } else {
         cout << "PayLoad is empty" << endl;
@@ -135,8 +129,7 @@ Json::Value BringUpParam::RequestBringUpList()
     RCLCPP_FATAL(this->get_logger(), "Fatal simulator version error: %s", e.what());
     if (ws_service_ptr_ != nullptr) {
       ws_service_ptr_->Close();
-      delete ws_service_ptr_;
-      ws_service_ptr_ = nullptr;
+      ws_service_ptr_.reset();
     }
     rclcpp::shutdown();
   }
