@@ -32,6 +32,7 @@
   <depend>cloisim_ros_world</depend>
   <depend>cloisim_ros_actor</depend>
   <depend>cloisim_ros_joint_control</depend>
+  <depend>robot_state_publisher</depend>
 
   <test_depend>launch</test_depend>
   <test_depend>launch_testing</test_depend>

@@ -33,10 +33,12 @@ find_package(cloisim_ros_ground_truth REQUIRED)
 find_package(cloisim_ros_world REQUIRED)
 find_package(cloisim_ros_actor REQUIRED)
 find_package(cloisim_ros_joint_control REQUIRED)
+find_package(robot_state_publisher REQUIRED)
 
 
 set(dependencies
   rclcpp
+  robot_state_publisher
   cloisim_ros_bringup_param
   cloisim_ros_camera
   cloisim_ros_micom

@@ -31,6 +31,8 @@ namespace cloisim_ros
 
 Micom::Micom(const rclcpp::NodeOptions & options_, const string node_name, const string namespace_)
 : Base(node_name, namespace_, options_)
+  , publish_robot_description_(false)
+  , pub_robot_desc_(nullptr)
 {
   Start();
 }
@@ -54,6 +56,15 @@ void Micom::Initialize()
   const auto hashKeySub = GetTargetHashKey("Tx");
   const auto hashKeyTf = GetTargetHashKey("Tf");
 
+  // Elected as robot_description owner by bringup only when no joint_control
+  // exists for this robot (joint_control owns robot_description otherwise).
+  get_parameter_or("publish_robot_description", publish_robot_description_, false);
+
+  // When robot_state_publisher is enabled it owns the robot_description topic (fed by bringup
+  // from the cached URDF); the owner node then only caches the URDF and does not publish it.
+  bool enable_rsp = false;
+  get_parameter_or("enable_robot_state_publisher", enable_rsp, false);
+
   auto base_link_name = std::string("base_link");
   info_bridge_ptr_ = CreateBridge();
   if (info_bridge_ptr_ != nullptr) {
@@ -62,6 +73,10 @@ void Micom::Initialize()
 
     GetRos2Parameter(info_bridge_ptr_);
     base_link_name = GetFrameId("base_link");
+
+    if (publish_robot_description_) {
+      RequestRobotDescription(info_bridge_ptr_);
+    }
   }
 
   LOG_I(this,
@@ -73,6 +88,11 @@ void Micom::Initialize()
   base_link_pose.set_name(base_link_name);
 
   SetStaticTf2(base_link_pose, parent_frame_id);
+
+  if (publish_robot_description_ && !enable_rsp) {
+    pub_robot_desc_ = create_publisher<std_msgs::msg::String>(
+      "robot_description", rclcpp::QoS(1).transient_local());
+  }
 
   pub_battery_ =
     create_publisher<sensor_msgs::msg::BatteryState>("battery_state", rclcpp::SensorDataQoS());
@@ -160,6 +180,11 @@ void Micom::Initialize()
 
   srv_reset_odom_ = create_service<std_srvs::srv::Empty>(
     "reset_odometry", std::bind(&Micom::ResetOdometryCallback, this, _1, _2, _3));
+
+  if (pub_robot_desc_ != nullptr) {
+    msg_description_.data = robot_description_;
+    pub_robot_desc_->publish(msg_description_);
+  }
 }
 
 void Micom::ResetOdometryCallback(

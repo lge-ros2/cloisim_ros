@@ -48,6 +48,11 @@ JointControl::~JointControl() {Stop();}
 
 void JointControl::Initialize()
 {
+  // When robot_state_publisher owns the URDF, it publishes robot_description itself from the
+  // URDF parameter fed by bringup; the owner node must not publish the topic (single owner).
+  bool enable_rsp = false;
+  get_parameter_or("enable_robot_state_publisher", enable_rsp, false);
+
   uint16_t portInfo, portTx, portRx, portTf;
   get_parameter_or("bridge.Info", portInfo, uint16_t(0));
   get_parameter_or("bridge.Tx", portTx, uint16_t(0));
@@ -87,8 +92,10 @@ void JointControl::Initialize()
     sub_joint_job_ = create_subscription<control_msgs::msg::JointJog>(
       topic_prefix + "joint_command", rclcpp::SensorDataQoS(), callback_sub);
 
-    pub_robot_desc_ = create_publisher<std_msgs::msg::String>(
-      topic_prefix + "robot_description", rclcpp::QoS(1).transient_local());
+    if (!enable_rsp) {
+      pub_robot_desc_ = create_publisher<std_msgs::msg::String>(
+        topic_prefix + "robot_description", rclcpp::QoS(1).transient_local());
+    }
   }
 
   if (info_bridge_ptr != nullptr) {
@@ -96,7 +103,8 @@ void JointControl::Initialize()
 
     SetStaticTransforms(info_bridge_ptr);
 
-    GetRobotDescription(info_bridge_ptr);
+    // Cache URDF into Base::robot_description_ (used for the topic and/or by bringup for RSP).
+    RequestRobotDescription(info_bridge_ptr);
   }
 
   if (data_bridge_ptr != nullptr) {
@@ -113,7 +121,10 @@ void JointControl::Initialize()
         bind(&Base::GenerateTF, this, std::placeholders::_1, std::placeholders::_2));
   }
 
-  if (pub_robot_desc_ != nullptr) {pub_robot_desc_->publish(msg_description_);}
+  if (pub_robot_desc_ != nullptr) {
+    msg_description_.data = robot_description_;
+    pub_robot_desc_->publish(msg_description_);
+  }
 }
 
 string JointControl::MakeCommandMessage(control_msgs::msg::JointJog::ConstSharedPtr msg)
@@ -182,22 +193,6 @@ void JointControl::PublishData(const void * buffer, int bufferLength)
 
   // publish data
   if (pub_joint_state_ != nullptr) {pub_joint_state_->publish(msg_jointstate);}
-}
-
-void JointControl::GetRobotDescription(zmq::Bridge * const bridge_ptr)
-{
-  if (bridge_ptr == nullptr) {
-    return;
-  }
-
-  const auto reply = RequestReplyMessage(bridge_ptr, "robot_description");
-
-  if (reply.IsInitialized() && param::HasKey(reply, "description")) {
-    if (param::GetValue(reply, "description").type() == cloisim::msgs::Any_ValueType_STRING) {
-      const auto description = param::GetValue(reply, "description").string_value();
-      msg_description_.data = description;
-    }
-  }
 }
 
 }  // namespace cloisim_ros

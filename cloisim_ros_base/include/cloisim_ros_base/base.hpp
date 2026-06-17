@@ -133,6 +133,14 @@ protected:
 public:
   void GenerateTF(const void * buffer, int bufferLength);
 
+  // Cached URDF (robot_description) fetched from the simulator. Empty when this node
+  // is not the robot_description owner. Used by bringup to feed robot_state_publisher.
+  std::string GetRobotDescriptionString() const {return robot_description_;}
+
+protected:
+  // Request the URDF from the simulator and cache it into robot_description_.
+  void RequestRobotDescription(zmq::Bridge * const bridge_ptr);
+
 private:
   void PublishStaticTF();
 
@@ -163,6 +171,14 @@ protected:
   std::vector<std::string> frame_id_list_;
 
   bool enable_tf_publish_;
+
+  // When true, suppress URDF-kinematic static TF that robot_state_publisher now owns
+  // (e.g. simulator sensor mounts via request_static_transforms). Runtime/odom/world TF
+  // are never gated by this flag. Default false (legacy behavior preserved).
+  bool disable_urdf_tf_;
+
+  // Cached URDF text; filled by RequestRobotDescription() on the elected owner only.
+  std::string robot_description_;
 };
 
 inline void Base::Start() {Start(enable_tf_publish_);}

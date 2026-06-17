@@ -26,7 +26,8 @@ extern node_map_t g_node_map_list;
 
 void make_bringup_list(
   const Json::Value & result_map, const string target_model, const string target_parts_type,
-  const string target_parts_name, const bool is_single_mode);
+  const string target_parts_name, const bool is_single_mode,
+  const bool enable_robot_state_publisher, const bool disable_urdf_tf);
 
 void remove_all_bringup_nodes(rclcpp::Executor & executor, const rclcpp::Logger & logger)
 {
@@ -105,8 +106,15 @@ void bringup_process(
     const auto targetPartsType = param_node->TargetPartsType();
     const auto targetPartsName = param_node->TargetPartsName();
 
+    bool enable_robot_state_publisher = false;
+    bool disable_urdf_tf = false;
+    param_node->get_parameter_or(
+      "enable_robot_state_publisher", enable_robot_state_publisher, false);
+    param_node->get_parameter_or("disable_urdf_tf", disable_urdf_tf, false);
+
     make_bringup_list(
-      bringup_list_map, targetModel, targetPartsType, targetPartsName, is_single_mode);
+      bringup_list_map, targetModel, targetPartsType, targetPartsName, is_single_mode,
+      enable_robot_state_publisher, disable_urdf_tf);
 
     add_all_bringup_nodes(executor, logger);
   }

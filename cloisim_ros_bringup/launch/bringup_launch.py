@@ -20,6 +20,8 @@ def generate_launch_description():
     _target_parts_type = LaunchConfiguration('target_parts_type')
     _target_parts_name = LaunchConfiguration('target_parts_name')
     _enable_tf_micom = LaunchConfiguration('micom.enable_tf')
+    _enable_rsp = LaunchConfiguration('enable_robot_state_publisher')
+    _disable_urdf_tf = LaunchConfiguration('disable_urdf_tf')
     _scan = LaunchConfiguration('scan')
     _cmd_vel = LaunchConfiguration('cmd_vel')
     _odom = LaunchConfiguration('odom')
@@ -50,6 +52,16 @@ def generate_launch_description():
         'micom.enable_tf',
         default_value='True',
         description='whether to use tf/tf_static for Micom')
+
+    declare_launch_argument_rsp = DeclareLaunchArgument(
+        'enable_robot_state_publisher',
+        default_value='False',
+        description='spawn a robot_state_publisher per robot to own URDF kinematic TF')
+
+    declare_launch_argument_durdf = DeclareLaunchArgument(
+        'disable_urdf_tf',
+        default_value='False',
+        description='suppress simulator URDF static TF (owned by robot_state_publisher)')
 
     declare_launch_argument_sc = DeclareLaunchArgument(
         'scan',
@@ -95,7 +107,9 @@ def generate_launch_description():
                      'target_model': ParameterValue(_target_model, value_type=str),
                      'target_parts_type': ParameterValue(_target_parts_type, value_type=str),
                      'target_parts_name': ParameterValue(_target_parts_name, value_type=str),
-                     'micom.enable_tf': _enable_tf_micom}])
+                     'micom.enable_tf': _enable_tf_micom,
+                     'enable_robot_state_publisher': _enable_rsp,
+                     'disable_urdf_tf': _disable_urdf_tf}])
 
     # Create the launch description and populate
     ld = launch.LaunchDescription()
@@ -113,6 +127,8 @@ def generate_launch_description():
     ld.add_action(declare_launch_argument_imu)
     ld.add_action(declare_launch_argument_navsatfix)
     ld.add_action(declare_launch_argument_etm)
+    ld.add_action(declare_launch_argument_rsp)
+    ld.add_action(declare_launch_argument_durdf)
     ld.add_action(cloisim_ros_cmd)
 
     return ld

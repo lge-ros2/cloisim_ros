@@ -30,6 +30,7 @@
 #include <std_msgs/msg/u_int16.hpp>
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <cloisim_ros_msgs/msg/contacts_array.hpp>
 
@@ -120,6 +121,11 @@ private:
 
   // reset odometry pose service
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_reset_odom_;
+
+  // robot_description (URDF) fallback ownership
+  bool publish_robot_description_;
+  std_msgs::msg::String msg_description_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_robot_desc_;
 };
 }  // namespace cloisim_ros
 #endif  // CLOISIM_ROS_MICOM__MICOM_HPP_

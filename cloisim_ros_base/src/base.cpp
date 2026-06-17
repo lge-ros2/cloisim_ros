@@ -51,8 +51,10 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
   , m_static_tf_broadcaster(nullptr)
   , m_tf_broadcaster(nullptr)
   , enable_tf_publish_(true)
+  , disable_urdf_tf_(false)
 {
   get_parameter_or("enable_tf", enable_tf_publish_, true);
+  get_parameter_or("disable_urdf_tf", disable_urdf_tf_, false);
 }
 
 Base::~Base()
@@ -292,9 +294,34 @@ string Base::GetRobotName()
   return (is_single_mode) ? robotName : string(get_namespace()).substr(1);
 }
 
+void Base::RequestRobotDescription(zmq::Bridge * const bridge_ptr)
+{
+  if (bridge_ptr == nullptr) {
+    return;
+  }
+
+  const auto reply = RequestReplyMessage(bridge_ptr, "robot_description");
+
+  if (reply.IsInitialized() && param::HasKey(reply, "description")) {
+    const auto & value = param::GetValue(reply, "description");
+    if (value.type() == cloisim::msgs::Any_ValueType_STRING) {
+      robot_description_ = value.string_value();
+    }
+  }
+}
+
 void Base::SetStaticTransforms(zmq::Bridge * const bridge_ptr)
 {
   if (bridge_ptr == nullptr) {
+    return;
+  }
+
+  // Phase 3: when robot_state_publisher owns the URDF kinematic TF, skip publishing the
+  // simulator-provided static transforms (sensor mounts) to avoid duplicate frames.
+  if (disable_urdf_tf_) {
+    LOG_I(this,
+      "[" << get_namespace() << "/" << get_name() << "] " <<
+      "disable_urdf_tf=true: skip simulator static transforms (owned by robot_state_publisher)");
     return;
   }
 

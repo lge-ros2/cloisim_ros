@@ -46,8 +46,6 @@ private:
 
   std::string MakeCommandMessage(control_msgs::msg::JointJog::ConstSharedPtr msg);
 
-  void GetRobotDescription(zmq::Bridge * const bridge_ptr);
-
 private:
   zmq::Bridge * info_bridge_ptr;
 

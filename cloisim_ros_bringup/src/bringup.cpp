@@ -31,11 +31,15 @@
 #include <cloisim_ros_contact/contact.hpp>
 #include <cloisim_ros_logical_camera/logical_camera.hpp>
 #include <cloisim_ros_world/world.hpp>
+#include <robot_state_publisher/robot_state_publisher.hpp>
 
 using namespace std::literals::chrono_literals;
 using string = std::string;
 using std::cout;
 using std::endl;
+
+// Synthetic node_type used as the map key for in-process robot_state_publisher nodes.
+static constexpr auto kRobotStatePublisherType = "ROBOTSTATEPUBLISHER";
 
 // <model_name, node_type, node_name>, <is_added, do_remove, shared_ptr>
 node_map_t g_node_map_list;
@@ -44,9 +48,38 @@ node_map_t g_node_map_list;
 static loaded_key_list_t loaded_key_list;
 static bool g_enable_single_mode = false;
 
+// URDF kinematic TF migration flags (default off => legacy behavior preserved).
+static bool g_enable_robot_state_publisher = false;
+static bool g_disable_urdf_tf = false;
+
+// Create an in-process robot_state_publisher node for one robot. The URDF is fed via the
+// robot_description parameter; RSP then owns the robot_description topic and the URDF TF.
+static std::shared_ptr<rclcpp::Node> make_robot_state_publisher(
+  const string & node_namespace, const string & urdf)
+{
+  std::vector<string> args = {
+    "--ros-args", "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"};
+  if (!node_namespace.empty() && node_namespace != "/") {
+    args.push_back("--remap");
+    args.push_back("__ns:=" + node_namespace);
+  }
+
+  rclcpp::NodeOptions options;
+  options.arguments(args);
+  options.append_parameter_override("use_sim_time", true);
+  options.append_parameter_override("robot_description", urdf);
+
+  try {
+    return std::make_shared<robot_state_publisher::RobotStatePublisher>(options);
+  } catch (const std::exception & e) {
+    cout << "robot_state_publisher creation failed: " << e.what() << endl;
+    return nullptr;
+  }
+}
+
 static std::shared_ptr<cloisim_ros::Base> make_device_node(
   rclcpp::NodeOptions & node_options, const string & node_type, const string & model_name,
-  const string & node_name, const Json::Value & node_param)
+  const string & node_name, const Json::Value & node_param, const bool model_has_joint_control)
 {
   std::shared_ptr<cloisim_ros::Base> node = nullptr;
 
@@ -58,6 +91,11 @@ static std::shared_ptr<cloisim_ros::Base> make_device_node(
     if (!node_param["enable_tf"].isNull()) {
       node_options.append_parameter_override("enable_tf", node_param["enable_tf"].asBool());
     }
+
+    // robot_description ownership: joint_control owns it when present; micom is the
+    // fallback owner only when the robot has no joint_control device.
+    node_options.append_parameter_override(
+      "publish_robot_description", !model_has_joint_control);
 
     if (g_enable_single_mode) {
       node = std::make_shared<cloisim_ros::Micom>(node_options, node_name);
@@ -169,16 +207,32 @@ static std::shared_ptr<cloisim_ros::Base> make_world_node(
 }
 
 static void parse_target_parts_by_name(
-  const Json::Value & item, const string node_type, const string model_name, const string node_name)
+  const Json::Value & item, const string node_type, const string model_name,
+  const string node_name, const bool model_has_joint_control)
 {
   std::shared_ptr<cloisim_ros::Base> node = nullptr;
 
   rclcpp::NodeOptions node_options;
   node_options.append_parameter_override("single_mode", static_cast<bool>(g_enable_single_mode));
+  node_options.append_parameter_override(
+    "enable_robot_state_publisher", g_enable_robot_state_publisher);
+  node_options.append_parameter_override("disable_urdf_tf", g_disable_urdf_tf);
   cloisim_ros::BringUpParam::StoreBridgeInfosAsParameters(item, node_options);
 
   const auto key = tie(model_name, node_type, node_name);
   loaded_key_list.push_back(key);
+
+  // robot_description owner for this model: joint_control when present, otherwise micom.
+  // Only the owner gets an in-process robot_state_publisher when the feature is enabled.
+  const bool is_description_owner =
+    g_enable_robot_state_publisher &&
+    (!node_type.compare("JOINTCONTROL") ||
+    (!node_type.compare("MICOM") && !model_has_joint_control));
+  const auto rsp_key =
+    std::make_tuple(model_name, string(kRobotStatePublisherType), node_name);
+  if (is_description_owner) {
+    loaded_key_list.push_back(rsp_key);  // keep RSP alive across discovery cycles
+  }
 
   // const auto node_info = "Target Model/Type/Parts: " +
   //                        model_name + "/" + node_type + "/" + node_name;
@@ -189,7 +243,8 @@ static void parse_target_parts_by_name(
   }
 
   if (cloisim_ros::BringUpParam::IsRobotSpecificType(node_type)) {
-    node = make_device_node(node_options, node_type, model_name, node_name, item);
+    node = make_device_node(
+      node_options, node_type, model_name, node_name, item, model_has_joint_control);
   } else if (cloisim_ros::BringUpParam::IsWorldSpecificType(node_type)) {
     node = make_world_node(node_options, node_type, model_name, node_name);
   } else {
@@ -199,12 +254,24 @@ static void parse_target_parts_by_name(
   if (node != nullptr) {
     // cout << "New node added - " << node_info << endl;
     g_node_map_list.insert({key, make_tuple(false, false, node)});
+
+    if (is_description_owner) {
+      const auto urdf = node->GetRobotDescriptionString();
+      if (urdf.empty()) {
+        cout << "robot_state_publisher skipped (empty URDF) for model " << model_name << endl;
+      } else if (g_node_map_list.find(rsp_key) == g_node_map_list.end()) {
+        auto rsp_node = make_robot_state_publisher(node->get_namespace(), urdf);
+        if (rsp_node != nullptr) {
+          g_node_map_list.insert({rsp_key, make_tuple(false, false, rsp_node)});
+        }
+      }
+    }
   }
 }
 
 static void parse_target_parts_by_type(
   const Json::Value & node_list, const string node_type, const string model_name,
-  const string targetPartsName)
+  const string targetPartsName, const bool model_has_joint_control)
 {
   // cout << "\tNode Type(Target Parts Type): " << node_type << endl;
 
@@ -215,7 +282,7 @@ static void parse_target_parts_by_type(
     if (!targetPartsName.empty() && targetPartsName.compare(node_name) != 0) {
       continue;
     } else {
-      parse_target_parts_by_name(item, node_type, model_name, node_name);
+      parse_target_parts_by_name(item, node_type, model_name, node_name, model_has_joint_control);
     }
 
     // cout << "\t\tNode Name(Target Parts Name): " << node_name << endl;
@@ -229,6 +296,10 @@ static void parse_target_model(
 {
   // cout << "Item Name(Target Model): " << item_name << endl;
 
+  // Determine robot_description ownership at the model level: if the model exposes a
+  // JOINTCONTROL device, joint_control owns robot_description and micom must not publish it.
+  const bool model_has_joint_control = item_list.isMember("JOINTCONTROL");
+
   for (auto it2 = item_list.begin(); it2 != item_list.end(); ++it2) {
     const auto node_type = it2.key().asString();
     const auto node_list = (*it2);
@@ -236,16 +307,20 @@ static void parse_target_model(
     if (!targetPartsType.empty() && targetPartsType.compare(node_type) != 0) {
       continue;
     } else {
-      parse_target_parts_by_type(node_list, node_type, item_name, targetPartsName);
+      parse_target_parts_by_type(
+        node_list, node_type, item_name, targetPartsName, model_has_joint_control);
     }
   }
 }
 
 void make_bringup_list(
   const Json::Value & result_map, const string target_model, const string target_parts_type,
-  const string target_parts_name, const bool is_single_mode)
+  const string target_parts_name, const bool is_single_mode,
+  const bool enable_robot_state_publisher, const bool disable_urdf_tf)
 {
   g_enable_single_mode = is_single_mode;
+  g_enable_robot_state_publisher = enable_robot_state_publisher;
+  g_disable_urdf_tf = disable_urdf_tf;
   loaded_key_list.clear();
 
   for (auto it = result_map.begin(); it != result_map.end(); it++) {
