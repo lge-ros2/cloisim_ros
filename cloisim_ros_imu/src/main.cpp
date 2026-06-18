@@ -18,5 +18,6 @@
 
 int main(int argc, char ** argv)
 {
-  return cloisim_ros::RunNode<cloisim_ros::Imu>(argc, argv, "cloisim_ros_imu", "IMU");
+  return cloisim_ros::RunNode<cloisim_ros::Imu>(
+    argc, argv, "cloisim_ros_imu", "IMU");
 }

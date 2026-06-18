@@ -89,9 +89,10 @@ private:
 namespace cloisim_ros
 {
 
-// Standard multi/single-mode device: NodeT(options, name) or NodeT(options, name, model).
+// Standard sensor device: NodeT(options, name) or NodeT(options, name, model).
 template<typename NodeT>
-int RunNode(int argc, char ** argv, const char * pkg_name, const char * parts_type)
+int RunNode(
+  int argc, char ** argv, const char * pkg_name, const char * parts_type)
 {
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -110,7 +111,8 @@ int RunNode(int argc, char ** argv, const char * pkg_name, const char * parts_ty
     if (param_node->IsSingleMode()) {
       node = std::make_shared<NodeT>(opts, node_name);
     } else {
-      node = std::make_shared<NodeT>(opts, node_name, param_node->TargetModel());
+      node = std::make_shared<NodeT>(
+        opts, node_name, param_node->TargetModel());
     }
     executor.add_node(node);
   }
@@ -120,9 +122,10 @@ int RunNode(int argc, char ** argv, const char * pkg_name, const char * parts_ty
   return 0;
 }
 
-// Single-mode-only device (World, GroundTruth, …): NodeT(options, name).
+// Single-mode-only device (World, GroundTruth, ...): NodeT(options, name).
 template<typename NodeT>
-int RunNodeSingleMode(int argc, char ** argv, const char * pkg_name, const char * parts_type)
+int RunNodeSingleMode(
+  int argc, char ** argv, const char * pkg_name, const char * parts_type)
 {
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -146,6 +149,6 @@ int RunNodeSingleMode(int argc, char ** argv, const char * pkg_name, const char 
   return 0;
 }
 
-}  // namespace cloisim_ros (launcher templates)
+}  // namespace cloisim_ros
 
 #endif  // CLOISIM_ROS_BRINGUP_PARAM__BRINGUP_PARAM_HPP_
