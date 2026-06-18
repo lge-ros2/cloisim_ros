@@ -135,14 +135,6 @@ void Base::GenerateTF(const void * buffer, int bufferLength)
   }
 }
 
-void Base::PublishTF()
-{
-  if (m_tf_broadcaster != nullptr && m_tf_list.size() > 0) {
-    m_tf_broadcaster->sendTransform(m_tf_list);
-    m_tf_list.clear();
-  }
-}
-
 void Base::PublishStaticTF()
 {
   // Update timestamp
