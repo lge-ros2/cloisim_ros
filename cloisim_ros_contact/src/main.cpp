@@ -18,5 +18,6 @@
 
 int main(int argc, char ** argv)
 {
-  return cloisim_ros::RunNode<cloisim_ros::Contact>(argc, argv, "cloisim_ros_contact", "CONTACT");
+  return cloisim_ros::RunNode<cloisim_ros::Contact>(
+    argc, argv, "cloisim_ros_contact", "CONTACT");
 }

@@ -18,5 +18,6 @@
 
 int main(int argc, char ** argv)
 {
-  return cloisim_ros::RunNode<cloisim_ros::Lidar>(argc, argv, "cloisim_ros_lidar", "LASER");
+  return cloisim_ros::RunNode<cloisim_ros::Lidar>(
+    argc, argv, "cloisim_ros_lidar", "LASER");
 }

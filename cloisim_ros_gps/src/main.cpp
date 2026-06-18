@@ -18,5 +18,6 @@
 
 int main(int argc, char ** argv)
 {
-  return cloisim_ros::RunNode<cloisim_ros::Gps>(argc, argv, "cloisim_ros_gps", "GPS");
+  return cloisim_ros::RunNode<cloisim_ros::Gps>(
+    argc, argv, "cloisim_ros_gps", "GPS");
 }
