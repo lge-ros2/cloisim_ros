@@ -7,12 +7,13 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/logical_camera_image.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/logical_camera_image.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <vision_msgs/msg/detection3_d_array.hpp>
 

@@ -24,6 +24,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -70,7 +71,6 @@ protected:
   void Start(const bool enable_tf_publish);
   void Stop();
 
-  void AddTf2(const geometry_msgs::msg::TransformStamped tf);
   void AddStaticTf2(const geometry_msgs::msg::TransformStamped tf);
 
   bool IsRunThread() {return m_bRunThread;}
@@ -95,7 +95,6 @@ protected:
   std::string GetMainHashKey() {return GetRobotName() + GetPartsName();}
   std::string GetTargetHashKey(const std::string value) {return GetMainHashKey() + value;}
 
-  void PublishTF();
   void PublishTF(const geometry_msgs::msg::TransformStamped & tf);
 
   void SetStaticTransforms(zmq::Bridge * const bridge_ptr);
@@ -128,7 +127,7 @@ protected:
 
   void SetTime(const cloisim::msgs::Time & time);
   void SetTime(const int32_t seconds, const uint32_t nanoseconds);
-  rclcpp::Time GetTime() {return m_sim_time;}
+  rclcpp::Time GetTime() {std::lock_guard<std::mutex> lk(m_sim_time_mtx); return m_sim_time;}
 
 public:
   void GenerateTF(const void * buffer, int bufferLength);
@@ -142,19 +141,19 @@ private:
   std::vector<std::unique_ptr<zmq::Bridge>> m_created_bridges;
 
   std::atomic<bool> m_stopping{false};
-  bool m_bRunThread;
+  std::atomic<bool> m_bRunThread{false};
   std::vector<std::thread> m_threads;
 
   rclcpp::TimerBase::SharedPtr m_timer;
 
   rclcpp::Node::SharedPtr m_node_handle;
 
+  mutable std::mutex m_sim_time_mtx;
   rclcpp::Time m_sim_time;
 
   std::vector<geometry_msgs::msg::TransformStamped> m_static_tf_list;
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> m_static_tf_broadcaster;
 
-  std::vector<geometry_msgs::msg::TransformStamped> m_tf_list;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
 protected:
@@ -166,8 +165,6 @@ protected:
 };
 
 inline void Base::Start() {Start(enable_tf_publish_);}
-
-inline void Base::AddTf2(const geometry_msgs::msg::TransformStamped tf) {m_tf_list.push_back(tf);}
 
 inline void Base::AddStaticTf2(const geometry_msgs::msg::TransformStamped tf)
 {
@@ -196,7 +193,7 @@ inline cloisim::msgs::Pose Base::GetObjectTransform(
 
 inline bool Base::SetBufferToSimulator(zmq::Bridge * const bridge_ptr, const std::string & buffer)
 {
-  if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr) {
+  if (!buffer.empty() && bridge_ptr != nullptr) {
     return bridge_ptr->Send(buffer.data(), buffer.size());
   } else {
     return false;
@@ -219,6 +216,7 @@ inline void Base::SetTime(const cloisim::msgs::Time & time) {SetTime(time.sec(),
 
 inline void Base::SetTime(const int32_t seconds, const uint32_t nanoseconds)
 {
+  std::lock_guard<std::mutex> lk(m_sim_time_mtx);
   m_sim_time = rclcpp::Time(seconds, nanoseconds);
 }
 }  // namespace cloisim_ros

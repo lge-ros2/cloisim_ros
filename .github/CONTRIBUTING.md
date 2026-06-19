@@ -9,7 +9,7 @@ Thank you for your interest in contributing to cloisim_ros! This document outlin
    ```bash
    git clone --recursive https://github.com/<your-username>/cloisim_ros.git -b jazzy
    ```
-3. Set up the development environment (see [INSTRUCTIONS.md](INSTRUCTIONS.md))
+3. Set up the development environment (see [copilot-instructions.md](copilot-instructions.md) and [../CLAUDE.md](../CLAUDE.md))
 
 ## Development Workflow
 
@@ -49,9 +49,24 @@ Thank you for your interest in contributing to cloisim_ros! This document outlin
 
 ### Commit Messages
 
-- Use clear, concise commit messages
-- Start with a verb in imperative mood: "Add", "Fix", "Update", "Remove"
-- Reference issue numbers when applicable: `Fix #42: handle empty laser scan`
+- For Harness Engineering work, write commit messages in English only.
+- Use this format:
+   - first line: `type(scope): summary` or `type: summary`
+   - following lines: indented bullet list with `- ` items describing concrete changes and effects
+- Keep the subject concise and technical.
+- Do not write Harness Engineering commit messages in Korean.
+
+Example:
+
+```text
+fix(cloth): improve resting stability on multi-support contacts
+      - include contact threshold in ClothGrabberPlugin cache key to avoid stale group activation results
+      - reuse cached collider bounds in ClothGrabber to reduce repeated hot-path contact work
+      - skip BurstCloth collider updates when collider state is unchanged to avoid needless wake-ups
+      - make sleep detection tolerate persistent low-energy resting contact
+      - strengthen resting-contact tangential snap and static-friction dead-zone in BurstCloth
+      - filter scene collider candidates more conservatively in ClothPlugin to reduce irrelevant contact noise
+```
 
 ## Adding a New Sensor Package
 

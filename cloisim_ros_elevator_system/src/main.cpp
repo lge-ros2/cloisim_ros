@@ -13,6 +13,9 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include <cstdio>
+#include <memory>
+
 #include "cloisim_ros_elevator_system/elevator_system.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 

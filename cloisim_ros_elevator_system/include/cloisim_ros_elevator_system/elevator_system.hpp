@@ -19,6 +19,7 @@
 #include <cloisim_msgs/param.pb.h>
 
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include <cloisim_ros_base/base.hpp>
@@ -44,6 +45,7 @@ private:
 
 private:
   bool srv_mode_;
+  std::mutex control_mtx_;
   zmq::Bridge * control_bridge_ptr;
   cloisim::msgs::Param request_msg_;
 

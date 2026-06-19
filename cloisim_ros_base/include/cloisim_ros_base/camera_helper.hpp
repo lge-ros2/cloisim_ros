@@ -70,7 +70,7 @@ struct RawImageSubHeader
 #pragma pack(pop)
 static_assert(sizeof(RawImageSubHeader) == 16, "RawImageSubHeader must be 16 bytes");
 
-static std::string GetImageEncondingType(const uint32_t pixel_format)
+inline std::string GetImageEncondingType(const uint32_t pixel_format)
 {
   // UNKNOWN_PIXEL_FORMAT = 0, L_INT8, L_INT16,
   // RGB_INT8 = 3, RGBA_INT8, BGRA_INT8, RGB_INT16, RGB_INT32,
@@ -121,7 +121,7 @@ static std::string GetImageEncondingType(const uint32_t pixel_format)
   return encoding;
 }
 
-static void SetCameraInfoInManager(
+inline void SetCameraInfoInManager(
   std::shared_ptr<camera_info_manager::CameraInfoManager> infoManager,
   const cloisim::msgs::CameraSensor & msg, const std::string frame_id)
 {
@@ -190,7 +190,7 @@ static void SetCameraInfoInManager(
   infoManager->setCameraInfo(camera_info_msg);
 }
 
-static cloisim::msgs::CameraSensor GetCameraSensorMessage(
+inline cloisim::msgs::CameraSensor GetCameraSensorMessage(
   cloisim_ros::zmq::Bridge * const bridge_ptr, const std::string camera_name = "")
 {
   cloisim::msgs::Param request_msg;

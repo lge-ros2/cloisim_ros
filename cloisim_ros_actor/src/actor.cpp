@@ -15,6 +15,9 @@
 
 #include "cloisim_ros_actor/actor.hpp"
 
+#include <memory>
+#include <string>
+
 #include <cloisim_ros_base/param_helper.hpp>
 
 using namespace std::placeholders;

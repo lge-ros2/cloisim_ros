@@ -14,6 +14,9 @@
 
 #include "cloisim_ros_camera/depth_camera.hpp"
 
+#include <string>
+#include <vector>
+
 namespace cloisim_ros
 {
 

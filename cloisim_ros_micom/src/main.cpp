@@ -13,6 +13,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include <memory>
+
 #include "cloisim_ros_micom/micom.hpp"
 #include <cloisim_ros_bringup_param/bringup_param.hpp>
 

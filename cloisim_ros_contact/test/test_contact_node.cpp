@@ -7,12 +7,13 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/contacts.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/contacts.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <ros_gz_interfaces/msg/contacts.hpp>
 

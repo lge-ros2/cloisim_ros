@@ -8,6 +8,9 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/param.pb.h>
+#include <cloisim_msgs/pose.pb.h>
+
 #include <chrono>
 #include <memory>
 #include <mutex>
@@ -15,8 +18,6 @@
 #include <thread>
 #include <vector>
 
-#include <cloisim_msgs/param.pb.h>
-#include <cloisim_msgs/pose.pb.h>
 #include <cloisim_ros_base/base.hpp>
 #include <cloisim_ros_base/param_helper.hpp>
 #include <rclcpp/rclcpp.hpp>
