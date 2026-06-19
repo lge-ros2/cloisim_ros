@@ -8,8 +8,8 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef CLOISIM_ROS_BASE__TEST__MOCK_BRIDGE_SERVER_HPP_
-#define CLOISIM_ROS_BASE__TEST__MOCK_BRIDGE_SERVER_HPP_
+#ifndef MOCK_BRIDGE_SERVER_HPP_
+#define MOCK_BRIDGE_SERVER_HPP_
 
 #include <zmq.h>
 
@@ -431,4 +431,4 @@ MakeCameraInfoHandler(
 }  // namespace test
 }  // namespace cloisim_ros
 
-#endif  // CLOISIM_ROS_BASE__TEST__MOCK_BRIDGE_SERVER_HPP_
+#endif  // MOCK_BRIDGE_SERVER_HPP_
