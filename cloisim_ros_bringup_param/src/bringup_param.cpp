@@ -14,6 +14,11 @@
 
 #include "cloisim_ros_bringup_param/bringup_param.hpp"
 
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <string>
+
 using std::cout;
 using std::endl;
 
@@ -84,7 +89,6 @@ Json::Value BringUpParam::RequestBringUpList()
   Json::Value result = Json::nullValue;
 
   if (ws_service_ptr_ == nullptr) {ws_service_ptr_ = new WebSocketService();}
-
   // cout << "ws Run" << endl;
   ws_service_ptr_->Run();
 

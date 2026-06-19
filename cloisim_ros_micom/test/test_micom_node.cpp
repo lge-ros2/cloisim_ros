@@ -7,13 +7,15 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/micom.pb.h>
+#include <cloisim_msgs/time.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <vector>
 
-#include <cloisim_msgs/micom.pb.h>
-#include <cloisim_msgs/time.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>

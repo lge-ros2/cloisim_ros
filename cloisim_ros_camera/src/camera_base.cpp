@@ -15,6 +15,9 @@
 #include <cloisim_msgs/param.pb.h>
 
 #include <cstring>
+#include <memory>
+#include <string>
+
 #include <cloisim_ros_base/camera_helper.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <sensor_msgs/fill_image.hpp>

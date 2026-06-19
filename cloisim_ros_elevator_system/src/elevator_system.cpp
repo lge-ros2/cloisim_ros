@@ -15,6 +15,9 @@
 
 #include "cloisim_ros_elevator_system/elevator_system.hpp"
 
+#include <memory>
+#include <string>
+
 #include <cloisim_ros_base/param_helper.hpp>
 
 using namespace std::placeholders;

@@ -13,9 +13,14 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include "cloisim_ros_base/base.hpp"
+
 #include <cloisim_msgs/pose.pb.h>
 
-#include "cloisim_ros_base/base.hpp"
+#include <algorithm>
+#include <memory>
+#include <string>
+
 #include "cloisim_ros_base/param_helper.hpp"
 
 using namespace std::literals::chrono_literals;
@@ -93,12 +98,12 @@ void Base::Stop()
   m_bRunThread = false;
 
   if (m_timer) {
-    m_timer->cancel(); // m_timer.reset();
+    m_timer->cancel();  // m_timer.reset();
   }
 
   for (auto & thread : m_threads) {
     if (thread.joinable()) {
-      thread.join(); // Thread finished
+      thread.join();  // Thread finished
     }
   }
 

@@ -7,13 +7,15 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/joint_state.pb.h>
+#include <cloisim_msgs/joint_state_v.pb.h>
+
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/joint_state.pb.h>
-#include <cloisim_msgs/joint_state_v.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <control_msgs/msg/joint_jog.hpp>

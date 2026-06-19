@@ -14,6 +14,10 @@
 
 #include "cloisim_ros_websocket_service/websocket_service.hpp"
 
+#include <iostream>
+#include <string>
+#include <utility>
+
 using namespace std::placeholders;
 using namespace std::literals::chrono_literals;
 using string = std::string;

@@ -19,6 +19,14 @@
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/time.pb.h>
 
+#include <algorithm>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include <cloisim_ros_base/param_helper.hpp>
+
 using string = std::string;
 
 namespace cloisim_ros

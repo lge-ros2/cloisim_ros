@@ -16,6 +16,8 @@
 
 #include "cloisim_ros_ground_truth/ground_truth.hpp"
 
+#include <string>
+
 using string = std::string;
 
 namespace cloisim_ros
