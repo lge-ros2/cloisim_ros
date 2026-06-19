@@ -15,6 +15,9 @@
 
 #include "cloisim_ros_elevator_system/elevator_system.hpp"
 
+#include <memory>
+#include <string>
+
 #include <cloisim_ros_base/param_helper.hpp>
 
 using namespace std::placeholders;
@@ -107,6 +110,7 @@ void ElevatorSystem::DoElevatorCalling(
   const shared_ptr<CallElevator::Request> request,
   const shared_ptr<CallElevator::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   const auto message =
     CreateRequest("call_elevator", request->current_floor, request->target_floor);
 
@@ -121,6 +125,7 @@ void ElevatorSystem::GetElevatorCalled(
   const std::shared_ptr<CallElevator::Request> request,
   const std::shared_ptr<CallElevator::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   auto message =
     CreateRequest("get_called_elevator", request->current_floor, request->target_floor);
 
@@ -128,12 +133,14 @@ void ElevatorSystem::GetElevatorCalled(
   if (reply.IsInitialized()) {
     response->result = GetResultFromResponse(reply);
 
-    const auto result_param = reply.children(2);
-    if (result_param.IsInitialized()) {
-      const auto elevator_index = (!param::HasKey(result_param, "elevator_index")) ?
-        "" :
-        param::GetValue(result_param, "elevator_index").string_value();
-      response->elevator_index = elevator_index;
+    if (reply.children_size() > 2) {
+      const auto result_param = reply.children(2);
+      if (result_param.IsInitialized()) {
+        const auto elevator_index = (!param::HasKey(result_param, "elevator_index")) ?
+          "" :
+          param::GetValue(result_param, "elevator_index").string_value();
+        response->elevator_index = elevator_index;
+      }
     }
   }
 }
@@ -143,6 +150,7 @@ void ElevatorSystem::GetElevatorInfo(
   const std::shared_ptr<GetElevatorInformation::Request> request,
   const std::shared_ptr<GetElevatorInformation::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   auto message = CreateRequest("get_elevator_information", request->elevator_index);
 
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
@@ -151,20 +159,24 @@ void ElevatorSystem::GetElevatorInfo(
 
     response->result = GetResultFromResponse(reply);
 
-    result_param = reply.children(3);
-    if (result_param.IsInitialized()) {
-      const auto current_floor = (!param::HasKey(result_param, "current_floor")) ?
-        "" :
-        param::GetValue(result_param, "current_floor").string_value();
-      response->current_floor = current_floor;
+    if (reply.children_size() > 3) {
+      result_param = reply.children(3);
+      if (result_param.IsInitialized()) {
+        const auto current_floor = (!param::HasKey(result_param, "current_floor")) ?
+          "" :
+          param::GetValue(result_param, "current_floor").string_value();
+        response->current_floor = current_floor;
+      }
     }
 
-    result_param = reply.children(4);
-    if (result_param.IsInitialized()) {
-      const auto height = static_cast<float>(
-        (!param::HasKey(result_param, "height")) ? 0.0 : param::GetValue(result_param,
-          "height").double_value());
-      response->height = height;
+    if (reply.children_size() > 4) {
+      result_param = reply.children(4);
+      if (result_param.IsInitialized()) {
+        const auto height = static_cast<float>(
+          (!param::HasKey(result_param, "height")) ? 0.0 : param::GetValue(result_param,
+            "height").double_value());
+        response->height = height;
+      }
     }
   }
 }
@@ -174,6 +186,7 @@ void ElevatorSystem::SelectFloor(
   const std::shared_ptr<SelectElevatorFloor::Request> request,
   const std::shared_ptr<SelectElevatorFloor::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   auto message = CreateRequest(
     "select_elevator_floor", request->current_floor, request->target_floor,
     request->elevator_index);
@@ -189,6 +202,7 @@ void ElevatorSystem::RequestDoorOpen(
   const std::shared_ptr<RequestDoor::Request> request,
   const std::shared_ptr<RequestDoor::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   auto message = CreateRequest("request_door_open", request->elevator_index);
 
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
@@ -202,6 +216,7 @@ void ElevatorSystem::RequestDoorClose(
   const std::shared_ptr<RequestDoor::Request> request,
   const std::shared_ptr<RequestDoor::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   auto message = CreateRequest("request_door_close", request->elevator_index);
 
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
@@ -215,6 +230,7 @@ void ElevatorSystem::IsDoorOpened(
   const std::shared_ptr<RequestDoor::Request> request,
   const std::shared_ptr<RequestDoor::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   auto message = CreateRequest("is_door_opened", request->elevator_index);
 
   const auto reply = RequestReplyMessage(control_bridge_ptr, message);
@@ -228,6 +244,7 @@ void ElevatorSystem::ReserveElevator(
   const std::shared_ptr<ReturnBool::Request>/*request*/,
   const std::shared_ptr<ReturnBool::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   response->result = srv_mode_;
 }
 
@@ -236,6 +253,7 @@ void ElevatorSystem::ReleaseElevator(
   const std::shared_ptr<ReturnBool::Request>/*request*/,
   const std::shared_ptr<ReturnBool::Response> response)
 {
+  std::lock_guard<std::mutex> lk(control_mtx_);
   response->result = srv_mode_;
 }
 

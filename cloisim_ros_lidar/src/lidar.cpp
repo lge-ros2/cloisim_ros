@@ -15,6 +15,7 @@
 #include <cloisim_msgs/param.pb.h>
 
 #include <algorithm>
+#include <string>
 
 #include "cloisim_ros_lidar/lidar.hpp"
 #include <sensor_msgs/point_cloud2_iterator.hpp>

@@ -13,13 +13,17 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include "cloisim_ros_micom/micom.hpp"
+
 #include <cloisim_msgs/param.pb.h>
 #include <cloisim_msgs/twist.pb.h>
 #include <cloisim_msgs/joystick.pb.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-#include "cloisim_ros_micom/micom.hpp"
+#include <memory>
+#include <string>
+
 #include <cloisim_ros_base/param_helper.hpp>
 
 using namespace std::literals::chrono_literals;
@@ -205,6 +209,10 @@ string Micom::MakeControlMessage(const sensor_msgs::msg::Joy::SharedPtr msg) con
   // std::cout << "msg Axis=";
   // for (const auto & msg_axis : msg->axes) std::cout << msg_axis << ", ";
   // std::cout << std::endl;
+  if (msg->axes.size() < 6) {
+    LOG_W(this, "Joy message has " << msg->axes.size() << " axes, expected >= 6; skipping");
+    return {};
+  }
   const auto roll = msg->axes[0];
   const auto linear_x = msg->axes[1];
   const auto yaw = msg->axes[2];  // angular

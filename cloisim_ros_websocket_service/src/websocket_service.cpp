@@ -14,6 +14,10 @@
 
 #include "cloisim_ros_websocket_service/websocket_service.hpp"
 
+#include <iostream>
+#include <string>
+#include <utility>
+
 using namespace std::placeholders;
 using namespace std::literals::chrono_literals;
 using string = std::string;
@@ -29,21 +33,22 @@ constexpr auto DEFAULT_WS_SERVICE_BRIDGE_ADDRESS = "127.0.0.1";
 }  // namespace
 
 WebSocketService::WebSocketService()
+: WebSocketService(
+    []() -> std::string {
+      const auto env = getenv("CLOISIM_SERVICE_PORT");
+      return (env == nullptr) ? DEFAULT_WS_SERVICE_PORT : env;
+    }())
 {
-  const auto env_service_port = getenv("CLOISIM_SERVICE_PORT");
-  const auto service_port =
-    string((env_service_port == nullptr) ? DEFAULT_WS_SERVICE_PORT : env_service_port);
-
-  new (this) WebSocketService(service_port);
 }
 
 WebSocketService::WebSocketService(const string service_port)
+: WebSocketService(
+    []() -> std::string {
+      const auto env = getenv("CLOISIM_BRIDGE_IP");
+      return (env == nullptr) ? DEFAULT_WS_SERVICE_BRIDGE_ADDRESS : env;
+    }(),
+    service_port)
 {
-  const auto env_bridge_ip = getenv("CLOISIM_BRIDGE_IP");
-  const auto bridge_ip =
-    string((env_bridge_ip == nullptr) ? DEFAULT_WS_SERVICE_BRIDGE_ADDRESS : env_bridge_ip);
-
-  new (this) WebSocketService(bridge_ip, service_port);
 }
 
 WebSocketService::WebSocketService(const string bridge_ip, const string service_port)
@@ -51,8 +56,6 @@ WebSocketService::WebSocketService(const string bridge_ip, const string service_
   , thread_(nullptr)
   , target_filter("")
   , payload_("")
-  , is_reply_received_(false)
-  , is_connected_(false)
 {
   // Set logging to be pretty verbose (everything except message payloads)
   client_.clear_access_channels(websocketpp::log::alevel::all);
@@ -98,8 +101,10 @@ WebSocketService::~WebSocketService()
 void WebSocketService::on_message(websocketpp::connection_hdl hdl, client::message_ptr msg)
 {
   (void)hdl;
-  // cout << __FUNCTION__ << ":: DUMP=" << msg->get_payload() << endl;
-  payload_ = msg->get_payload();
+  {
+    std::lock_guard<std::mutex> lk(payload_mtx_);
+    payload_ = msg->get_payload();
+  }
   is_reply_received_ = true;
 }
 
@@ -137,11 +142,14 @@ void WebSocketService::Request()
 
 std::string WebSocketService::PopPayload()
 {
-  // cout << "(" << payload_.size() << ") " << payload_ << endl;
-  const auto payload_to_return = payload_;
-  payload_.clear();
+  std::string result;
+  {
+    std::lock_guard<std::mutex> lk(payload_mtx_);
+    result = std::move(payload_);
+    payload_.clear();
+  }
   is_reply_received_ = false;
-  return payload_to_return;
+  return result;
 }
 
 void WebSocketService::Run()

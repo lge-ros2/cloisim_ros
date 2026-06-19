@@ -7,12 +7,13 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/imu.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/imu.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 

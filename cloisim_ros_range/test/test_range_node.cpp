@@ -7,12 +7,14 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/sonar.pb.h>
+
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/sonar.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/range.hpp>
 

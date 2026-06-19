@@ -13,9 +13,14 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include "cloisim_ros_base/base.hpp"
+
 #include <cloisim_msgs/pose.pb.h>
 
-#include "cloisim_ros_base/base.hpp"
+#include <algorithm>
+#include <memory>
+#include <string>
+
 #include "cloisim_ros_base/param_helper.hpp"
 
 using namespace std::literals::chrono_literals;
@@ -46,7 +51,6 @@ Base::Base(const string node_name, const string namespace_, const rclcpp::NodeOp
     .arguments(std::vector<string> {
     "--ros-args", "--remap", "/tf:=tf", "--remap", "/tf_static:=tf_static"
   }))
-  , m_bRunThread(false)
   , m_node_handle(std::shared_ptr<rclcpp::Node>(this, [](auto) {}))
   , m_static_tf_broadcaster(nullptr)
   , m_tf_broadcaster(nullptr)
@@ -93,12 +97,12 @@ void Base::Stop()
   m_bRunThread = false;
 
   if (m_timer) {
-    m_timer->cancel(); // m_timer.reset();
+    m_timer->cancel();  // m_timer.reset();
   }
 
   for (auto & thread : m_threads) {
     if (thread.joinable()) {
-      thread.join(); // Thread finished
+      thread.join();  // Thread finished
     }
   }
 
@@ -133,14 +137,6 @@ void Base::GenerateTF(const void * buffer, int bufferLength)
   } else {
     LOG_W(this, "empty child frame id or parent frame id");
 #endif
-  }
-}
-
-void Base::PublishTF()
-{
-  if (m_tf_broadcaster != nullptr && m_tf_list.size() > 0) {
-    m_tf_broadcaster->sendTransform(m_tf_list);
-    m_tf_list.clear();
   }
 }
 
@@ -186,7 +182,7 @@ void Base::AddBridgeReceiveWorker(
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
           if (err == ETERM || err == ENOTSOCK || err == EFSM) {
-          break;
+            break;
           }
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
@@ -199,8 +195,6 @@ void Base::AddBridgeReceiveWorker(
                 " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
                 bridge_ptr->GetErrorMessage(err));
             }
-          } else if (err == ETERM) {
-            break;
           } else {
             LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
@@ -235,7 +229,7 @@ void Base::AddBridgeServiceWorker(
         if (!succeeded || bufferLength < 0) {
           if (!IsRunThread()) {break;}
           if (err == ETERM || err == ENOTSOCK || err == EFSM) {
-          break;
+            break;
           }
           if (err == EAGAIN) {
             std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
@@ -248,8 +242,6 @@ void Base::AddBridgeServiceWorker(
                 " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
                 bridge_ptr->GetErrorMessage(err));
             }
-          } else if (err == ETERM) {
-            break;
           } else {
             LOG_E(this,
               "[" << GetMainHashKey() << "] Failed to get buffer(" << bufferLength <<
@@ -261,7 +253,7 @@ void Base::AddBridgeServiceWorker(
 
         backoff_ms = 1;
 
-        if (IsRunThread() == false) {break;}
+        if (!IsRunThread()) {break;}
 
         const std::string request_buffer((const char *)buffer_ptr, bufferLength);
         auto response_buffer = service_process_func(request_buffer);

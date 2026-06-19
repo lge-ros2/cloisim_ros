@@ -7,12 +7,13 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/navsat_with_covariance.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/navsat_with_covariance.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 

@@ -7,13 +7,15 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/perception.pb.h>
+#include <cloisim_msgs/perception_v.pb.h>
+
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/perception.pb.h>
-#include <cloisim_msgs/perception_v.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <perception_msgs/msg/object_array.hpp>
 

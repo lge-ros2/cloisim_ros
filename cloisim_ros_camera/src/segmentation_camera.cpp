@@ -15,6 +15,7 @@
 #include "cloisim_ros_camera/segmentation_camera.hpp"
 
 #include <cstring>
+#include <string>
 
 using namespace std::placeholders;
 using string = std::string;
