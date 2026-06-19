@@ -18,6 +18,7 @@
 #include <cxxabi.h>
 
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
@@ -28,7 +29,7 @@
 #include <string>
 #include <typeinfo>
 
-#include "term_color.h"
+#include "cloisim_ros_bridge_zmq/term_color.h"
 
 #pragma GCC system_header
 
@@ -101,7 +102,9 @@ inline const char * LogColor(LogLevel lv)
 
 inline std::string NowTimestamp()
 {
-  using namespace std::chrono;
+  using std::chrono::duration_cast;
+  using std::chrono::milliseconds;
+  using std::chrono::system_clock;
   const auto now = system_clock::now();
   const auto ms = duration_cast < milliseconds > (now.time_since_epoch()) % 1000;
   const auto t = system_clock::to_time_t(now);

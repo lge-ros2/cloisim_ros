@@ -16,6 +16,8 @@
 #include "cloisim_ros_gps/gps.hpp"
 #include <tf2/LinearMath/Quaternion.h>
 
+#include <string>
+
 using string = std::string;
 
 namespace cloisim_ros

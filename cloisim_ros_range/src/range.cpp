@@ -13,9 +13,11 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include "cloisim_ros_range/range.hpp"
+
 #include <tf2/LinearMath/Quaternion.h>
 
-#include "cloisim_ros_range/range.hpp"
+#include <string>
 
 using string = std::string;
 

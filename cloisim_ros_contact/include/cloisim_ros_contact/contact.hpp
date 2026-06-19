@@ -39,7 +39,6 @@ private:
   void Deinitialize() override {}
 
 private:
-  void Convert();
   void PublishData(const void * buffer, int bufferLength);
 
 private:

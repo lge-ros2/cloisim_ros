@@ -81,4 +81,74 @@ private:
   Json::Value GetFilteredListByParameters(const Json::Value result);
 };
 }  // namespace cloisim_ros
+
+// ---------------------------------------------------------------------------
+// Convenience launcher templates used by device-node main() functions.
+// ---------------------------------------------------------------------------
+
+namespace cloisim_ros
+{
+
+// Standard sensor device: NodeT(options, name) or NodeT(options, name, model).
+template<typename NodeT>
+int RunNode(
+  int argc, char ** argv, const char * pkg_name, const char * parts_type)
+{
+  rclcpp::init(argc, argv);
+  rclcpp::executors::SingleThreadedExecutor executor;
+
+  const auto param_node = std::make_shared<cloisim_ros::BringUpParam>(pkg_name);
+  param_node->TargetPartsType(parts_type);
+  executor.add_node(param_node);
+
+  const auto filtered = param_node->GetBringUpList(true);
+
+  if (!filtered.empty()) {
+    rclcpp::NodeOptions opts;
+    param_node->StoreFilteredInfoAsParameters(filtered, opts);
+    const auto node_name = param_node->TargetPartsName();
+    std::shared_ptr<NodeT> node;
+    if (param_node->IsSingleMode()) {
+      node = std::make_shared<NodeT>(opts, node_name);
+    } else {
+      node = std::make_shared<NodeT>(
+        opts, node_name, param_node->TargetModel());
+    }
+    executor.add_node(node);
+  }
+
+  executor.spin();
+  rclcpp::shutdown();
+  return 0;
+}
+
+// Single-mode-only device (World, GroundTruth, ...): NodeT(options, name).
+template<typename NodeT>
+int RunNodeSingleMode(
+  int argc, char ** argv, const char * pkg_name, const char * parts_type)
+{
+  rclcpp::init(argc, argv);
+  rclcpp::executors::SingleThreadedExecutor executor;
+
+  const auto param_node = std::make_shared<cloisim_ros::BringUpParam>(pkg_name);
+  param_node->IsSingleMode(true);
+  param_node->TargetPartsType(parts_type);
+  executor.add_node(param_node);
+
+  const auto filtered = param_node->GetBringUpList(true);
+
+  if (!filtered.empty()) {
+    rclcpp::NodeOptions opts;
+    param_node->StoreFilteredInfoAsParameters(filtered, opts);
+    auto node = std::make_shared<NodeT>(opts, param_node->TargetPartsName());
+    executor.add_node(node);
+  }
+
+  executor.spin();
+  rclcpp::shutdown();
+  return 0;
+}
+
+}  // namespace cloisim_ros
+
 #endif  // CLOISIM_ROS_BRINGUP_PARAM__BRINGUP_PARAM_HPP_

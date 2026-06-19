@@ -13,9 +13,12 @@
  *      SPDX-License-Identifier: MIT
  */
 
+#include "cloisim_ros_contact/contact.hpp"
+
 #include <tf2/LinearMath/Quaternion.h>
 
-#include "cloisim_ros_contact/contact.hpp"
+#include <string>
+
 #include <geometry_msgs/msg/wrench.hpp>
 
 

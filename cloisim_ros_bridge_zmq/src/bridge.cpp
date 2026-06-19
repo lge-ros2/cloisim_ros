@@ -14,8 +14,10 @@
  */
 
 #include "cloisim_ros_bridge_zmq/bridge.hpp"
+
 #include <chrono>
 #include <cstring>
+#include <string>
 #include <thread>
 
 #define DEFAULT_CLOISIM_BRIDGE_IP "127.0.0.1"

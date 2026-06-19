@@ -71,7 +71,6 @@ protected:
   void Start(const bool enable_tf_publish);
   void Stop();
 
-  void AddTf2(const geometry_msgs::msg::TransformStamped tf);
   void AddStaticTf2(const geometry_msgs::msg::TransformStamped tf);
 
   bool IsRunThread() {return m_bRunThread;}
@@ -96,7 +95,6 @@ protected:
   std::string GetMainHashKey() {return GetRobotName() + GetPartsName();}
   std::string GetTargetHashKey(const std::string value) {return GetMainHashKey() + value;}
 
-  void PublishTF();
   void PublishTF(const geometry_msgs::msg::TransformStamped & tf);
 
   void SetStaticTransforms(zmq::Bridge * const bridge_ptr);
@@ -156,7 +154,6 @@ private:
   std::vector<geometry_msgs::msg::TransformStamped> m_static_tf_list;
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> m_static_tf_broadcaster;
 
-  std::vector<geometry_msgs::msg::TransformStamped> m_tf_list;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
 protected:
@@ -168,8 +165,6 @@ protected:
 };
 
 inline void Base::Start() {Start(enable_tf_publish_);}
-
-inline void Base::AddTf2(const geometry_msgs::msg::TransformStamped tf) {m_tf_list.push_back(tf);}
 
 inline void Base::AddStaticTf2(const geometry_msgs::msg::TransformStamped tf)
 {
@@ -198,7 +193,7 @@ inline cloisim::msgs::Pose Base::GetObjectTransform(
 
 inline bool Base::SetBufferToSimulator(zmq::Bridge * const bridge_ptr, const std::string & buffer)
 {
-  if (!buffer.empty() && buffer.size() > 0 && bridge_ptr != nullptr) {
+  if (!buffer.empty() && bridge_ptr != nullptr) {
     return bridge_ptr->Send(buffer.data(), buffer.size());
   } else {
     return false;

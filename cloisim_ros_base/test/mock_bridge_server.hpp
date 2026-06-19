@@ -8,10 +8,15 @@
  *      SPDX-License-Identifier: MIT
  */
 
-#ifndef CLOISIM_ROS_BASE__TEST__MOCK_BRIDGE_SERVER_HPP_
-#define CLOISIM_ROS_BASE__TEST__MOCK_BRIDGE_SERVER_HPP_
+#ifndef MOCK_BRIDGE_SERVER_HPP_
+#define MOCK_BRIDGE_SERVER_HPP_
 
 #include <zmq.h>
+
+#include <cloisim_msgs/any.pb.h>
+#include <cloisim_msgs/camerasensor.pb.h>
+#include <cloisim_msgs/param.pb.h>
+#include <cloisim_msgs/pose.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -20,10 +25,6 @@
 #include <string>
 #include <thread>
 
-#include <cloisim_msgs/any.pb.h>
-#include <cloisim_msgs/camerasensor.pb.h>
-#include <cloisim_msgs/param.pb.h>
-#include <cloisim_msgs/pose.pb.h>
 #include <cloisim_ros_base/param_helper.hpp>
 
 namespace cloisim_ros
@@ -217,7 +218,7 @@ public:
             int rc = zmq_msg_recv(&msg, rep_socket_, 0);
             if (rc < 0) {
               zmq_msg_close(&msg);
-              continue; // timeout or error, retry
+              continue;  // timeout or error, retry
             }
 
         // Parse request: strip 8-byte hash tag, then parse protobuf Param
@@ -430,4 +431,4 @@ MakeCameraInfoHandler(
 }  // namespace test
 }  // namespace cloisim_ros
 
-#endif  // CLOISIM_ROS_BASE__TEST__MOCK_BRIDGE_SERVER_HPP_
+#endif  // MOCK_BRIDGE_SERVER_HPP_

@@ -7,13 +7,15 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/header.pb.h>
+#include <cloisim_msgs/laserscan.pb.h>
+
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/header.pb.h>
-#include <cloisim_msgs/laserscan.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 

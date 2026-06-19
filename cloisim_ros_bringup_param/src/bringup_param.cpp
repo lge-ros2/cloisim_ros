@@ -14,6 +14,11 @@
 
 #include "cloisim_ros_bringup_param/bringup_param.hpp"
 
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <string>
+
 using std::cout;
 using std::endl;
 
@@ -83,7 +88,6 @@ Json::Value BringUpParam::RequestBringUpList()
   if (ws_service_ptr_ == nullptr) {ws_service_ptr_ = std::make_unique<WebSocketService>();}
 
   try {
-
   // cout << "ws Run" << endl;
   ws_service_ptr_->Run();
 
@@ -124,7 +128,6 @@ Json::Value BringUpParam::RequestBringUpList()
       }
     }
   }
-
   } catch (const std::runtime_error & e) {
     RCLCPP_FATAL(this->get_logger(), "Fatal simulator version error: %s", e.what());
     if (ws_service_ptr_ != nullptr) {
