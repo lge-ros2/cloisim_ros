@@ -38,6 +38,33 @@ if ! command -v colcon >/dev/null 2>&1; then
   exit 1
 fi
 
+# Keep colcon artifacts (build/install/log) out of the working tree so the repo
+# stays clean. A stable cache dir keyed by the repo path preserves incremental
+# build speed across pushes while never polluting the source directory.
+CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}"
+CACHE_ROOT="${CACHE_HOME}/cloisim_ros_pre_push"
+REPO_KEY="$(printf '%s' "${REPO_ROOT}" | sha1sum | awk '{print $1}' | cut -c1-12)"
+WORK_DIR="${CACHE_ROOT}/${REPO_KEY}"
+COLCON_BUILD_BASE="${WORK_DIR}/build"
+COLCON_INSTALL_BASE="${WORK_DIR}/install"
+COLCON_LOG_BASE="${WORK_DIR}/log"
+mkdir -p "${WORK_DIR}"
+echo "[pre-push] Colcon artifacts directed to ${WORK_DIR}"
+
+# Prune cache dirs not touched within the retention window (default 30 days).
+# Set the TTL to 0 to disable pruning. Each run touches WORK_DIR so the window
+# tracks last use, not creation, keeping actively used caches alive.
+CACHE_TTL_DAYS="${CLOISIM_ROS_PRE_PUSH_CACHE_TTL_DAYS:-$(git config --get hooks.cloisimRosPrePushCacheTtlDays || true)}"
+CACHE_TTL_DAYS="${CACHE_TTL_DAYS:-30}"
+if [[ "${CACHE_TTL_DAYS}" =~ ^[0-9]+$ && "${CACHE_TTL_DAYS}" -gt 0 ]]; then
+  while IFS= read -r stale_cache; do
+    [[ -z "${stale_cache}" ]] && continue
+    echo "[pre-push] Pruning stale cache (>${CACHE_TTL_DAYS}d): ${stale_cache}"
+    rm -rf "${stale_cache}"
+  done < <(find "${CACHE_ROOT}" -mindepth 1 -maxdepth 1 -type d -mtime "+${CACHE_TTL_DAYS}" 2>/dev/null)
+fi
+touch "${WORK_DIR}"
+
 ResolveFallbackBase()
 {
   local local_sha="${1:-HEAD}"
@@ -160,14 +187,14 @@ RunAutoScope()
 
   echo "[pre-push] Scope=auto packages=${changed_packages[*]}"
   echo "[pre-push] Building changed packages and dependents with testing enabled"
-  colcon build --packages-above-and-dependencies "${changed_packages[@]}" --cmake-args -DBUILD_TESTING=ON
+  colcon --log-base "${COLCON_LOG_BASE}" build --build-base "${COLCON_BUILD_BASE}" --install-base "${COLCON_INSTALL_BASE}" --packages-above-and-dependencies "${changed_packages[@]}" --cmake-args -DBUILD_TESTING=ON
 
   echo "[pre-push] Running tests for changed packages"
-  colcon test --packages-select "${changed_packages[@]}" --event-handlers console_direct+
+  colcon --log-base "${COLCON_LOG_BASE}" test --build-base "${COLCON_BUILD_BASE}" --install-base "${COLCON_INSTALL_BASE}" --packages-select "${changed_packages[@]}" --event-handlers console_direct+
 
   echo "[pre-push] Verifying test results for changed packages"
   for package in "${changed_packages[@]}"; do
-    colcon test-result --verbose --test-result-base "build/${package}"
+    colcon --log-base "${COLCON_LOG_BASE}" test-result --verbose --test-result-base "${COLCON_BUILD_BASE}/${package}"
   done
 }
 
@@ -180,24 +207,24 @@ case "${HOOK_SCOPE}" in
   package)
     echo "[pre-push] Scope=package target=${PACKAGE_NAME}"
     echo "[pre-push] Building ${PACKAGE_NAME} with testing enabled"
-    colcon build --packages-up-to "${PACKAGE_NAME}" --cmake-args -DBUILD_TESTING=ON
+    colcon --log-base "${COLCON_LOG_BASE}" build --build-base "${COLCON_BUILD_BASE}" --install-base "${COLCON_INSTALL_BASE}" --packages-up-to "${PACKAGE_NAME}" --cmake-args -DBUILD_TESTING=ON
 
     echo "[pre-push] Running tests for ${PACKAGE_NAME}"
-    colcon test --packages-select "${PACKAGE_NAME}" --event-handlers console_direct+
+    colcon --log-base "${COLCON_LOG_BASE}" test --build-base "${COLCON_BUILD_BASE}" --install-base "${COLCON_INSTALL_BASE}" --packages-select "${PACKAGE_NAME}" --event-handlers console_direct+
 
     echo "[pre-push] Verifying test results for ${PACKAGE_NAME}"
-    colcon test-result --verbose --test-result-base "build/${PACKAGE_NAME}"
+    colcon --log-base "${COLCON_LOG_BASE}" test-result --verbose --test-result-base "${COLCON_BUILD_BASE}/${PACKAGE_NAME}"
     ;;
   workspace)
     echo "[pre-push] Scope=workspace"
     echo "[pre-push] Building workspace with testing enabled"
-    colcon build --cmake-args -DBUILD_TESTING=ON
+    colcon --log-base "${COLCON_LOG_BASE}" build --build-base "${COLCON_BUILD_BASE}" --install-base "${COLCON_INSTALL_BASE}" --cmake-args -DBUILD_TESTING=ON
 
     echo "[pre-push] Running workspace tests"
-    colcon test --event-handlers console_direct+
+    colcon --log-base "${COLCON_LOG_BASE}" test --build-base "${COLCON_BUILD_BASE}" --install-base "${COLCON_INSTALL_BASE}" --event-handlers console_direct+
 
     echo "[pre-push] Verifying workspace test results"
-    colcon test-result --all --verbose
+    colcon --log-base "${COLCON_LOG_BASE}" test-result --all --verbose --test-result-base "${COLCON_BUILD_BASE}"
     ;;
   *)
     echo "[pre-push] Unknown scope '${HOOK_SCOPE}'"
