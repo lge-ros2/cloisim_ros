@@ -372,7 +372,10 @@ bool Bridge::Disconnect(const unsigned char mode)
 
   if ((mode == 0 || (mode & Mode::PUB)) && pPub_) {result &= CloseSocket(pPub_);}
 
-  if ((mode == 0 || (mode & Mode::CLIENT)) && pReq_) {result &= CloseSocket(pReq_);}
+  if ((mode == 0 || (mode & Mode::CLIENT)) && pReq_) {
+    zmq_msg_close(&m_msgRx);
+    result &= CloseSocket(pReq_);
+  }
 
   pSockTx_ = nullptr;
   pSockRx_ = nullptr;

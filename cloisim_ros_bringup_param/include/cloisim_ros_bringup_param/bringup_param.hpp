@@ -21,6 +21,8 @@
 #include <jsoncpp/json/json.h>
 
 #include <cstdio>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <cloisim_ros_websocket_service/websocket_service.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -73,7 +75,7 @@ private:
   std::string target_parts_name;
   bool enable_tf_micom_;
 
-  WebSocketService * ws_service_ptr_;
+  std::unique_ptr<WebSocketService> ws_service_ptr_;
 
 private:
   Json::Value GetFilteredListByParameters(const Json::Value result);

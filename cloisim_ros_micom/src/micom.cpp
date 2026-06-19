@@ -205,6 +205,10 @@ string Micom::MakeControlMessage(const sensor_msgs::msg::Joy::SharedPtr msg) con
   // std::cout << "msg Axis=";
   // for (const auto & msg_axis : msg->axes) std::cout << msg_axis << ", ";
   // std::cout << std::endl;
+  if (msg->axes.size() < 6) {
+    LOG_W(this, "Joy message has " << msg->axes.size() << " axes, expected >= 6; skipping");
+    return {};
+  }
   const auto roll = msg->axes[0];
   const auto linear_x = msg->axes[1];
   const auto yaw = msg->axes[2];  // angular
