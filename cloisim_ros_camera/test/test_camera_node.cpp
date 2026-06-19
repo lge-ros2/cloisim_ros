@@ -7,13 +7,15 @@
 
 #include <gtest/gtest.h>
 
+#include <cloisim_msgs/image.pb.h>
+
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <string>
 
-#include <cloisim_msgs/image.pb.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 

@@ -16,6 +16,7 @@
 #include "cloisim_ros_logical_camera/logical_camera.hpp"
 
 #include <cmath>
+#include <string>
 
 #include <cloisim_ros_base/param_helper.hpp>
 

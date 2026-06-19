@@ -20,6 +20,8 @@
 #include <cloisim_msgs/world_stats.pb.h>
 
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include <cloisim_ros_base/base.hpp>
 #include <rosgraph_msgs/msg/clock.hpp>
