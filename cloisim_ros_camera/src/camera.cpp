@@ -14,6 +14,8 @@
 #include <cloisim_msgs/param.pb.h>
 #include <tf2/LinearMath/Quaternion.h>
 
+#include <string>
+
 #include <cloisim_ros_base/camera_helper.hpp>
 #include <cloisim_ros_camera/camera.hpp>
 #include <sensor_msgs/fill_image.hpp>

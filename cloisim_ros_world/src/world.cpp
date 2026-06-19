@@ -21,7 +21,10 @@
 #include <cloisim_msgs/time.pb.h>
 
 #include <algorithm>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include <cloisim_ros_base/param_helper.hpp>
 

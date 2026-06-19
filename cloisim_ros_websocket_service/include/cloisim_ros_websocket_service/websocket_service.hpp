@@ -70,7 +70,6 @@ public:
   void Close(
     websocketpp::close::status::value code = websocketpp::close::status::normal,
     const std::string & reason = "shutdown cloisim_ros_websocket_service");
-
 };
 }  // namespace cloisim_ros
 
