@@ -152,6 +152,27 @@ void Base::PublishStaticTF()
   }
 }
 
+bool Base::OnBufferTimeout(
+  zmq::Bridge * const bridge_ptr, const int err, const int bufferLength, const rclcpp::Time & now)
+{
+  LOG_W(this,
+    "[" << GetMainHashKey() <<
+    "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
+    " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
+    bridge_ptr->GetErrorMessage(err));
+
+  if (m_consecutive_timeout_count.fetch_add(1) + 1 >= max_consecutive_timeouts) {
+    LOG_E(this,
+      "[" << GetMainHashKey() << "] Sim disconnected for " <<
+      (max_consecutive_timeouts * backoff_max) / 1000 << "s, shutting down");
+    m_bRunThread = false;
+    rclcpp::shutdown();
+    return true;
+  }
+
+  return false;
+}
+
 zmq::Bridge * Base::CreateBridge()
 {
   m_created_bridges.emplace_back(std::make_unique<zmq::Bridge>());
@@ -189,11 +210,9 @@ void Base::AddBridgeReceiveWorker(
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();
-              LOG_W(this,
-                "[" << GetMainHashKey() <<
-                "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
-                " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
-                bridge_ptr->GetErrorMessage(err));
+              if (OnBufferTimeout(bridge_ptr, err, bufferLength, now)) {
+                break;
+              }
             }
           } else {
             LOG_E(this,
@@ -205,6 +224,7 @@ void Base::AddBridgeReceiveWorker(
         }
 
         backoff_ms = 1;
+        m_consecutive_timeout_count = 0;
 
         if (!IsRunThread()) {break;}
 
@@ -236,11 +256,9 @@ void Base::AddBridgeServiceWorker(
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();
-              LOG_W(this,
-                "[" << GetMainHashKey() <<
-                "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
-                " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
-                bridge_ptr->GetErrorMessage(err));
+              if (OnBufferTimeout(bridge_ptr, err, bufferLength, now)) {
+                break;
+              }
             }
           } else {
             LOG_E(this,
@@ -252,6 +270,7 @@ void Base::AddBridgeServiceWorker(
         }
 
         backoff_ms = 1;
+        m_consecutive_timeout_count = 0;
 
         if (!IsRunThread()) {break;}
 
