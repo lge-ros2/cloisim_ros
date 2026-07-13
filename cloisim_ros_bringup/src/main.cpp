@@ -191,6 +191,13 @@ int main(int argc, char ** argv)
     thread->join();
   }
 
+  // Destroy all device/world nodes while rclcpp/rmw are still valid, otherwise
+  // their destructors run during static destruction after main() returns,
+  // racing with rmw library unload (class_loader) and crashing on exit.
+  if (g_node_map_list.size() > 0) {
+    remove_all_bringup_nodes(executor, logger);
+  }
+
   rclcpp::shutdown();
   return 0;
 }
