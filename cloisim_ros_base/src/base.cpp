@@ -95,18 +95,23 @@ void Base::Stop()
   }
 
   m_bRunThread = false;
+  m_thread_wake_cv.notify_all();
 
   if (m_timer) {
     m_timer->cancel();  // m_timer.reset();
   }
+
+  // Close bridges (zmq context shutdown) first: some sockets (e.g. the REP
+  // socket used by service workers) have no recv timeout, so a worker thread
+  // blocked in zmq_msg_recv only wakes with ETERM once the context is shut
+  // down. Joining before this would hang forever.
+  CloseBridges();
 
   for (auto & thread : m_threads) {
     if (thread.joinable()) {
       thread.join();  // Thread finished
     }
   }
-
-  CloseBridges();
 
   Deinitialize();
 }
@@ -150,6 +155,13 @@ void Base::PublishStaticTF()
   if (m_static_tf_broadcaster != nullptr && m_static_tf_list.size() > 0) {
     m_static_tf_broadcaster->sendTransform(m_static_tf_list);
   }
+}
+
+void Base::BackoffSleep(const int backoff_ms)
+{
+  std::unique_lock<std::mutex> lk(m_thread_wake_mtx);
+  m_thread_wake_cv.wait_for(
+    lk, std::chrono::milliseconds(backoff_ms), [this] {return !IsRunThread();});
 }
 
 bool Base::OnBufferTimeout(
@@ -206,7 +218,7 @@ void Base::AddBridgeReceiveWorker(
             break;
           }
           if (err == EAGAIN) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
+            BackoffSleep(backoff_ms);
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();
@@ -252,7 +264,7 @@ void Base::AddBridgeServiceWorker(
             break;
           }
           if (err == EAGAIN) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
+            BackoffSleep(backoff_ms);
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();

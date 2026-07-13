@@ -23,6 +23,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 
 #include <atomic>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -141,6 +142,10 @@ private:
     zmq::Bridge * const bridge_ptr, const int err, const int bufferLength,
     const rclcpp::Time & now);
 
+  // Sleeps for the given backoff duration, but wakes immediately once
+  // Stop() clears m_bRunThread, so shutdown doesn't wait out the backoff.
+  void BackoffSleep(const int backoff_ms);
+
 private:
   static const auto backoff_max = 3000;
   static const auto max_consecutive_timeouts = 7;
@@ -151,6 +156,9 @@ private:
   std::atomic<bool> m_bRunThread{false};
   std::atomic<int> m_consecutive_timeout_count{0};
   std::vector<std::thread> m_threads;
+
+  mutable std::mutex m_thread_wake_mtx;
+  std::condition_variable m_thread_wake_cv;
 
   rclcpp::TimerBase::SharedPtr m_timer;
 
