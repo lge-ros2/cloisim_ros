@@ -95,18 +95,23 @@ void Base::Stop()
   }
 
   m_bRunThread = false;
+  m_thread_wake_cv.notify_all();
 
   if (m_timer) {
     m_timer->cancel();  // m_timer.reset();
   }
+
+  // Close bridges (zmq context shutdown) first: some sockets (e.g. the REP
+  // socket used by service workers) have no recv timeout, so a worker thread
+  // blocked in zmq_msg_recv only wakes with ETERM once the context is shut
+  // down. Joining before this would hang forever.
+  CloseBridges();
 
   for (auto & thread : m_threads) {
     if (thread.joinable()) {
       thread.join();  // Thread finished
     }
   }
-
-  CloseBridges();
 
   Deinitialize();
 }
@@ -152,6 +157,34 @@ void Base::PublishStaticTF()
   }
 }
 
+void Base::BackoffSleep(const int backoff_ms)
+{
+  std::unique_lock<std::mutex> lk(m_thread_wake_mtx);
+  m_thread_wake_cv.wait_for(
+    lk, std::chrono::milliseconds(backoff_ms), [this] {return !IsRunThread();});
+}
+
+bool Base::OnBufferTimeout(
+  zmq::Bridge * const bridge_ptr, const int err, const int bufferLength, const rclcpp::Time & now)
+{
+  LOG_W(this,
+    "[" << GetMainHashKey() <<
+    "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
+    " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
+    bridge_ptr->GetErrorMessage(err));
+
+  if (m_consecutive_timeout_count.fetch_add(1) + 1 >= max_consecutive_timeouts) {
+    LOG_E(this,
+      "[" << GetMainHashKey() << "] Sim disconnected for " <<
+      (max_consecutive_timeouts * backoff_max) / 1000 << "s, shutting down");
+    m_bRunThread = false;
+    rclcpp::shutdown();
+    return true;
+  }
+
+  return false;
+}
+
 zmq::Bridge * Base::CreateBridge()
 {
   m_created_bridges.emplace_back(std::make_unique<zmq::Bridge>());
@@ -185,15 +218,13 @@ void Base::AddBridgeReceiveWorker(
             break;
           }
           if (err == EAGAIN) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
+            BackoffSleep(backoff_ms);
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();
-              LOG_W(this,
-                "[" << GetMainHashKey() <<
-                "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
-                " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
-                bridge_ptr->GetErrorMessage(err));
+              if (OnBufferTimeout(bridge_ptr, err, bufferLength, now)) {
+                break;
+              }
             }
           } else {
             LOG_E(this,
@@ -205,6 +236,7 @@ void Base::AddBridgeReceiveWorker(
         }
 
         backoff_ms = 1;
+        m_consecutive_timeout_count = 0;
 
         if (!IsRunThread()) {break;}
 
@@ -232,15 +264,13 @@ void Base::AddBridgeServiceWorker(
             break;
           }
           if (err == EAGAIN) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(backoff_ms));
+            BackoffSleep(backoff_ms);
             backoff_ms = std::min(backoff_ms * 2, backoff_max);
             if (backoff_ms == backoff_max) {
               const auto now = this->get_clock()->now();
-              LOG_W(this,
-                "[" << GetMainHashKey() <<
-                "] t=" << std::fixed << std::setprecision(3) << now.seconds() <<
-                " Timeout to get buffer(" << bufferLength << ") <= Sim, " <<
-                bridge_ptr->GetErrorMessage(err));
+              if (OnBufferTimeout(bridge_ptr, err, bufferLength, now)) {
+                break;
+              }
             }
           } else {
             LOG_E(this,
@@ -252,6 +282,7 @@ void Base::AddBridgeServiceWorker(
         }
 
         backoff_ms = 1;
+        m_consecutive_timeout_count = 0;
 
         if (!IsRunThread()) {break;}
 

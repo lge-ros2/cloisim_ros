@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <cstring>
 #include <string>
@@ -136,6 +137,8 @@ inline void LogImpl(
   const char * reset = RESET;
   const auto ts = NowTimestamp();
 
+  static std::mutex log_mtx;
+  std::lock_guard < std::mutex > lk(log_mtx);
   std::cerr
       << color
       << LogLevelStr(level) << ts << " "
